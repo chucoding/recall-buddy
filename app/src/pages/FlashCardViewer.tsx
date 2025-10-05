@@ -67,7 +67,7 @@ const FlashCardViewer: React.FC = () => {
             <div>
                 <Slider
                     ref={slider => {
-                        sliderRef.current = slider;
+                        (sliderRef as any).current = slider;
                     }}
                     dots={true}
                     arrows={false}
