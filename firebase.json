@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "public": "app/dist",
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  },
+  "functions": {
+    "source": "functions/dist",
+    "runtime": "nodejs20"
+  }
+}
