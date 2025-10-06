@@ -6,8 +6,8 @@
     "functions"
   ],
   "scripts": {
-    "dev": "pnpm -C app dev",
-    "build": "pnpm -C app build && pnpm -C functions build",
+    "dev": "pnpm --filter app run dev",
+    "build": "pnpm -r run build",
     "deploy": "firebase deploy --only hosting,functions"
   }
 }
