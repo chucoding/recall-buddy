@@ -37,9 +37,6 @@ importers:
       slick-carousel:
         specifier: ^1.8.1
         version: 1.8.1(jquery@3.7.1)
-      web-vitals:
-        specifier: ^5.1.0
-        version: 5.1.0
     devDependencies:
       '@types/react':
         specifier: ^18.2.0
@@ -3535,9 +3532,6 @@ packages:
         optional: true
       terser:
         optional: true
-
-  web-vitals@5.1.0:
-    resolution: {integrity: sha512-ArI3kx5jI0atlTtmV0fWU3fjpLmq/nD3Zr1iFFlJLaqa5wLBkUSzINwBPySCX/8jRyjlmy1Volw1kz1g9XE4Jg==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -7897,8 +7891,6 @@ snapshots:
       '@types/node': 24.6.2
       fsevents: 2.3.3
       terser: 5.44.0
-
-  web-vitals@5.1.0: {}
 
   webidl-conversions@3.0.1:
     optional: true

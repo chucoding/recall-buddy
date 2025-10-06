@@ -1,12 +1,11 @@
 {
   "name": "app",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "tsc && vite build"
   },
   "dependencies": {
     "firebase": "^10.4.0",
@@ -17,8 +16,7 @@
     "react-slick": "^0.30.2",
     "react-syntax-highlighter": "^15.5.0",
     "remark-gfm": "^4.0.0",
-    "slick-carousel": "^1.8.1",
-    "web-vitals": "^5.1.0"
+    "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
