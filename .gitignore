@@ -19,6 +19,8 @@ functions/dist
 
 npm-debug.log*
 .env
+!.env.example
 
 # firebase
 .firebase/
+firebase-debug.log*

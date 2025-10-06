@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "pnpm --filter app run dev",
     "build": "pnpm -r run build",
-    "deploy": "firebase deploy --only hosting,functions"
+    "deploy": "firebase deploy --only hosting,functions",
+    "setup:proxy": "node scripts/setup-proxy.js"
   }
 }
