@@ -30,6 +30,7 @@ export default defineConfig({
     })
   ],
   server: {
+    open: true,
     proxy: {
       '/question-generator': {
         target: 'https://clovastudio.apigw.ntruss.com',
