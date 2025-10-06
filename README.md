@@ -18,7 +18,7 @@ repo/
 - **패키지 매니저**: pnpm (워크스페이스 지원)
 - **프론트엔드**: Vite + React + TypeScript + PWA
 - **백엔드**: Firebase Cloud Functions (TypeScript + tsup)
-- **데이터베이스**: IndexedDB (클라이언트), Supabase (선택적)
+- **데이터베이스**: IndexedDB (클라이언트)
 - **배포**: Firebase Hosting + Functions
 - **스케줄링**: Firebase Functions v2 onSchedule
 
