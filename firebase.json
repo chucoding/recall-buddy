@@ -11,6 +11,9 @@
       ]
     }
   ],
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "public": "app/dist",
     "ignore": [

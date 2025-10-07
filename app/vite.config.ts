@@ -5,8 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const functionsUrl = mode === 'production' 
-    ? env.VITE_FUNCTIONS_URL_PROD 
-    : env.VITE_FUNCTIONS_URL_LOCAL;
+    ? env.VITE_FUNCTIONS_URL_PROD : env.VITE_FUNCTIONS_URL_LOCAL;
 
   return {
     plugins: [
@@ -39,9 +38,9 @@ export default defineConfig(({ mode }) => {
       open: true,
       proxy: {
         '/api': {
-          target: functionsUrl,
+          target: functionsUrl || 'http://localhost:5001/til-alarm/us-central1',
           changeOrigin: true,
-          secure: true,
+          secure: false, // 로컬 개발 시 false
           rewrite: (path) => path.replace(/^\/api/, '')
         }
       }

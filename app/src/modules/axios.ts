@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { auth } from '../firebase';
 
 // Firebase Functions URL 설정
 const FUNCTIONS_URL = import.meta.env.PROD 
-  ? import.meta.env.VITE_FUNCTIONS_URL_PROD || `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'til-alarm'}.cloudfunctions.net`
+  ? import.meta.env.VITE_FUNCTIONS_URL_PROD
   : '/api'; // Vite 프록시 사용
 
 // 기본 axios 인스턴스 생성
@@ -14,15 +15,19 @@ export const apiClient = axios.create({
   },
 });
 
-// 요청 인터셉터 - GitHub OAuth 토큰을 헤더에 추가
+// 요청 인터셉터 - Firebase ID Token을 헤더에 추가
 apiClient.interceptors.request.use(
   async (config) => {
-    console.log(`API 요청: ${config.method?.toUpperCase()} ${config.url}`);
+    // Firebase Auth ID Token 가져오기
+    const user = auth.currentUser;
     
-    // 로컬 스토리지에서 GitHub OAuth 토큰 가져오기
-    const githubToken = localStorage.getItem('github_access_token');
-    if (githubToken) {
-      config.headers['X-GitHub-Token'] = githubToken;
+    if (user) {
+      try {
+        const idToken = await user.getIdToken();
+        config.headers['Authorization'] = `Bearer ${idToken}`;
+      } catch (error) {
+        console.error('Firebase ID Token 가져오기 실패:', error);
+      }
     }
     
     return config;
@@ -35,10 +40,7 @@ apiClient.interceptors.request.use(
 
 // 응답 인터셉터
 apiClient.interceptors.response.use(
-  (response) => {
-    console.log(`API 응답: ${response.status} ${response.config.url}`);
-    return response;
-  },
+  (response) => response,
   (error) => {
     console.error('API 응답 오류:', error.response?.data || error.message);
     return Promise.reject(error);

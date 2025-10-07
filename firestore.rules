@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자 컬렉션: 로그인한 사용자는 본인 데이터 읽기/쓰기 가능
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 임시: 개발 중에는 모든 인증된 사용자 접근 허용
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
