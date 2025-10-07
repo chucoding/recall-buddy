@@ -1,9 +1,5 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { initializeApp } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
-
-// Firebase Admin SDK 초기화
-initializeApp();
 
 // 매일 오전 8시(KST)에 실행되는 스케줄러
 export const sendDaily8amPush = onSchedule(
