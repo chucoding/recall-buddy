@@ -14,10 +14,17 @@ export const apiClient = axios.create({
   },
 });
 
-// 요청 인터셉터
+// 요청 인터셉터 - GitHub OAuth 토큰을 헤더에 추가
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     console.log(`API 요청: ${config.method?.toUpperCase()} ${config.url}`);
+    
+    // 로컬 스토리지에서 GitHub OAuth 토큰 가져오기
+    const githubToken = localStorage.getItem('github_access_token');
+    if (githubToken) {
+      config.headers['X-GitHub-Token'] = githubToken;
+    }
+    
     return config;
   },
   (error) => {

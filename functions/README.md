@@ -15,29 +15,17 @@
 ### 3. Hypercloax (`src/hypercloax.ts`)
 - `hypercloaxApi` - Hypercloax API 연동 (구현 예정)
 
-## 환경변수 설정
+## 인증 방식
 
-### 1. 로컬 개발용 (.env 파일)
-```bash
-# functions 폴더에 .env 파일 생성
-cp env.example .env
+### GitHub API 인증
+- **사용자 OAuth 토큰 방식**: Firebase Authentication의 GitHub Provider를 통해 로그인한 사용자의 토큰 사용
+- 클라이언트에서 `X-GitHub-Token` 헤더로 토큰 전달
+- 환경변수 토큰 설정 불필요 (사용자별 인증)
 
-# .env 파일에서 GITHUB_TOKEN 설정
-GITHUB_TOKEN=your_github_token_here
-```
-
-### 2. 프로덕션용 (Firebase Config)
-```bash
-# Firebase Functions 환경변수 설정
-firebase functions:config:set github.token="your_github_token_here"
-
-# 설정 확인
-firebase functions:config:get
-```
-
-### 환경변수 우선순위
-1. `process.env.GITHUB_TOKEN` (로컬 개발용)
-2. `functions.config().github.token` (프로덕션용)
+### 장점
+- 사용자별 rate limit (5,000/시간)
+- 개인 리포지토리 접근 가능
+- 보안 강화 (사용자 권한만 사용)
 
 ## 배포 방법
 

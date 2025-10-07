@@ -23,3 +23,4 @@ export const githubProvider = new GithubAuthProvider();
 // 스코프 설정 (필요한 GitHub 권한)
 githubProvider.addScope('user:email');
 githubProvider.addScope('read:user');
+githubProvider.addScope('repo'); // 리포지토리 읽기 권한

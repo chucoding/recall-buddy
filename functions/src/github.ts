@@ -1,5 +1,18 @@
 import { onRequest } from 'firebase-functions/v2/https';
-import * as functions from 'firebase-functions';
+
+/**
+ * GitHub API 인증 헤더 생성
+ * 클라이언트에서 전달받은 사용자의 GitHub OAuth 토큰 사용
+ */
+function getGitHubAuthHeader(req: any): string {
+  const userToken = req.headers['x-github-token'];
+  
+  if (!userToken) {
+    throw new Error('GitHub token not provided. Please authenticate with GitHub.');
+  }
+  
+  return `Bearer ${userToken}`;
+}
 
 // GitHub API 호출을 위한 HTTP Functions
 export const getCommits = onRequest(
@@ -13,29 +26,34 @@ export const getCommits = onRequest(
         return;
       }
 
-      // 환경변수에서 GitHub 토큰 가져오기 (로컬: process.env, 프로덕션: functions.config)
-      const githubToken = process.env.GITHUB_TOKEN || functions.config().github?.token;
-      
-      if (!githubToken) {
-        throw new Error('GitHub token not configured');
-      }
+      const authHeader = getGitHubAuthHeader(req);
 
       const response = await fetch(`https://api.github.com/repos/hssuh/TIL/commits?since=${since}&until=${until}`, {
         headers: {
-          "Authorization": `Bearer ${githubToken}`,
-          "Accept": "application/vnd.github.v3+json"
+          "Authorization": authHeader,
+          "Accept": "application/vnd.github.v3+json",
+          "X-GitHub-Api-Version": "2022-11-28"
         }
       });
 
       if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`);
+        const errorBody = await response.text();
+        console.error(`GitHub API error: ${response.status}`, errorBody);
+        res.status(response.status).json({ 
+          error: 'Failed to fetch commits from GitHub',
+          details: errorBody 
+        });
+        return;
       }
 
       const data = await response.json();
       res.json(data);
     } catch (error) {
       console.error('Error fetching commits:', error);
-      res.status(500).json({ error: 'Failed to fetch commits' });
+      res.status(500).json({ 
+        error: 'Failed to fetch commits',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 );
@@ -51,29 +69,34 @@ export const getFilename = onRequest(
         return;
       }
 
-      // 환경변수에서 GitHub 토큰 가져오기
-      const githubToken = process.env.GITHUB_TOKEN || functions.config().github?.token;
-      
-      if (!githubToken) {
-        throw new Error('GitHub token not configured');
-      }
+      const authHeader = getGitHubAuthHeader(req);
 
       const response = await fetch(`https://api.github.com/repos/hssuh/TIL/commits/${commit_sha}`, {
         headers: {
-          "Authorization": `Bearer ${githubToken}`,
-          "Accept": "application/vnd.github.v3+json"
+          "Authorization": authHeader,
+          "Accept": "application/vnd.github.v3+json",
+          "X-GitHub-Api-Version": "2022-11-28"
         }
       });
 
       if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`);
+        const errorBody = await response.text();
+        console.error(`GitHub API error: ${response.status}`, errorBody);
+        res.status(response.status).json({ 
+          error: 'Failed to fetch commit details from GitHub',
+          details: errorBody 
+        });
+        return;
       }
 
       const data = await response.json();
       res.json(data);
     } catch (error) {
       console.error('Error fetching commit details:', error);
-      res.status(500).json({ error: 'Failed to fetch commit details' });
+      res.status(500).json({ 
+        error: 'Failed to fetch commit details',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 );
@@ -89,22 +112,23 @@ export const getMarkdown = onRequest(
         return;
       }
 
-      // 환경변수에서 GitHub 토큰 가져오기
-      const githubToken = process.env.GITHUB_TOKEN || functions.config().github?.token;
-      
-      if (!githubToken) {
-        throw new Error('GitHub token not configured');
-      }
+      const authHeader = getGitHubAuthHeader(req);
 
       const response = await fetch(`https://api.github.com/repos/hssuh/TIL/contents/${filename}`, {
         headers: {
           "Accept": "application/vnd.github.raw",
-          "Authorization": `Bearer ${githubToken}`
+          "Authorization": authHeader,
+          "X-GitHub-Api-Version": "2022-11-28"
         }
       });
 
       if (!response.ok) {
-        res.status(404).json({ error: 'File not found' });
+        const errorBody = await response.text();
+        console.error(`GitHub API error: ${response.status}`, errorBody);
+        res.status(response.status).json({ 
+          error: 'File not found or access denied',
+          details: errorBody 
+        });
         return;
       }
 
@@ -112,7 +136,10 @@ export const getMarkdown = onRequest(
       res.json({ content });
     } catch (error) {
       console.error('Error fetching markdown:', error);
-      res.status(500).json({ error: 'Failed to fetch markdown content' });
+      res.status(500).json({ 
+        error: 'Failed to fetch markdown content',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 );

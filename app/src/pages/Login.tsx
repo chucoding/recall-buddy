@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
 import { auth, githubProvider } from '../firebase';
 import './Login.css';
 
@@ -24,6 +24,15 @@ const Login: React.FC = () => {
       setLoading(true);
       setError('');
       const result = await signInWithPopup(auth, githubProvider);
+      
+      // GitHub OAuth 토큰 저장
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      if (credential && credential.accessToken) {
+        // GitHub access token을 로컬 스토리지에 저장
+        localStorage.setItem('github_access_token', credential.accessToken);
+        console.log('로그인 성공 및 GitHub 토큰 저장 완료');
+      }
+      
       console.log('로그인 성공:', result.user);
     } catch (error: any) {
       console.error('로그인 실패:', error);
@@ -37,6 +46,8 @@ const Login: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // GitHub 토큰도 함께 제거
+      localStorage.removeItem('github_access_token');
       console.log('로그아웃 성공');
     } catch (error) {
       console.error('로그아웃 실패:', error);
