@@ -2,11 +2,15 @@
   "name": "functions",
   "version": "1.0.0",
   "type": "module",
+  "main": "dist/index.js",
   "engines": { "node": "20" },
   "scripts": {
     "build": "tsup",
     "serve": "pnpm build && firebase emulators:start --only functions,firestore",
-    "deploy": "pnpm build && firebase deploy --only functions"
+    "deploy": "pnpm build && firebase deploy --only functions",
+    "deploy:github": "pnpm build && firebase deploy --only functions:getCommits,functions:getFilename,functions:getMarkdown",
+    "deploy:schedule": "pnpm build && firebase deploy --only functions:sendDaily8amPush",
+    "deploy:hypercloax": "pnpm build && firebase deploy --only functions:hypercloaxApi,functions:chatCompletions,functions:registerDeviceToken,functions:removeDeviceToken,functions:registerSchedule"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0",

@@ -1,96 +1,137 @@
 # Today I Learned Alarm
 
-GitHub 커밋 데이터를 기반으로 학습용 플래시카드를 생성하는 PWA 애플리케이션입니다.
+매일 학습한 내용을 정리하고 알림을 받는 앱입니다.
 
-## 🏗️ 프로젝트 구조
+## 🚀 빠른 시작
 
-```
-repo/
-├── app/                  # React + Vite + TypeScript (PWA)
-├── functions/            # Cloud Functions (TypeScript + tsup)
-├── package.json          # 워크스페이스 루트
-├── pnpm-workspace.yaml
-└── firebase.json
-```
-
-## 🚀 기술 스택
-
-- **패키지 매니저**: pnpm (워크스페이스 지원)
-- **프론트엔드**: Vite + React + TypeScript + PWA
-- **백엔드**: Firebase Cloud Functions (TypeScript + tsup)
-- **데이터베이스**: IndexedDB (클라이언트)
-- **배포**: Firebase Hosting + Functions
-- **스케줄링**: Firebase Functions v2 onSchedule
-
-## 📦 설치 및 실행
-
-### 사전 요구사항
-- Node.js 20+
-- pnpm 9+
-- Firebase CLI
-
-### 설치
+### 1. 환경 설정
 ```bash
-# 의존성 설치
-pnpm install
+# Firebase 프로젝트 정보를 사용해 app/.env에 Functions 프록시 주소 생성/추가
+pnpm env:setup
 
-# 개발 서버 실행
-pnpm dev
+# (옵션) 수동 설정 시 app/.env에 다음 키들을 추가하세요
+# Firebase Web 설정 (Console > 프로젝트 설정 > 일반 > 웹 앱 구성에서 복사)
+VITE_API_KEY=...
+VITE_AUTH_DOMAIN=...
+VITE_PROJECT_ID=...
+VITE_STORAGE_BUCKET=...
+VITE_MESSAGING_SENDER_ID=...
+VITE_APP_ID=...
+VITE_MEASUREMENT_ID=...
 
-# 빌드
-pnpm build
-
-# 배포
-pnpm deploy
+# Functions 호출용 (env:setup가 자동 추가)
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_REGION=us-central1
+VITE_FUNCTIONS_URL_LOCAL=http://localhost:5001/your-project-id/us-central1
+VITE_FUNCTIONS_URL_PROD=https://us-central1-your-project-id.cloudfunctions.net
 ```
 
-### 환경 변수 설정
-`app/env.example`을 참고하여 `.env` 파일을 생성하세요:
-
+### 2. 개발 서버 시작
 ```bash
-cp app/env.example app/.env
-```
-
-## 🔧 개발
-
-### 웹 앱 개발
-```bash
-cd app
 pnpm dev
 ```
 
-### Functions 개발
+### 3. Firebase Functions 설정
 ```bash
 cd functions
-pnpm serve  # 에뮬레이터 실행
+
+# 환경변수 설정 (로컬 개발용)
+echo "GITHUB_TOKEN=your_github_token_here" > .env
+
+# Functions 실행
+pnpm serve
 ```
 
-## 📱 PWA 기능
+## 📁 프로젝트 구조
 
-- 오프라인 지원
-- 웹 푸시 알림
-- 설치 가능한 앱
-- 백그라운드 동기화
+```
+├── app/                    # React 앱 (프론트엔드)
+│   ├── src/
+│   │   ├── api/           # API 호출 함수들
+│   │   ├── modules/       # 유틸리티 (axios 등)
+│   │   └── pages/         # 페이지 컴포넌트들
+│   └── vite.config.ts     # Vite 설정 (프록시 포함)
+├── functions/              # Firebase Functions (백엔드)
+│   ├── src/
+│   │   ├── github.ts      # GitHub API Functions
+│   │   ├── schedule.ts    # 스케줄러 Functions
+│   │   └── hypercloax.ts  # Hypercloax API Functions
+│   └── package.json
+└── scripts/
+    └── setup-proxy.js     # app/.env에 Functions URL 자동 추가/보강 스크립트
+```
 
-## 🔔 알림 기능
+## 🔧 환경변수
 
-- 매일 오전 8시(KST) 자동 알림
-- Firebase Cloud Messaging 사용
-- 토픽 기반 브로드캐스트
+### 앱 환경변수 (app/.env)
+```bash
+# Firebase Web 설정 (콘솔에서 복사)
+VITE_API_KEY=...
+VITE_AUTH_DOMAIN=...
+VITE_PROJECT_ID=...
+VITE_STORAGE_BUCKET=...
+VITE_MESSAGING_SENDER_ID=...
+VITE_APP_ID=...
+VITE_MEASUREMENT_ID=...
+
+# Functions 호출 설정 (env:setup 실행 시 자동 추가/보강)
+VITE_FIREBASE_PROJECT_ID=til-alarm
+VITE_FIREBASE_REGION=us-central1
+VITE_FUNCTIONS_URL_LOCAL=http://localhost:5001/til-alarm/us-central1
+VITE_FUNCTIONS_URL_PROD=https://us-central1-til-alarm.cloudfunctions.net
+```
+
+### Functions 환경변수 (functions/.env)
+```bash
+GITHUB_TOKEN=your_github_token_here
+CLOVA_API_KEY=your_clova_api_key
+NCLOUD_API_KEY=your_ncloud_api_key
+```
 
 ## 🚀 배포
 
-### Firebase 설정
+### Functions 개별 배포
 ```bash
-firebase login
-firebase init hosting functions
+cd functions
+
+# GitHub API만 배포
+pnpm deploy:github
+
+# Schedule만 배포
+pnpm deploy:schedule
+
+# Hypercloax만 배포
+pnpm deploy:hypercloax
+
+# 전체 배포
+pnpm deploy
 ```
 
-### CI/CD
-GitHub Actions를 통한 자동 배포:
-- `main` 브랜치 푸시 시 자동 배포
-- Firebase Hosting + Functions 동시 배포
+### 앱 배포
+```bash
+# 루트에서 전체 배포
+pnpm deploy
+```
 
-## 📝 라이선스
+## 🔄 API 구조
 
-MIT License
+### GitHub API
+- `GET /api/getCommits?since={date}&until={date}` - 커밋 목록
+- `GET /api/getFilename?commit_sha={sha}` - 커밋 상세
+- `GET /api/getMarkdown?filename={filename}` - 마크다운 내용
+
+### Hypercloax API
+- `POST /api/chatCompletions` - CLOVA Studio 질문 생성
+- `POST /api/registerDeviceToken` - FCM 토큰 등록
+- `POST /api/removeDeviceToken` - FCM 토큰 삭제
+- `POST /api/registerSchedule` - 스케줄 등록
+
+### Schedule
+- 자동 실행 (매일 오전 8시 KST)
+
+## 🛠️ 개발 도구
+
+- **프론트엔드**: React + TypeScript + Vite
+- **백엔드**: Firebase Functions + TypeScript
+- **API 통신**: Axios
+- **배포**: Firebase Hosting + Functions

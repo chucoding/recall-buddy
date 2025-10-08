@@ -6,8 +6,13 @@
     "functions"
   ],
   "scripts": {
-    "dev": "pnpm --filter app run dev",
+    "proxy": "node scripts/setup-proxy.js",
+    "dev": "concurrently --kill-others \"firebase emulators:start --only functions\" \"pnpm --filter app run dev\"",
+    "dev:build": "pnpm --filter functions build && pnpm dev",
     "build": "pnpm -r run build",
-    "deploy": "firebase deploy --only hosting,functions"
+    "push": "firebase deploy --only hosting,functions"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

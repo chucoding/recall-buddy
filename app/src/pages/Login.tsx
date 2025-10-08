@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { auth, githubProvider } from '../firebase';
+import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { auth, githubProvider, db } from '../firebase';
 import './Login.css';
 
 const Login: React.FC = () => {
@@ -24,6 +25,18 @@ const Login: React.FC = () => {
       setLoading(true);
       setError('');
       const result = await signInWithPopup(auth, githubProvider);
+      
+      // GitHub OAuth 토큰을 Firestore에 저장
+      // Google의 at-rest encryption으로 자동 암호화됨
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      if (credential && credential.accessToken && result.user) {
+        await setDoc(doc(db, 'users', result.user.uid), {
+          githubToken: credential.accessToken,
+          updatedAt: new Date().toISOString(),
+        });
+        console.log('로그인 성공 및 GitHub 토큰 저장 완료');
+      }
+      
       console.log('로그인 성공:', result.user);
     } catch (error: any) {
       console.error('로그인 실패:', error);
@@ -36,7 +49,11 @@ const Login: React.FC = () => {
   // 로그아웃 함수
   const handleLogout = async () => {
     try {
+      const currentUser = auth.currentUser;
       await signOut(auth);
+      if (currentUser) {
+        await deleteDoc(doc(db, 'users', currentUser.uid));
+      }
       console.log('로그아웃 성공');
     } catch (error) {
       console.error('로그아웃 실패:', error);

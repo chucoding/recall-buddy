@@ -1,3 +1,5 @@
+import { apiClient } from '../modules/axios';
+
 interface Commit {
   sha: string;
   commit: {
@@ -14,29 +16,34 @@ interface CommitDetail {
   }>;
 }
 
+interface MarkdownResponse {
+  content: string;
+}
+
 export async function getCommits(since: Date, until: Date): Promise<Commit[]> {
   const sinceISO = since.toISOString();
   const untilISO = until.toISOString();
   
-  const response = await fetch(`https://api.github.com/repos/hssuh/TIL/commits?since=${sinceISO}&until=${untilISO}`);
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status}`);
-  }
-  return await response.json();
+  const response = await apiClient.get('/getCommits', {
+    params: { since: sinceISO, until: untilISO }
+  });
+  
+  return response.data;
 }
 
 export async function getFilename(sha: string): Promise<CommitDetail> {
-  const response = await fetch(`https://api.github.com/repos/hssuh/TIL/commits/${sha}`);
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status}`);
-  }
-  return await response.json();
+  const response = await apiClient.get('/getFilename', {
+    params: { commit_sha: sha }
+  });
+  
+  return response.data;
 }
 
 export async function getMarkdown(filename: string): Promise<string> {
-  const response = await fetch(`https://raw.githubusercontent.com/hssuh/TIL/main/${filename}`);
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status}`);
-  }
-  return await response.text();
+  const response = await apiClient.get('/getMarkdown', {
+    params: { filename }
+  });
+  
+  const data: MarkdownResponse = response.data;
+  return data.content;
 }
