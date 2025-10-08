@@ -1,4 +1,5 @@
 import { apiClient } from '../modules/axios';
+import type { Repository } from '@til-alarm/shared';
 
 interface Commit {
   sha: string;
@@ -46,4 +47,9 @@ export async function getMarkdown(filename: string): Promise<string> {
   
   const data: MarkdownResponse = response.data;
   return data.content;
+}
+
+export async function getRepositories(): Promise<Repository[]> {
+  const response = await apiClient.get('/getRepositories');
+  return response.data;
 }

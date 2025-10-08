@@ -9,6 +9,7 @@ node_modules
 # production
 app/dist
 functions/dist
+packages/shared/dist
 
 # misc
 .DS_Store
