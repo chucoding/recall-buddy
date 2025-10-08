@@ -70,7 +70,7 @@ const App: React.FC = () => {
           const githubData = await getGithubData(ago);
           if (githubData) {
             const result = await chatCompletions(githubData);
-            const questions = JSON.parse(result.body.result.message.content);
+            const questions = JSON.parse(result.result.message.content);
             for (let ncloudData of questions) {
               list.push({question: ncloudData, answer: githubData});
             }
@@ -81,7 +81,7 @@ const App: React.FC = () => {
       }
       
       if (list.length > 0) {
-        add({date: getCurrentDate(), data: list });
+        await add({date: getCurrentDate(), data: list });
       }
       setLoading(false);
     })();
