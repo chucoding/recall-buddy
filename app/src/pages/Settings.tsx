@@ -14,6 +14,7 @@ interface RepositorySettings {
 
 // 캐시 설정 (컴포넌트 외부로 이동)
 const CACHE_KEY = 'github_repositories';
+const getBranchCacheKey = (owner: string, repo: string) => `github_branches_${owner}_${repo}`;
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<RepositorySettings>({
@@ -114,14 +115,58 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  // 브랜치 목록 불러오기
-  const fetchBranches = useCallback(async (owner: string, repo: string) => {
+  // 브랜치 목록 불러오기 (IndexedDB 캐싱)
+  const fetchBranches = useCallback(async (owner: string, repo: string, forceRefresh = false) => {
     try {
       setLoadingBranches(true);
-      console.log(`🌿 브랜치 목록 불러오기: ${owner}/${repo}`);
+      const cacheKey = getBranchCacheKey(owner, repo);
+
+      // 캐시 확인 (수동 새로고침이 아닌 경우)
+      if (!forceRefresh) {
+        try {
+          const cached = await repositoriesDB.getByID(cacheKey);
+          if (cached) {
+            const now = Date.now();
+            const cacheAge = now - cached.timestamp;
+            console.log(`✅ 캐시된 브랜치 목록 사용 (IndexedDB) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
+            setBranches(cached.data);
+            setLoadingBranches(false);
+            return;
+          } else {
+            console.log('📭 브랜치 캐시 없음 - API 호출');
+          }
+        } catch (cacheError) {
+          console.error('❌ 브랜치 캐시 읽기 실패:', cacheError);
+        }
+      } else {
+        console.log('🔄 수동 새로고침 - API 호출');
+      }
+
+      // API 호출
+      console.log(`🌿 API에서 브랜치 목록 불러오기: ${owner}/${repo}`);
       const branchList = await getBranches(owner, repo);
       setBranches(branchList);
       console.log(`✅ ${branchList.length}개의 브랜치 발견`);
+
+      // IndexedDB에 캐시 저장
+      try {
+        const cacheData = {
+          id: cacheKey,
+          data: branchList,
+          timestamp: Date.now(),
+        };
+
+        // 기존 캐시 확인
+        const existing = await repositoriesDB.getByID(cacheKey);
+        if (existing) {
+          await repositoriesDB.update(cacheData);
+        } else {
+          await repositoriesDB.add(cacheData);
+        }
+        console.log('💾 브랜치 목록 캐시 저장 완료 (IndexedDB)');
+      } catch (saveError) {
+        console.error('❌ 브랜치 캐시 저장 실패:', saveError);
+      }
     } catch (error) {
       console.error('❌ 브랜치 불러오기 실패:', error);
       setMessage({ type: 'error', text: '브랜치 목록을 불러오는데 실패했습니다.' });
@@ -129,7 +174,7 @@ const Settings: React.FC = () => {
     } finally {
       setLoadingBranches(false);
     }
-  }, []);
+  }, [repositoriesDB]);
 
   // 설정 및 리포지토리 목록 불러오기
   useEffect(() => {
@@ -446,12 +491,29 @@ const Settings: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="branch">
-                  브랜치 이름
-                  <span className="required">*</span>
-                </label>
+                <div className="form-label-row">
+                  <label htmlFor="branch">
+                    브랜치 이름
+                    <span className="required">*</span>
+                  </label>
+                  {settings.repositoryFullName && (
+                    <button
+                      type="button"
+                      className="refresh-button"
+                      onClick={() => {
+                        const [owner, repoName] = settings.repositoryFullName.split('/');
+                        fetchBranches(owner, repoName, true);
+                      }}
+                      disabled={loadingBranches}
+                      title="브랜치 목록 새로고침"
+                    >
+                      {loadingBranches ? '⏳' : '🔄'}
+                    </button>
+                  )}
+                </div>
                 <p className="form-hint">
                   커밋을 가져올 브랜치를 선택하세요
+                  {branches.length > 0 && ` (총 ${branches.length}개의 브랜치)`}
                 </p>
                 
                 {loadingBranches ? (
