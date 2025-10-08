@@ -9,7 +9,7 @@ const FUNCTIONS_URL = import.meta.env.PROD
 // 기본 axios 인스턴스 생성
 export const apiClient = axios.create({
   baseURL: FUNCTIONS_URL,
-  timeout: 10000,
+  timeout: 60000, // 60초 (HCX API 응답 대기)
   headers: {
     'Content-Type': 'application/json',
   },
