@@ -377,6 +377,10 @@ button.primary,
   width: 1px;
 }
 
+.card-player {
+  padding-top: 20px;
+}
+
 .card-player .slick-list {
   z-index: 1;
 }

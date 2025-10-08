@@ -10,6 +10,7 @@ import FlashCardViewer from './pages/FlashCardViewer';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import { getGithubData } from './services/github-service';
+import UserDropdown from './widgets/UserDropdown';
 
 initDB(DBConfig);
 const dates = [1, 7, 30]; // days ago list
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<Page>('flashcard');
+  const [isScrollAtTop, setIsScrollAtTop] = useState<boolean>(true);
 
   // 인증 상태 감지
   useEffect(() => {
@@ -31,6 +33,21 @@ const App: React.FC = () => {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // 스크롤 위치 감지
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const isAtTop = scrollTop <= 10; // 10px 이하면 맨 위로 간주
+      setIsScrollAtTop(isAtTop);
+    };
+
+    // 초기 스크롤 위치 체크
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // 사용자가 로그인한 경우에만 데이터 로드
@@ -114,55 +131,60 @@ const App: React.FC = () => {
         top: 0,
         left: 0,
         right: 0,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        background: 'transparent',
         zIndex: 1000,
         padding: '12px 20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        opacity: isScrollAtTop ? 1 : 0,
+        transform: isScrollAtTop ? 'translateY(0)' : 'translateY(-20px)',
+        transition: 'opacity 0.3s ease, transform 0.3s ease',
+        pointerEvents: isScrollAtTop ? 'auto' : 'none',
       }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            onClick={() => setCurrentPage('flashcard')}
-            style={{
-              padding: '8px 16px',
-              background: currentPage === 'flashcard' ? '#667eea' : 'transparent',
-              color: currentPage === 'flashcard' ? 'white' : '#667eea',
-              border: '2px solid #667eea',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-            }}
-          >
-            📚 학습하기
-          </button>
-          <button
-            onClick={() => setCurrentPage('settings')}
-            style={{
-              padding: '8px 16px',
-              background: currentPage === 'settings' ? '#667eea' : 'transparent',
-              color: currentPage === 'settings' ? 'white' : '#667eea',
-              border: '2px solid #667eea',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-            }}
-          >
-            ⚙️ 설정
-          </button>
+        <div>
+          {currentPage === 'settings' && (
+            <button
+              onClick={() => setCurrentPage('flashcard')}
+              style={{
+                padding: '8px 16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                color: '#333',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backdropFilter: 'blur(10px)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+              }}
+            >
+              ← 뒤로가기
+            </button>
+          )}
         </div>
         
-        <div style={{ fontSize: '0.9rem', color: '#666' }}>
-          👤 {user.displayName || user.email}
-        </div>
+        <UserDropdown 
+          user={user}
+          onNavigateToSettings={() => setCurrentPage('settings')}
+        />
       </nav>
 
       {/* 페이지 컨텐츠 */}
-      <div style={{ paddingTop: '60px' }}>
+      <div>
         {currentPage === 'flashcard' && <FlashCardViewer />}
         {currentPage === 'settings' && <Settings />}
       </div>
