@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, githubProvider, db } from '../firebase';
 import './Login.css';
 
@@ -30,10 +30,22 @@ const Login: React.FC = () => {
       // Google의 at-rest encryption으로 자동 암호화됨
       const credential = GithubAuthProvider.credentialFromResult(result);
       if (credential && credential.accessToken && result.user) {
-        await setDoc(doc(db, 'users', result.user.uid), {
-          githubToken: credential.accessToken,
-          updatedAt: new Date().toISOString(),
-        });
+        const userDocRef = doc(db, 'users', result.user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          // 기존 문서가 있으면 토큰만 업데이트 (설정 유지)
+          await updateDoc(userDocRef, {
+            githubToken: credential.accessToken,
+            updatedAt: new Date().toISOString(),
+          });
+        } else {
+          // 신규 사용자는 새 문서 생성
+          await setDoc(userDocRef, {
+            githubToken: credential.accessToken,
+            updatedAt: new Date().toISOString(),
+          });
+        }
         console.log('로그인 성공 및 GitHub 토큰 저장 완료');
       }
       
@@ -50,10 +62,19 @@ const Login: React.FC = () => {
   const handleLogout = async () => {
     try {
       const currentUser = auth.currentUser;
-      await signOut(auth);
       if (currentUser) {
-        await deleteDoc(doc(db, 'users', currentUser.uid));
+        // 문서가 존재하는 경우에만 githubToken 필드만 업데이트
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          await updateDoc(userDocRef, {
+            githubToken: null,
+            updatedAt: new Date().toISOString(),
+          });
+        }
       }
+      await signOut(auth);
       console.log('로그아웃 성공');
     } catch (error) {
       console.error('로그아웃 실패:', error);
