@@ -5,6 +5,7 @@ import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, db, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '@til-alarm/shared';
+import { useNavigationStore } from '../stores/navigationStore';
 import './Settings.css';
 
 interface RepositorySettings {
@@ -40,7 +41,8 @@ const Settings: React.FC = () => {
   // IndexedDB 훅
   const repositoriesDB = useIndexedDB('repositories');
   const flashcardsDB = useIndexedDB('data'); // 플래시카드 데이터 스토어
-
+  const { triggerFlashcardReload } = useNavigationStore();
+  
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -298,30 +300,32 @@ const Settings: React.FC = () => {
         updatedAt: new Date().toISOString(),
       });
 
-      // 리포지토리 또는 브랜치가 변경된 경우 플래시카드 데이터 삭제 및 페이지 새로고침
+      // 리포지토리 또는 브랜치가 변경된 경우 플래시카드 데이터 삭제 후 홈으로 이동
       if (isRepoOrBranchChanged) {
         try {
+          // 모든 캐시된 플래시카드 데이터 삭제
           await flashcardsDB.clear();
           console.log('🗑️ 설정 변경으로 인해 플래시카드 데이터를 삭제했습니다.');
-          setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 페이지를 새로고침합니다...' });
           
-          // 1초 후 페이지 새로고침
+          setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
+          setHasChanges(false);
+          setSaving(false);
+          
+          // 플래시카드 페이지로 이동하면서 리로드 트리거
+          // 이렇게 하면 useTodayFlashcards 훅이 다시 실행되면서 새로운 데이터를 불러옴
           setTimeout(() => {
-            window.location.reload();
-          }, 1000);
+            triggerFlashcardReload();
+          }, 500);
         } catch (clearError) {
           console.error('❌ 플래시카드 데이터 삭제 실패:', clearError);
-          setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다.' });
-          setHasChanges(false);
-          
-          // 3초 후 메시지 자동 제거
-          setTimeout(() => {
-            setMessage(null);
-          }, 3000);
+          setMessage({ type: 'error', text: '데이터 삭제에 실패했습니다. 다시 시도해주세요.' });
+          setSaving(false);
         }
       } else {
+        // 리포지토리/브랜치 변경이 없는 경우 현재 페이지 유지
         setMessage({ type: 'success', text: '✅ 설정이 성공적으로 저장되었습니다!' });
         setHasChanges(false);
+        setSaving(false);
         
         // 3초 후 메시지 자동 제거
         setTimeout(() => {
@@ -331,7 +335,6 @@ const Settings: React.FC = () => {
     } catch (error) {
       console.error('설정 저장 실패:', error);
       setMessage({ type: 'error', text: '설정 저장에 실패했습니다.' });
-    } finally {
       setSaving(false);
     }
   };
@@ -464,11 +467,6 @@ const Settings: React.FC = () => {
   return (
     <div className="settings-container">
       <div className="settings-card">
-        <div className="settings-header">
-          <h1>⚙️ 리포지토리 설정</h1>
-          <p>학습 내용을 가져올 GitHub 리포지토리를 선택하세요</p>
-        </div>
-
         <div className="settings-form">
           <div className="form-group">
             <div className="form-label-row">
