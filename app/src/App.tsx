@@ -1,29 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { initDB, useIndexedDB } from "react-indexed-db-hook";
+import { initDB } from "react-indexed-db-hook";
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 import { DBConfig } from './DBConfig';
 import { auth } from './firebase';
-import { chatCompletions } from './api/ncloud-api';
-import { getCurrentDate } from './modules/utils';
 import FlashCardViewer from './pages/FlashCardViewer';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
-import { getGithubData } from './services/github-service';
+import NoDataView from './pages/NoDataView';
 import UserDropdown from './widgets/UserDropdown';
+import { useTodayFlashcards } from './hooks/useTodayFlashcards';
+import { useNavigationStore } from './stores/navigationStore';
 
 initDB(DBConfig);
-const dates = [1, 7, 30]; // days ago list
-
-type Page = 'flashcard' | 'settings';
 
 const App: React.FC = () => {
-  const { add, getByID } = useIndexedDB("data");
-  const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
-  const [currentPage, setCurrentPage] = useState<Page>('flashcard');
   const [isScrollAtTop, setIsScrollAtTop] = useState<boolean>(true);
+  const { currentPage, navigateToSettings, navigateToFlashcard } = useNavigationStore();
+  
+  // 오늘의 플래시카드 데이터 로드
+  const { loading, hasData } = useTodayFlashcards(user);
 
   // 인증 상태 감지
   useEffect(() => {
@@ -49,43 +47,6 @@ const App: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // 사용자가 로그인한 경우에만 데이터 로드
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    (async () => {
-      const todayData = await getByID(getCurrentDate());
-      if (todayData) {
-        setLoading(false);
-        return;
-      }
-
-      let list: Array<{question: string, answer: string}> = [];
-      for (const ago of dates) {
-        try {
-          const githubData = await getGithubData(ago);
-          if (githubData) {
-            const result = await chatCompletions(githubData);
-            const questions = JSON.parse(result.body.result.message.content);
-            for (let ncloudData of questions) {
-              list.push({question: ncloudData, answer: githubData});
-            }
-          }
-        } catch (error) {
-          console.error(`Error fetching data for ${ago}:`, error);
-        }
-      }
-      
-      if (list.length > 0) {
-        add({date: getCurrentDate(), data: list });
-      }
-      setLoading(false);
-    })();
-  }, [add, getByID, user]);
 
   // 인증 로딩 중
   if (authLoading) {
@@ -115,11 +76,43 @@ const App: React.FC = () => {
         justifyContent: 'center', 
         alignItems: 'center', 
         height: '100vh',
-        fontSize: '1.2rem'
+        fontSize: '1.2rem',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white'
       }}>
-        데이터를 불러오는 중...
+        <div style={{
+          textAlign: 'center',
+          background: 'rgba(255, 255, 255, 0.1)',
+          padding: '40px',
+          borderRadius: '20px',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '3px solid rgba(255, 255, 255, 0.3)',
+            borderTop: '3px solid white',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <h2 style={{ marginBottom: '10px' }}>📚 플래시카드 준비 중</h2>
+          <p>GitHub에서 최근 커밋을 분석하고 있습니다...</p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
+  }
+
+  // 데이터가 없는 경우 - 하지만 Settings 페이지는 허용
+  if (!hasData && currentPage === 'flashcard') {
+    return <NoDataView />;
   }
 
   // 메인 앱 렌더링
@@ -145,7 +138,7 @@ const App: React.FC = () => {
         <div>
           {currentPage === 'settings' && (
             <button
-              onClick={() => setCurrentPage('flashcard')}
+              onClick={navigateToFlashcard}
               style={{
                 padding: '8px 16px',
                 background: 'rgba(255, 255, 255, 0.95)',
@@ -179,7 +172,7 @@ const App: React.FC = () => {
         
         <UserDropdown 
           user={user}
-          onNavigateToSettings={() => setCurrentPage('settings')}
+          onNavigateToSettings={navigateToSettings}
         />
       </nav>
 

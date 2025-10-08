@@ -5,4 +5,4 @@ initializeApp();
 
 export * from './github';
 export * from './schedule';
-export * from './hypercloax';
+export * from './hyperclovax';

@@ -2,37 +2,42 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, db } from '../firebase';
-import { getRepositories } from '../api/github-api';
+import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '@til-alarm/shared';
 import './Settings.css';
 
 interface RepositorySettings {
   repositoryFullName: string;
   repositoryUrl: string;
+  branch: string;
 }
 
 // 캐시 설정 (컴포넌트 외부로 이동)
 const CACHE_KEY = 'github_repositories';
-const CACHE_DURATION = 30 * 60 * 1000; // 30분
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<RepositorySettings>({
     repositoryFullName: '',
     repositoryUrl: '',
+    branch: 'main',
   });
   const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
+  const [loadingBranches, setLoadingBranches] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [hasChanges, setHasChanges] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // IndexedDB 훅
   const repositoriesDB = useIndexedDB('repositories');
+  const flashcardsDB = useIndexedDB('data'); // 플래시카드 데이터 스토어
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -56,23 +61,17 @@ const Settings: React.FC = () => {
     try {
       setLoadingRepos(true);
 
-      // 캐시 확인 (강제 새로고침이 아닌 경우)
+      // 캐시 확인 (수동 새로고침이 아닌 경우)
       if (!forceRefresh) {
         try {
           const cached = await repositoriesDB.getByID(CACHE_KEY);
           if (cached) {
             const now = Date.now();
             const cacheAge = now - cached.timestamp;
-            
-            // 캐시가 유효한 경우 (30분 이내)
-            if (cacheAge < CACHE_DURATION) {
-              console.log(`✅ 캐시된 리포지토리 목록 사용 (IndexedDB) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
-              setRepositories(cached.data);
-              setLoadingRepos(false);
-              return;
-            } else {
-              console.log(`⏰ 캐시 만료됨 (${Math.floor(cacheAge / 1000 / 60)}분 경과) - API 호출`);
-            }
+            console.log(`✅ 캐시된 리포지토리 목록 사용 (IndexedDB) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
+            setRepositories(cached.data);
+            setLoadingRepos(false);
+            return;
           } else {
             console.log('📭 캐시 없음 - API 호출');
           }
@@ -80,7 +79,7 @@ const Settings: React.FC = () => {
           console.error('❌ 캐시 읽기 실패:', cacheError);
         }
       } else {
-        console.log('🔄 강제 새로고침 - API 호출');
+        console.log('🔄 수동 새로고침 - API 호출');
       }
 
       // API 호출
@@ -115,6 +114,23 @@ const Settings: React.FC = () => {
     }
   }, []);
 
+  // 브랜치 목록 불러오기
+  const fetchBranches = useCallback(async (owner: string, repo: string) => {
+    try {
+      setLoadingBranches(true);
+      console.log(`🌿 브랜치 목록 불러오기: ${owner}/${repo}`);
+      const branchList = await getBranches(owner, repo);
+      setBranches(branchList);
+      console.log(`✅ ${branchList.length}개의 브랜치 발견`);
+    } catch (error) {
+      console.error('❌ 브랜치 불러오기 실패:', error);
+      setMessage({ type: 'error', text: '브랜치 목록을 불러오는데 실패했습니다.' });
+      setBranches([]);
+    } finally {
+      setLoadingBranches(false);
+    }
+  }, []);
+
   // 설정 및 리포지토리 목록 불러오기
   useEffect(() => {
     let mounted = true;
@@ -136,7 +152,14 @@ const Settings: React.FC = () => {
             setSettings({
               repositoryFullName: data.repositoryFullName || '',
               repositoryUrl: data.repositoryUrl || '',
+              branch: data.branch || 'main',
             });
+
+            // 리포지토리가 선택되어 있으면 브랜치 목록 불러오기
+            if (data.repositoryFullName) {
+              const [owner, repo] = data.repositoryFullName.split('/');
+              await fetchBranches(owner, repo);
+            }
           }
         }
 
@@ -163,8 +186,27 @@ const Settings: React.FC = () => {
     };
   }, []); // 마운트 시 한 번만 실행
 
-  // 리포지토리 선택 및 즉시 저장
+  // 리포지토리 선택 (상태만 변경)
   const handleRepositorySelect = async (repo: Repository) => {
+    setIsDropdownOpen(false);
+    setMessage(null);
+
+    // 설정 업데이트
+    setSettings({
+      repositoryFullName: repo.full_name,
+      repositoryUrl: repo.html_url,
+      branch: 'main', // 리포지토리 변경 시 기본 브랜치로 초기화
+    });
+
+    // 브랜치 목록 불러오기
+    const [owner, repoName] = repo.full_name.split('/');
+    await fetchBranches(owner, repoName);
+    
+    setHasChanges(true);
+  };
+
+  // 설정 저장
+  const handleSaveSettings = async () => {
     const user = auth.currentUser;
     
     if (!user) {
@@ -172,51 +214,77 @@ const Settings: React.FC = () => {
       return;
     }
 
-    setIsDropdownOpen(false);
+    if (!settings.repositoryFullName) {
+      setMessage({ type: 'error', text: '리포지토리를 선택해주세요.' });
+      return;
+    }
+
+    if (!settings.branch) {
+      setMessage({ type: 'error', text: '브랜치를 선택해주세요.' });
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
 
     try {
-      // 설정 업데이트
-      setSettings({
-        repositoryFullName: repo.full_name,
-        repositoryUrl: repo.html_url,
-      });
-
-      // 기존 데이터 유지하면서 업데이트
+      // 기존 리포지토리 확인
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const existingData = userDoc.exists() ? userDoc.data() : {};
+      const previousRepo = existingData.repositoryFullName;
+      const previousBranch = existingData.branch;
+      
+      // 리포지토리 또는 브랜치가 변경되었는지 확인
+      const isRepoOrBranchChanged = 
+        (previousRepo && previousRepo !== settings.repositoryFullName) ||
+        (previousBranch && previousBranch !== settings.branch);
 
       // full_name에서 username과 repository 분리
-      const [githubUsername, repositoryName] = repo.full_name.split('/');
+      const [githubUsername, repositoryName] = settings.repositoryFullName.split('/');
 
       await setDoc(doc(db, 'users', user.uid), {
         ...existingData,
-        repositoryFullName: repo.full_name,
-        repositoryUrl: repo.html_url,
+        repositoryFullName: settings.repositoryFullName,
+        repositoryUrl: settings.repositoryUrl,
         githubUsername,
         repositoryName,
+        branch: settings.branch,
         updatedAt: new Date().toISOString(),
       });
 
-      setMessage({ type: 'success', text: '✅ 리포지토리가 성공적으로 변경되었습니다!' });
-      
-      // 3초 후 메시지 자동 제거
-      setTimeout(() => {
-        setMessage(null);
-      }, 3000);
+      // 리포지토리 또는 브랜치가 변경된 경우 플래시카드 데이터 삭제 및 페이지 새로고침
+      if (isRepoOrBranchChanged) {
+        try {
+          await flashcardsDB.clear();
+          console.log('🗑️ 설정 변경으로 인해 플래시카드 데이터를 삭제했습니다.');
+          setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 페이지를 새로고침합니다...' });
+          
+          // 1초 후 페이지 새로고침
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } catch (clearError) {
+          console.error('❌ 플래시카드 데이터 삭제 실패:', clearError);
+          setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다.' });
+          setHasChanges(false);
+          
+          // 3초 후 메시지 자동 제거
+          setTimeout(() => {
+            setMessage(null);
+          }, 3000);
+        }
+      } else {
+        setMessage({ type: 'success', text: '✅ 설정이 성공적으로 저장되었습니다!' });
+        setHasChanges(false);
+        
+        // 3초 후 메시지 자동 제거
+        setTimeout(() => {
+          setMessage(null);
+        }, 3000);
+      }
     } catch (error) {
       console.error('설정 저장 실패:', error);
       setMessage({ type: 'error', text: '설정 저장에 실패했습니다.' });
-      // 실패 시 이전 상태로 복원
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setSettings({
-          repositoryFullName: data.repositoryFullName || '',
-          repositoryUrl: data.repositoryUrl || '',
-        });
-      }
     } finally {
       setSaving(false);
     }
@@ -362,25 +430,97 @@ const Settings: React.FC = () => {
           </div>
 
           {settings.repositoryFullName && (
-            <div className="form-preview">
-              <p className="preview-label">📂 선택된 리포지토리:</p>
-              <code className="preview-path">
-                <a 
-                  href={settings.repositoryUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="repo-link"
-                >
-                  {settings.repositoryUrl}
-                </a>
-              </code>
-            </div>
+            <>
+              <div className="form-preview">
+                <p className="preview-label">📂 선택된 리포지토리:</p>
+                <code className="preview-path">
+                  <a 
+                    href={settings.repositoryUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="repo-link"
+                  >
+                    {settings.repositoryUrl}
+                  </a>
+                </code>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="branch">
+                  브랜치 이름
+                  <span className="required">*</span>
+                </label>
+                <p className="form-hint">
+                  커밋을 가져올 브랜치를 선택하세요
+                </p>
+                
+                {loadingBranches ? (
+                  <div className="loading-repos">
+                    <div className="loading-spinner-small"></div>
+                    <span>브랜치 목록을 불러오는 중...</span>
+                  </div>
+                ) : branches.length > 0 ? (
+                  <select
+                    id="branch"
+                    value={settings.branch}
+                    onChange={(e) => {
+                      setSettings({ ...settings, branch: e.target.value });
+                      setHasChanges(true);
+                    }}
+                    disabled={saving}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      fontSize: '14px',
+                      border: '1px solid #ddd',
+                      borderRadius: '6px',
+                      backgroundColor: 'white',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {branches.map((branch) => (
+                      <option key={branch.name} value={branch.name}>
+                        {branch.name} {branch.protected ? '🔒' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="form-hint" style={{ color: '#999', fontStyle: 'italic' }}>
+                    리포지토리를 선택하면 브랜치 목록이 표시됩니다.
+                  </p>
+                )}
+              </div>
+            </>
           )}
 
           {message && (
             <div className={`message ${message.type}`}>
               {message.text}
             </div>
+          )}
+
+          {settings.repositoryFullName && (
+            <button
+              type="button"
+              className="save-settings-button"
+              onClick={handleSaveSettings}
+              disabled={saving || !hasChanges}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: 'white',
+                backgroundColor: hasChanges ? '#4CAF50' : '#ccc',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: hasChanges && !saving ? 'pointer' : 'not-allowed',
+                marginTop: '20px',
+                transition: 'background-color 0.3s',
+              }}
+            >
+              {saving ? '저장 중...' : hasChanges ? '설정 저장' : '저장됨'}
+            </button>
           )}
         </div>
 
