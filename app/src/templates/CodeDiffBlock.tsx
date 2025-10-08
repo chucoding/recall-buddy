@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import 'github-markdown-css/github-markdown.css';
 
 interface CodeDiffBlockProps {
   diffContent: string;
@@ -10,7 +11,7 @@ interface CodeDiffBlockProps {
 
 const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
   return (
-    <div className="code-diff-content">
+    <div className="markdown-body code-diff-content">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -24,7 +25,7 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
                 return (
                   <div className="github-diff-container">
                     <SyntaxHighlighter
-                      style={tomorrow as any}
+                      style={github}
                       language="diff"
                       PreTag="div"
                       customStyle={{
@@ -66,7 +67,7 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
               // 일반 코드 블록
               return (
                 <SyntaxHighlighter
-                  style={tomorrow as any}
+                  style={github}
                   language={match[1]}
                   PreTag="div"
                   {...props}
@@ -126,52 +127,6 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
         {diffContent}
       </ReactMarkdown>
       
-      <style>{`
-        .code-diff-content {
-          padding: 20px;
-          background: #ffffff;
-          border-radius: 8px;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-          color: #24292f;
-          max-height: 80vh;
-          overflow-y: auto;
-        }
-        
-        .github-diff-container {
-          margin: 12px 0;
-          border: 1px solid #d0d7de;
-          border-radius: 6px;
-          overflow: hidden;
-        }
-        
-        .code-diff-content p {
-          margin: 8px 0;
-          line-height: 1.6;
-        }
-        
-        .code-diff-content pre {
-          margin: 0 !important;
-        }
-        
-        /* 스크롤바 스타일링 */
-        .code-diff-content::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        .code-diff-content::-webkit-scrollbar-track {
-          background: #f6f8fa;
-          border-radius: 4px;
-        }
-        
-        .code-diff-content::-webkit-scrollbar-thumb {
-          background: #d0d7de;
-          border-radius: 4px;
-        }
-        
-        .code-diff-content::-webkit-scrollbar-thumb:hover {
-          background: #8c959f;
-        }
-      `}</style>
     </div>
   );
 };
