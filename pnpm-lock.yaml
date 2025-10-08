@@ -14,6 +14,9 @@ importers:
 
   app:
     dependencies:
+      '@til-alarm/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       axios:
         specifier: ^1.12.2
         version: 1.12.2
@@ -72,6 +75,9 @@ importers:
 
   functions:
     dependencies:
+      '@til-alarm/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       firebase-admin:
         specifier: ^12.0.0
         version: 12.7.0
@@ -85,6 +91,12 @@ importers:
       tsup:
         specifier: ^8.0.0
         version: 8.5.0(jiti@1.21.7)(postcss@8.5.6)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  packages/shared:
+    devDependencies:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
@@ -5270,7 +5282,7 @@ snapshots:
 
   '@types/resolve@1.17.1':
     dependencies:
-      '@types/node': 24.6.2
+      '@types/node': 20.19.19
 
   '@types/send@0.17.5':
     dependencies:
@@ -6497,7 +6509,7 @@ snapshots:
 
   jest-worker@26.6.2:
     dependencies:
-      '@types/node': 24.6.2
+      '@types/node': 20.19.19
       merge-stream: 2.0.0
       supports-color: 7.2.0
 

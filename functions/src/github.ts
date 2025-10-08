@@ -1,6 +1,7 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { Repository } from '@til-alarm/shared';
 
 /**
  * Firebase ID Token 검증 및 사용자 정보 조회
@@ -181,6 +182,74 @@ export const getMarkdown = onRequest(
       console.error('Error fetching markdown:', error);
       res.status(500).json({ 
         error: 'Failed to fetch markdown content',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
+/**
+ * 사용자의 GitHub 리포지토리 목록 가져오기
+ * Settings 페이지에서 리포지토리 선택을 위해 사용
+ */
+export const getRepositories = onRequest(
+  { cors: true },
+  async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Firebase ID token not provided. Please authenticate.' });
+        return;
+      }
+      
+      const idToken = authHeader.split('Bearer ')[1];
+      
+      // Firebase ID Token 검증
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      // Firestore에서 GitHub 토큰 조회
+      const userDoc = await getFirestore().collection('users').doc(userId).get();
+      
+      if (!userDoc.exists) {
+        res.status(404).json({ error: 'User not found. Please login again.' });
+        return;
+      }
+      
+      const userData = userDoc.data();
+      const githubToken = userData?.githubToken;
+      
+      if (!githubToken) {
+        res.status(400).json({ error: 'GitHub token not found. Please login with GitHub again.' });
+        return;
+      }
+
+      // GitHub API로 리포지토리 목록 가져오기
+      const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`GitHub API error: ${response.status}`, errorBody);
+        res.status(response.status).json({ 
+          error: 'Failed to fetch repositories from GitHub',
+          details: errorBody 
+        });
+        return;
+      }
+
+      const repositories: Repository[] = await response.json();
+      res.json(repositories);
+    } catch (error) {
+      console.error('Error fetching repositories:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch repositories',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }

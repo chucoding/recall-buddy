@@ -56,19 +56,180 @@
   margin-left: 4px;
 }
 
-.form-input {
+.form-input,
+.form-select {
   padding: 12px 16px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s;
   font-family: 'Consolas', 'Monaco', monospace;
+  width: 100%;
+  background-color: white;
 }
 
-.form-input:focus {
+.form-select {
+  cursor: pointer;
+}
+
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #f7fafc;
+}
+
+.form-input:focus,
+.form-select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Custom Select Styles */
+.custom-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.custom-select-trigger:hover:not(:disabled) {
+  border-color: #cbd5e0;
+}
+
+.custom-select-trigger:focus,
+.custom-select-trigger.open {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.custom-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #f7fafc;
+}
+
+.selected-repo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.repo-name {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.repo-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: #a0aec0;
+}
+
+.dropdown-arrow {
+  color: #718096;
+  font-size: 0.75rem;
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: dropdown-fade-in 0.2s ease-out;
+}
+
+@keyframes dropdown-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border-bottom: 1px solid #f7fafc;
+}
+
+.custom-select-option:last-child {
+  border-bottom: none;
+}
+
+.custom-select-option:hover {
+  background-color: #f7fafc;
+}
+
+.custom-select-option.selected {
+  background-color: #edf2f7;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.option-name {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.95rem;
+}
+
+.option-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background-color: #e2e8f0;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.option-description {
+  font-size: 0.85rem;
+  color: #718096;
+  line-height: 1.4;
+  margin-top: 4px;
+  padding-left: 2px;
 }
 
 .form-hint {
@@ -102,6 +263,17 @@
   font-size: 0.9rem;
   color: #2d3748;
   word-break: break-all;
+}
+
+.repo-link {
+  color: #667eea;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.repo-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
 }
 
 .message {
@@ -153,11 +325,27 @@
 }
 
 .info-text {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 0.85rem;
   color: #718096;
   text-align: center;
   line-height: 1.6;
+}
+
+.info-text:last-child {
+  margin-bottom: 0;
+}
+
+.loading-repos {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  color: #4a5568;
+  font-size: 0.95rem;
 }
 
 .loading-spinner {
@@ -168,6 +356,15 @@
   height: 40px;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
+}
+
+.loading-spinner-small {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {

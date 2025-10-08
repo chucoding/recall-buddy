@@ -8,6 +8,7 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
+    "@til-alarm/shared": "workspace:*",
     "axios": "^1.12.2",
     "firebase": "^10.4.0",
     "react": "^18.2.0",

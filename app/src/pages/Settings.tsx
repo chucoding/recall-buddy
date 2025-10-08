@@ -1,23 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { getRepositories } from '../api/github-api';
+import { Repository } from '@til-alarm/shared';
 import './Settings.css';
 
 interface RepositorySettings {
-  githubUsername: string;
-  repositoryName: string;
+  repositoryFullName: string;
+  repositoryUrl: string;
 }
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<RepositorySettings>({
-    githubUsername: '',
-    repositoryName: 'TIL',
+    repositoryFullName: '',
+    repositoryUrl: '',
   });
+  const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 설정 불러오기
+  // 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  // GitHub 리포지토리 목록 불러오기 (Firebase Functions를 통해)
+  const fetchRepositories = useCallback(async () => {
+    try {
+      setLoadingRepos(true);
+      const repos = await getRepositories();
+      setRepositories(repos);
+    } catch (error) {
+      console.error('리포지토리 불러오기 실패:', error);
+      setMessage({ type: 'error', text: '리포지토리 목록을 불러오는데 실패했습니다.' });
+    } finally {
+      setLoadingRepos(false);
+    }
+  }, []);
+
+  // 설정 및 리포지토리 목록 불러오기
   useEffect(() => {
     const loadSettings = async () => {
       const user = auth.currentUser;
@@ -30,20 +67,26 @@ const Settings: React.FC = () => {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
+          
+          // 저장된 설정 불러오기
           setSettings({
-            githubUsername: data.githubUsername || '',
-            repositoryName: data.repositoryName || 'TIL',
+            repositoryFullName: data.repositoryFullName || '',
+            repositoryUrl: data.repositoryUrl || '',
           });
         }
+
+        // Firebase Functions를 통해 리포지토리 목록 불러오기
+        await fetchRepositories();
       } catch (error) {
         console.error('설정 불러오기 실패:', error);
+        setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
       } finally {
         setLoading(false);
       }
     };
 
     loadSettings();
-  }, []);
+  }, [fetchRepositories]);
 
   // 설정 저장
   const handleSave = async (e: React.FormEvent) => {
@@ -55,8 +98,8 @@ const Settings: React.FC = () => {
       return;
     }
 
-    if (!settings.githubUsername.trim() || !settings.repositoryName.trim()) {
-      setMessage({ type: 'error', text: '모든 필드를 입력해주세요.' });
+    if (!settings.repositoryFullName) {
+      setMessage({ type: 'error', text: '리포지토리를 선택해주세요.' });
       return;
     }
 
@@ -68,10 +111,15 @@ const Settings: React.FC = () => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const existingData = userDoc.exists() ? userDoc.data() : {};
 
+      // full_name에서 username과 repository 분리
+      const [githubUsername, repositoryName] = settings.repositoryFullName.split('/');
+
       await setDoc(doc(db, 'users', user.uid), {
         ...existingData,
-        githubUsername: settings.githubUsername.trim(),
-        repositoryName: settings.repositoryName.trim(),
+        repositoryFullName: settings.repositoryFullName,
+        repositoryUrl: settings.repositoryUrl,
+        githubUsername,
+        repositoryName,
         updatedAt: new Date().toISOString(),
       });
 
@@ -84,10 +132,17 @@ const Settings: React.FC = () => {
     }
   };
 
-  // 입력 변경 핸들러
-  const handleChange = (field: keyof RepositorySettings, value: string) => {
-    setSettings(prev => ({ ...prev, [field]: value }));
+  // 리포지토리 선택 핸들러
+  const handleRepositorySelect = (repo: Repository) => {
+    setSettings({
+      repositoryFullName: repo.full_name,
+      repositoryUrl: repo.html_url,
+    });
+    setIsDropdownOpen(false);
   };
+
+  // 선택된 리포지토리 찾기
+  const selectedRepo = repositories.find(repo => repo.full_name === settings.repositoryFullName);
 
   if (loading) {
     return (
@@ -105,56 +160,84 @@ const Settings: React.FC = () => {
       <div className="settings-card">
         <div className="settings-header">
           <h1>⚙️ 리포지토리 설정</h1>
-          <p>학습 내용을 가져올 GitHub 리포지토리를 설정하세요</p>
+          <p>학습 내용을 가져올 GitHub 리포지토리를 선택하세요</p>
         </div>
 
         <form onSubmit={handleSave} className="settings-form">
           <div className="form-group">
-            <label htmlFor="githubUsername">
-              GitHub 사용자명
+            <label htmlFor="repository">
+              GitHub 리포지토리
               <span className="required">*</span>
             </label>
-            <input
-              id="githubUsername"
-              type="text"
-              value={settings.githubUsername}
-              onChange={(e) => handleChange('githubUsername', e.target.value)}
-              placeholder="예: hssuh"
-              className="form-input"
-              required
-            />
+            
+            {loadingRepos ? (
+              <div className="loading-repos">
+                <div className="loading-spinner-small"></div>
+                <span>리포지토리 목록을 불러오는 중...</span>
+              </div>
+            ) : (
+              <div className="custom-select-container" ref={dropdownRef}>
+                <button
+                  type="button"
+                  className={`custom-select-trigger ${isDropdownOpen ? 'open' : ''}`}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  disabled={repositories.length === 0}
+                >
+                  {selectedRepo ? (
+                    <div className="selected-repo">
+                      <span className="repo-name">{selectedRepo.full_name}</span>
+                      <span className="repo-badge">{selectedRepo.private ? '🔒 Private' : '🌐 Public'}</span>
+          </div>
+                  ) : (
+                    <span className="placeholder">리포지토리를 선택하세요</span>
+                  )}
+                  <span className="dropdown-arrow">{isDropdownOpen ? '▲' : '▼'}</span>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="custom-select-dropdown">
+                    {repositories.map((repo) => (
+                      <div
+                        key={repo.id}
+                        className={`custom-select-option ${settings.repositoryFullName === repo.full_name ? 'selected' : ''}`}
+                        onClick={() => handleRepositorySelect(repo)}
+                      >
+                        <div className="option-header">
+                          <span className="option-name">{repo.full_name}</span>
+                          <span className="option-badge">{repo.private ? '🔒' : '🌐'}</span>
+                        </div>
+                        {repo.description && (
+                          <div className="option-description">{repo.description}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <p className="form-hint">
-              GitHub 계정 사용자명 (https://github.com/<strong>사용자명</strong>)
+              {repositories.length > 0 
+                ? `총 ${repositories.length}개의 리포지토리를 찾았습니다`
+                : '접근 가능한 리포지토리가 없습니다'}
             </p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="repositoryName">
-              리포지토리 이름
-              <span className="required">*</span>
-            </label>
-            <input
-              id="repositoryName"
-              type="text"
-              value={settings.repositoryName}
-              onChange={(e) => handleChange('repositoryName', e.target.value)}
-              placeholder="예: TIL"
-              className="form-input"
-              required
-            />
-            <p className="form-hint">
-              학습 내용이 저장된 리포지토리 이름
-            </p>
-          </div>
-
+          {settings.repositoryFullName && (
           <div className="form-preview">
-            <p className="preview-label">📂 리포지토리 경로:</p>
+              <p className="preview-label">📂 선택된 리포지토리:</p>
             <code className="preview-path">
-              {settings.githubUsername && settings.repositoryName
-                ? `https://github.com/${settings.githubUsername}/${settings.repositoryName}`
-                : '설정을 입력해주세요'}
+                <a 
+                  href={settings.repositoryUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="repo-link"
+                >
+                  {settings.repositoryUrl}
+                </a>
             </code>
           </div>
+          )}
 
           {message && (
             <div className={`message ${message.type}`}>
@@ -165,7 +248,7 @@ const Settings: React.FC = () => {
           <button
             type="submit"
             className="save-button"
-            disabled={saving}
+            disabled={saving || !settings.repositoryFullName}
           >
             {saving ? '저장 중...' : '💾 설정 저장'}
           </button>
@@ -173,8 +256,10 @@ const Settings: React.FC = () => {
 
         <div className="settings-footer">
           <p className="info-text">
-            ℹ️ 리포지토리는 <strong>public</strong>이거나, 
-            로그인한 계정이 <strong>접근 권한</strong>이 있어야 합니다.
+            ℹ️ GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
+          </p>
+          <p className="info-text">
+            🔒 = Private 리포지토리, 🌐 = Public 리포지토리
           </p>
         </div>
       </div>
