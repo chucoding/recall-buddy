@@ -404,45 +404,44 @@
   100% { transform: rotate(360deg); }
 }
 
-/* 위험 구역 - 회원탈퇴 */
-.danger-zone {
+/* 계정 관리 */
+.account-zone {
   margin-top: 40px;
-  padding: 24px;
-  border: 2px solid #feb2b2;
-  border-radius: 12px;
-  background: #fff5f5;
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
 }
 
-.danger-zone-title {
+.account-zone-title {
   margin: 0 0 8px 0;
-  color: #c53030;
-  font-size: 1.2rem;
-  font-weight: 700;
+  color: #718096;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.danger-zone-description {
+.account-description {
   margin: 0 0 16px 0;
-  color: #742a2a;
+  color: #a0aec0;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .delete-account-button {
-  padding: 10px 20px;
-  background: #fc8181;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  padding: 8px 16px;
+  background: transparent;
+  color: #a0aec0;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .delete-account-button:hover {
-  background: #f56565;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+  color: #718096;
+  border-color: #cbd5e0;
+  background: #f7fafc;
 }
 
 /* 모달 스타일 */
@@ -495,31 +494,51 @@
 
 .modal-title {
   margin: 0 0 16px 0;
-  color: #c53030;
+  color: #4a5568;
   font-size: 1.5rem;
   font-weight: 700;
 }
 
 .modal-description {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   color: #4a5568;
   font-size: 1rem;
   line-height: 1.6;
 }
 
-.modal-warning-list {
+.modal-info-box {
   margin: 0 0 24px 0;
-  padding-left: 20px;
-  color: #742a2a;
-  background: #fff5f5;
-  border-left: 3px solid #fc8181;
-  padding: 12px 12px 12px 32px;
-  border-radius: 4px;
+  padding: 16px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
 }
 
-.modal-warning-list li {
+.info-box-title {
+  margin: 0 0 12px 0;
+  color: #4a5568;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.modal-info-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #718096;
+}
+
+.modal-info-list li {
   margin: 8px 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.modal-info-list li.info-reauth {
+  color: #667eea;
+  font-weight: 500;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .confirm-input {
@@ -534,8 +553,8 @@
 
 .confirm-input:focus {
   outline: none;
-  border-color: #fc8181;
-  box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .confirm-input:disabled {
@@ -572,14 +591,14 @@
 }
 
 .modal-button.danger {
-  background: #fc8181;
+  background: #a0aec0;
   color: white;
 }
 
 .modal-button.danger:hover:not(:disabled) {
-  background: #f56565;
+  background: #718096;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+  box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
 }
 
 .modal-button:disabled {
@@ -595,6 +614,18 @@
 
   .settings-header h1 {
     font-size: 1.5rem;
+  }
+
+  .account-zone {
+    padding: 16px 20px;
+  }
+
+  .account-zone-title {
+    font-size: 0.95rem;
+  }
+
+  .account-description {
+    font-size: 0.85rem;
   }
 
   .modal-content {

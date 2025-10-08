@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { reauthenticateWithPopup } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
-import { auth, db } from '../firebase';
+import { auth, db, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '@til-alarm/shared';
 import './Settings.css';
@@ -366,16 +367,51 @@ const Settings: React.FC = () => {
     } catch (error: any) {
       console.error('회원탈퇴 실패:', error);
       
-      // 재인증이 필요한 경우
-      if (error.code === 'auth/requires-recent-login') {
-        setMessage({ 
-          type: 'error', 
-          text: '보안을 위해 다시 로그인한 후 탈퇴를 진행해주세요.' 
-        });
+      // 재인증이 필요한 경우 (다양한 오류 코드 처리)
+      const needsReauth = 
+        error.code === 'auth/requires-recent-login' ||
+        error.message?.includes('CREDENTIAL_TOO_OLD') ||
+        error.message?.includes('LOGIN_AGAIN');
+      
+      if (needsReauth) {
+        try {
+          // 자동으로 재인증 시도
+          console.log('🔄 재인증이 필요합니다. GitHub 로그인 팝업을 엽니다...');
+          setMessage({ 
+            type: 'error', 
+            text: '보안을 위해 재인증이 필요합니다. 팝업에서 GitHub 로그인을 진행해주세요.' 
+          });
+          
+          await reauthenticateWithPopup(user, githubProvider);
+          console.log('✅ 재인증 완료');
+          
+          // 재인증 후 다시 계정 삭제 시도
+          setMessage({ type: 'error', text: '재인증되었습니다. 다시 탈퇴를 시도합니다...' });
+          
+          await deleteDoc(doc(db, 'users', user.uid));
+          await user.delete();
+          
+          console.log('회원탈퇴 완료');
+        } catch (reauthError: any) {
+          console.error('재인증 실패:', reauthError);
+          
+          if (reauthError.code === 'auth/popup-closed-by-user') {
+            setMessage({ 
+              type: 'error', 
+              text: '재인증이 취소되었습니다. 탈퇴를 계속하려면 다시 시도해주세요.' 
+            });
+          } else {
+            setMessage({ 
+              type: 'error', 
+              text: '재인증에 실패했습니다. 잠시 후 다시 시도해주세요.' 
+            });
+          }
+          setDeleting(false);
+        }
       } else {
         setMessage({ type: 'error', text: '회원탈퇴에 실패했습니다.' });
+        setDeleting(false);
       }
-      setDeleting(false);
     }
   };
 
@@ -595,35 +631,39 @@ const Settings: React.FC = () => {
           </p>
         </div>
 
-        {/* 위험 구역 - 회원탈퇴 */}
-        <div className="danger-zone">
-          <h2 className="danger-zone-title">⚠️ 위험 구역</h2>
-          <p className="danger-zone-description">
-            회원탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+        {/* 계정 관리 */}
+        <div className="account-zone">
+          <h2 className="account-zone-title">👤 계정 관리</h2>
+          <p className="account-description">
+            서비스 이용을 중단하고 싶으신가요?
           </p>
           <button
             type="button"
             className="delete-account-button"
             onClick={() => setShowDeleteDialog(true)}
           >
-            회원탈퇴
+            서비스 탈퇴
           </button>
         </div>
       </div>
 
-      {/* 회원탈퇴 확인 다이얼로그 */}
+      {/* 서비스 탈퇴 확인 다이얼로그 */}
       {showDeleteDialog && (
         <div className="modal-overlay" onClick={() => !deleting && setShowDeleteDialog(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">⚠️ 회원탈퇴</h2>
+            <h2 className="modal-title">👋 서비스 탈퇴</h2>
             <p className="modal-description">
-              정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+              정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
             </p>
-            <ul className="modal-warning-list">
-              <li>모든 설정 데이터가 삭제됩니다</li>
-              <li>저장된 GitHub 토큰이 삭제됩니다</li>
-              <li>계정이 완전히 삭제됩니다</li>
-            </ul>
+            <div className="modal-info-box">
+              <p className="info-box-title">✨ 탈퇴 시 안내사항</p>
+              <ul className="modal-info-list">
+                <li>저장된 GitHub 토큰 및 리포지토리 설정이 삭제됩니다</li>
+                <li>로컬 브라우저의 플래시카드 데이터는 유지됩니다</li>
+                <li>언제든 재가입하여 동일하게 서비스를 이용할 수 있습니다</li>
+                <li className="info-reauth">💡 보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
+              </ul>
+            </div>
             
             <div className="form-group">
               <label htmlFor="confirmText">
