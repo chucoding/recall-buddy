@@ -357,13 +357,29 @@ const Settings: React.FC = () => {
       setDeleting(true);
       setMessage(null);
 
-      // 1. Firestore 데이터 삭제
+      // 1. 탈퇴 기록 생성 (재가입 방지용)
+      await setDoc(doc(db, 'deletedUsers', user.uid), {
+        deletedAt: new Date().toISOString(),
+        email: user.email,
+        githubUsername: user.displayName,
+      });
+      
+      // 2. Firestore 사용자 데이터 삭제
       await deleteDoc(doc(db, 'users', user.uid));
       
-      // 2. Firebase Auth 계정 삭제
+      // 3. IndexedDB 모든 데이터 삭제
+      try {
+        await flashcardsDB.clear();
+        await repositoriesDB.clear();
+        console.log('🗑️ IndexedDB 데이터 삭제 완료');
+      } catch (dbError) {
+        console.error('❌ IndexedDB 삭제 실패:', dbError);
+      }
+      
+      // 4. Firebase Auth 계정 삭제
       await user.delete();
       
-      console.log('회원탈퇴 완료');
+      console.log('✅ 회원탈퇴 완료');
     } catch (error: any) {
       console.error('회원탈퇴 실패:', error);
       
@@ -388,10 +404,29 @@ const Settings: React.FC = () => {
           // 재인증 후 다시 계정 삭제 시도
           setMessage({ type: 'error', text: '재인증되었습니다. 다시 탈퇴를 시도합니다...' });
           
+          // 1. 탈퇴 기록 생성
+          await setDoc(doc(db, 'deletedUsers', user.uid), {
+            deletedAt: new Date().toISOString(),
+            email: user.email,
+            githubUsername: user.displayName,
+          });
+          
+          // 2. Firestore 사용자 데이터 삭제
           await deleteDoc(doc(db, 'users', user.uid));
+          
+          // 3. IndexedDB 모든 데이터 삭제
+          try {
+            await flashcardsDB.clear();
+            await repositoriesDB.clear();
+            console.log('🗑️ IndexedDB 데이터 삭제 완료');
+          } catch (dbError) {
+            console.error('❌ IndexedDB 삭제 실패:', dbError);
+          }
+          
+          // 4. Firebase Auth 계정 삭제
           await user.delete();
           
-          console.log('회원탈퇴 완료');
+          console.log('✅ 회원탈퇴 완료');
         } catch (reauthError: any) {
           console.error('재인증 실패:', reauthError);
           
@@ -658,9 +693,8 @@ const Settings: React.FC = () => {
             <div className="modal-info-box">
               <p className="info-box-title">✨ 탈퇴 시 안내사항</p>
               <ul className="modal-info-list">
-                <li>저장된 GitHub 토큰 및 리포지토리 설정이 삭제됩니다</li>
-                <li>로컬 브라우저의 플래시카드 데이터는 유지됩니다</li>
-                <li>언제든 재가입하여 동일하게 서비스를 이용할 수 있습니다</li>
+                <li>저장된 모든 데이터가 삭제됩니다</li>
+                <li>탈퇴 후 24시간 이내에는 재가입할 수 없습니다</li>
                 <li className="info-reauth">💡 보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
               </ul>
             </div>

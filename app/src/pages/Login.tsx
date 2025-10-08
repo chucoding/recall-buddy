@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
-import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, db } from '../firebase';
 import './Login.css';
 
@@ -26,7 +26,30 @@ const Login: React.FC = () => {
       setError('');
       const result = await signInWithPopup(auth, githubProvider);
       
-      // GitHub OAuth 토큰을 Firestore에 저장
+      // 1. 탈퇴 기록 확인 (재가입 방지)
+      const deletedUserDocRef = doc(db, 'deletedUsers', result.user.uid);
+      const deletedUserDoc = await getDoc(deletedUserDocRef);
+      
+      if (deletedUserDoc.exists()) {
+        const deletedAt = new Date(deletedUserDoc.data().deletedAt);
+        const now = new Date();
+        const hoursSinceDeleted = (now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursSinceDeleted < 24) {
+          // 24시간 이내 탈퇴한 사용자 - 재가입 거부
+          const remainingHours = Math.ceil(24 - hoursSinceDeleted);
+          await signOut(auth); // 즉시 로그아웃
+          setError(`회원탈퇴 후 24시간 동안은 재가입할 수 없습니다. (약 ${remainingHours}시간 남음)`);
+          setLoading(false);
+          return;
+        } else {
+          // 24시간 지난 경우 - 탈퇴 기록 삭제하고 정상 가입 허용
+          await deleteDoc(deletedUserDocRef);
+          console.log('✅ 탈퇴 기록 삭제 완료 (24시간 경과)');
+        }
+      }
+      
+      // 2. GitHub OAuth 토큰을 Firestore에 저장
       // Google의 at-rest encryption으로 자동 암호화됨
       const credential = GithubAuthProvider.credentialFromResult(result);
       if (credential && credential.accessToken && result.user) {
