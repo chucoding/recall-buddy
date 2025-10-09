@@ -7,6 +7,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // 탈퇴한 사용자 기록 (재가입 방지용)
+    match /deletedUsers/{userId} {
+      // 로그인 시 자신의 탈퇴 기록 확인 가능
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // 회원탈퇴 시 본인 기록 생성/삭제 가능
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 공지사항: 모든 인증된 사용자는 읽기만 가능 (쓰기는 Firebase Console에서만)
+    match /notices/{noticeId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Firebase Console에서만 수정 가능
+    }
+    
     // 임시: 개발 중에는 모든 인증된 사용자 접근 허용
     match /{document=**} {
       allow read, write: if request.auth != null;

@@ -203,7 +203,7 @@ const FlashCardViewer: React.FC = () => {
                         onClick={flipCard}
                         aria-label="카드 뒤집기"
                     >
-                        {flipped ? '🔙 질문 보기' : '💡 답변 보기'}
+                        {flipped ? '질문 보기' : '카드 뒤집기'}
                     </button>
                     <button 
                         className='button-circle' 

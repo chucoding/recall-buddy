@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico'],
         manifest: {
-          name: 'Today I Learned Alarm',
+          name: 'RecallBuddy',
           short_name: 'TIL Alarm',
           description: '매일 학습한 내용을 정리하고 알림을 받는 앱',
           start_url: '/',

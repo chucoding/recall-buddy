@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
-import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, db } from '../firebase';
+import TermsLinks from '../widgets/TermsLinks';
 import './Login.css';
 
 const Login: React.FC = () => {
@@ -26,7 +27,30 @@ const Login: React.FC = () => {
       setError('');
       const result = await signInWithPopup(auth, githubProvider);
       
-      // GitHub OAuth 토큰을 Firestore에 저장
+      // 1. 탈퇴 기록 확인 (재가입 방지)
+      const deletedUserDocRef = doc(db, 'deletedUsers', result.user.uid);
+      const deletedUserDoc = await getDoc(deletedUserDocRef);
+      
+      if (deletedUserDoc.exists()) {
+        const deletedAt = new Date(deletedUserDoc.data().deletedAt);
+        const now = new Date();
+        const hoursSinceDeleted = (now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursSinceDeleted < 24) {
+          // 24시간 이내 탈퇴한 사용자 - 재가입 거부
+          const remainingHours = Math.ceil(24 - hoursSinceDeleted);
+          await signOut(auth); // 즉시 로그아웃
+          setError(`회원탈퇴 후 24시간 동안은 재가입할 수 없습니다. (약 ${remainingHours}시간 남음)`);
+          setLoading(false);
+          return;
+        } else {
+          // 24시간 지난 경우 - 탈퇴 기록 삭제하고 정상 가입 허용
+          await deleteDoc(deletedUserDocRef);
+          console.log('✅ 탈퇴 기록 삭제 완료 (24시간 경과)');
+        }
+      }
+      
+      // 2. GitHub OAuth 토큰을 Firestore에 저장
       // Google의 at-rest encryption으로 자동 암호화됨
       const credential = GithubAuthProvider.credentialFromResult(result);
       if (credential && credential.accessToken && result.user) {
@@ -120,8 +144,17 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>Today I Learned</h1>
-          <p>GitHub 계정으로 로그인하여 학습을 시작하세요</p>
+          <h1>RecallBuddy</h1>
+        </div>
+        <div className="character-image-container">
+          <img 
+            src="/character.png" 
+            alt="친근한 캐릭터" 
+            className="character-image"
+          />
+        </div>
+        <div className="login-description">
+          <p>이제 GitHub에 남긴 학습 기록을<br />RecallBuddy를 통해 오래 기억하세요🍀</p>
         </div>
         
         {error && (
@@ -147,6 +180,7 @@ const Login: React.FC = () => {
 
         <div className="login-footer">
           <p>로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
+          <TermsLinks />
         </div>
       </div>
     </div>

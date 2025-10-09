@@ -4,6 +4,7 @@ import { User } from 'firebase/auth';
 import { chatCompletions } from '../api/ncloud-api';
 import { getCommits, getFilename, getMarkdown, type CommitDetail } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
+import { useNavigationStore } from '../stores/navigationStore';
 
 const DATES_AGO = [1, 7, 30]; // days ago list
 
@@ -29,6 +30,7 @@ export function useTodayFlashcards(user: User | null) {
   const { add, getByID } = useIndexedDB("data");
   const [loading, setLoading] = useState<boolean>(true);
   const [hasData, setHasData] = useState<boolean>(false);
+  const flashcardReloadTrigger = useNavigationStore((state) => state.flashcardReloadTrigger);
 
   useEffect(() => {
     // 사용자가 로그인하지 않은 경우 로딩 종료
@@ -40,6 +42,8 @@ export function useTodayFlashcards(user: User | null) {
 
     const loadFlashcards = async () => {
       try {
+        setLoading(true);
+        
         // 오늘 날짜의 데이터가 이미 있는지 확인
         const todayData = await getByID(getCurrentDate());
         if (todayData) {
@@ -68,7 +72,7 @@ export function useTodayFlashcards(user: User | null) {
     };
 
     loadFlashcards();
-  }, [add, getByID, user]);
+  }, [add, getByID, user, flashcardReloadTrigger]);
 
   return { loading, hasData };
 }
