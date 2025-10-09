@@ -74,18 +74,16 @@ VITE_MESSAGING_SENDER_ID=...
 VITE_APP_ID=...
 VITE_MEASUREMENT_ID=...
 
-# Functions 호출 설정 (env:setup 실행 시 자동 추가/보강)
-VITE_FIREBASE_PROJECT_ID=til-alarm
-VITE_FIREBASE_REGION=us-central1
-VITE_FUNCTIONS_URL_LOCAL=http://localhost:5001/til-alarm/us-central1
-VITE_FUNCTIONS_URL_PROD=https://us-central1-til-alarm.cloudfunctions.net
+# Functions 호출 설정 (`pnpm proxy` 실행 시 자동 추가)
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_REGION=
+VITE_FUNCTIONS_URL_LOCAL=
+VITE_FUNCTIONS_URL_PROD=
 ```
 
 ### Functions 환경변수 (functions/.env)
 ```bash
-GITHUB_TOKEN=your_github_token_here
 CLOVA_API_KEY=your_clova_api_key
-NCLOUD_API_KEY=your_ncloud_api_key
 ```
 
 ## 🚀 배포

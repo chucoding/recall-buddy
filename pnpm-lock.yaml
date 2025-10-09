@@ -14,7 +14,7 @@ importers:
 
   app:
     dependencies:
-      '@til-alarm/shared':
+      '@recall-buddy/shared':
         specifier: workspace:*
         version: link:../packages/shared
       axios:
@@ -81,7 +81,7 @@ importers:
 
   functions:
     dependencies:
-      '@til-alarm/shared':
+      '@recall-buddy/shared':
         specifier: workspace:*
         version: link:../packages/shared
       firebase-admin:
