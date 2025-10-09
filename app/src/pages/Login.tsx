@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, db } from '../firebase';
+import TermsLinks from '../widgets/TermsLinks';
 import './Login.css';
 
 const Login: React.FC = () => {
@@ -170,6 +171,7 @@ const Login: React.FC = () => {
 
         <div className="login-footer">
           <p>로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
+          <TermsLinks />
         </div>
       </div>
     </div>

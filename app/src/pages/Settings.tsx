@@ -6,6 +6,7 @@ import { auth, db, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '@til-alarm/shared';
 import { useNavigationStore } from '../stores/navigationStore';
+import TermsLinks from '../widgets/TermsLinks';
 import './Settings.css';
 
 interface RepositorySettings {
@@ -768,6 +769,11 @@ const Settings: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 이용약관 링크 */}
+      <div className="settings-footer">
+        <TermsLinks />
+      </div>
     </div>
   );
 };
