@@ -88,6 +88,9 @@ importers:
         specifier: ^4.8.0
         version: 4.9.0(firebase-admin@12.7.0)
     devDependencies:
+      '@recall-buddy/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.19

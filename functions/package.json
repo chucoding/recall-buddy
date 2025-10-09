@@ -17,6 +17,7 @@
     "firebase-functions": "^4.8.0"
   },
   "devDependencies": {
+    "@recall-buddy/shared": "workspace:*",
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
