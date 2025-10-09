@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { initDB } from "react-indexed-db-hook";
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 import { DBConfig } from './DBConfig';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import FlashCardViewer from './pages/FlashCardViewer';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import NoDataView from './pages/NoDataView';
+import Onboarding from './pages/Onboarding';
 import UserDropdown from './widgets/UserDropdown';
 import { useTodayFlashcards } from './hooks/useTodayFlashcards';
 import { useNavigationStore } from './stores/navigationStore';
@@ -18,7 +20,9 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [isScrollAtTop, setIsScrollAtTop] = useState<boolean>(true);
-  const { currentPage, navigateToSettings, navigateToFlashcard } = useNavigationStore();
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(false);
+  const [onboardingChecked, setOnboardingChecked] = useState<boolean>(false);
+  const { currentPage, navigateToSettings, navigateToFlashcard, triggerFlashcardReload } = useNavigationStore();
   
   // 오늘의 플래시카드 데이터 로드
   const { loading, hasData } = useTodayFlashcards(user);
@@ -32,6 +36,41 @@ const App: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
+
+  // 온보딩 필요 여부 확인
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!user) {
+        setOnboardingChecked(true);
+        return;
+      }
+
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        // 문서가 없거나, 온보딩 완료 표시가 없고 리포지토리 설정도 없으면 온보딩 필요
+        if (!userDoc.exists()) {
+          setNeedsOnboarding(true);
+        } else {
+          const data = userDoc.data();
+          // onboardingCompleted가 true이거나 repositoryFullName이 있으면 온보딩 불필요
+          if (data?.onboardingCompleted || data?.repositoryFullName) {
+            setNeedsOnboarding(false);
+          } else {
+            setNeedsOnboarding(true);
+          }
+        }
+      } catch (error) {
+        console.error('온보딩 확인 실패:', error);
+        setNeedsOnboarding(false);
+      } finally {
+        setOnboardingChecked(true);
+      }
+    };
+
+    checkOnboarding();
+  }, [user]);
 
   // 스크롤 위치 감지
   useEffect(() => {
@@ -48,8 +87,8 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 인증 로딩 중
-  if (authLoading) {
+  // 인증 로딩 중 또는 온보딩 확인 중
+  if (authLoading || !onboardingChecked) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -66,6 +105,19 @@ const App: React.FC = () => {
   // 로그인되지 않은 경우
   if (!user) {
     return <Login />;
+  }
+
+  // 온보딩이 필요한 경우
+  if (needsOnboarding) {
+    return (
+      <Onboarding 
+        onComplete={() => {
+          setNeedsOnboarding(false);
+          // 온보딩 완료 후 플래시카드 데이터 새로고침
+          triggerFlashcardReload();
+        }} 
+      />
+    );
   }
 
   // 데이터 로딩 중

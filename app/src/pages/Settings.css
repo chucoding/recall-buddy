@@ -322,6 +322,7 @@
   font-size: 0.95rem;
   font-weight: 500;
   margin-top: 16px;
+  margin-bottom: 16px;
   animation: message-slide-in 0.3s ease-out;
 }
 
