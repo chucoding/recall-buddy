@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot } from 'firebase/firestore';
 import { reauthenticateWithPopup } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, db, githubProvider } from '../firebase';
@@ -12,6 +12,11 @@ interface RepositorySettings {
   repositoryFullName: string;
   repositoryUrl: string;
   branch: string;
+}
+
+interface Notice {
+  id: string;
+  message: string;
 }
 
 // 캐시 설정 (컴포넌트 외부로 이동)
@@ -36,6 +41,7 @@ const Settings: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +68,27 @@ const Settings: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen, isBranchDropdownOpen]);
+
+  // Firestore에서 공지사항 실시간 가져오기
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, 'notices'),
+      (snapshot) => {
+        const noticesList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Notice));
+        
+        console.log('📢 공지사항 업데이트:', noticesList.length, '개');
+        setNotices(noticesList);
+      },
+      (error) => {
+        console.error('❌ 공지사항 가져오기 실패:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // GitHub 리포지토리 목록 불러오기 (IndexedDB 캐싱)
   const fetchRepositories = useCallback(async (forceRefresh = false) => {
@@ -457,6 +484,20 @@ const Settings: React.FC = () => {
   return (
     <div className="settings-container">
       <div className="settings-card">
+        {/* 공지사항 */}
+        {notices.length > 0 && (
+          <div className="notice-banner">
+            <div className="notice-icon">📢</div>
+            <div className="notice-content">
+              {notices.map((notice, index) => (
+                <p key={notice.id} className="notice-text" style={{ marginBottom: index < notices.length - 1 ? '8px' : '0' }}>
+                  {notice.message}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="settings-form">
           <div className="form-group">
             <div className="form-label-row">

@@ -16,6 +16,63 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
+/* 공지사항 배너 */
+.notice-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 2px solid #ff9800;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 32px;
+  animation: notice-fade-in 0.5s ease-out;
+}
+
+@keyframes notice-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notice-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  animation: notice-shake 2s ease-in-out infinite;
+}
+
+@keyframes notice-shake {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  10%, 30% {
+    transform: rotate(-10deg);
+  }
+  20%, 40% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+}
+
+.notice-content {
+  flex: 1;
+}
+
+.notice-text {
+  margin: 0;
+  color: #e65100;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
 .settings-header {
   text-align: center;
   margin-bottom: 40px;
@@ -679,6 +736,19 @@
 
   .settings-header h1 {
     font-size: 1.5rem;
+  }
+
+  .notice-banner {
+    padding: 12px;
+    margin-bottom: 24px;
+  }
+
+  .notice-icon {
+    font-size: 1.2rem;
+  }
+
+  .notice-text {
+    font-size: 0.85rem;
   }
 
   .release-note-zone {
