@@ -99,6 +99,7 @@ const App: React.FC = () => {
           }}></div>
           <h2 style={{ marginBottom: '10px' }}>📚 플래시카드 준비 중</h2>
           <p>GitHub에서 최근 커밋을 분석하고 있습니다...</p>
+          <p style={{ marginTop: '10px', fontSize: '0.9rem', opacity: '0.8' }}>⏱️ 데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
         </div>
         <style>{`
           @keyframes spin {
