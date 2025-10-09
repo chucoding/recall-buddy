@@ -145,6 +145,15 @@ const Login: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <h1>Today I Learned</h1>
+        </div>
+        <div className="character-image-container">
+          <img 
+            src="/character.png" 
+            alt="친근한 캐릭터" 
+            className="character-image"
+          />
+        </div>
+        <div className="login-description">
           <p>GitHub 계정으로 로그인하여 학습을 시작하세요</p>
         </div>
         
