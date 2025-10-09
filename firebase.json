@@ -7,7 +7,11 @@
         "node_modules",
         ".git",
         "firebase-debug.log",
-        "firebase-debug.*.log"
+        "firebase-debug.*.log",
+        "src",
+        "*.ts",
+        "tsconfig.json",
+        "tsup.config.ts"
       ]
     }
   ],
