@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
       open: true,
       proxy: {
         '/api': {
-          target: functionsUrl || 'http://localhost:5001/til-alarm/us-central1',
+          target: functionsUrl,
           changeOrigin: true,
           secure: false, // 로컬 개발 시 false
           rewrite: (path) => path.replace(/^\/api/, '')

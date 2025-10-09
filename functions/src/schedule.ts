@@ -5,7 +5,8 @@ import { getMessaging } from 'firebase-admin/messaging';
 export const sendDaily8amPush = onSchedule(
   {
     schedule: '0 23 * * *', // KST 08:00 = UTC 23:00 (전날)
-    timeZone: 'Asia/Seoul'
+    timeZone: 'Asia/Seoul',
+    region: 'asia-northeast3'
   },
   async () => {
     try {

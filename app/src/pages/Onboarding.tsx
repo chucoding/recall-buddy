@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, db } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
-import { Repository } from '@til-alarm/shared';
+import { Repository } from '@recall-buddy/shared';
 import './Onboarding.css';
 
 interface OnboardingProps {

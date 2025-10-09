@@ -19,11 +19,11 @@ VITE_MESSAGING_SENDER_ID=...
 VITE_APP_ID=...
 VITE_MEASUREMENT_ID=...
 
-# Functions 호출용 (env:setup가 자동 추가)
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_REGION=us-central1
-VITE_FUNCTIONS_URL_LOCAL=http://localhost:5001/your-project-id/us-central1
-VITE_FUNCTIONS_URL_PROD=https://us-central1-your-project-id.cloudfunctions.net
+# Functions 호출용 (`pnpm proxy`로 자동 추가)
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_REGION=
+VITE_FUNCTIONS_URL_LOCAL=
+VITE_FUNCTIONS_URL_PROD=
 ```
 
 ### 2. 개발 서버 시작
@@ -74,18 +74,82 @@ VITE_MESSAGING_SENDER_ID=...
 VITE_APP_ID=...
 VITE_MEASUREMENT_ID=...
 
-# Functions 호출 설정 (env:setup 실행 시 자동 추가/보강)
-VITE_FIREBASE_PROJECT_ID=til-alarm
-VITE_FIREBASE_REGION=us-central1
-VITE_FUNCTIONS_URL_LOCAL=http://localhost:5001/til-alarm/us-central1
-VITE_FUNCTIONS_URL_PROD=https://us-central1-til-alarm.cloudfunctions.net
+# Functions 호출 설정 (`pnpm proxy` 실행 시 자동 추가)
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_REGION=
+VITE_FUNCTIONS_URL_LOCAL=
+VITE_FUNCTIONS_URL_PROD=
 ```
 
 ### Functions 환경변수 (functions/.env)
 ```bash
-GITHUB_TOKEN=your_github_token_here
 CLOVA_API_KEY=your_clova_api_key
-NCLOUD_API_KEY=your_ncloud_api_key
+```
+
+## 🌏 리전 설정
+
+이 프로젝트는 기본적으로 **Seoul (asia-northeast3)** 리전에 배포됩니다.
+
+### 사용 가능한 Firebase Functions 리전
+- `asia-northeast3` - Seoul (서울) ⭐ 기본값
+- `asia-northeast1` - Tokyo (도쿄)
+- `us-central1` - Iowa (아이오와)
+- `us-west1` - Oregon (오레곤)
+- `europe-west1` - Belgium (벨기에)
+- [전체 리전 목록](https://firebase.google.com/docs/functions/locations)
+
+### 리전 변경 방법
+
+다른 리전으로 변경하려면 다음 파일들을 수정하세요:
+
+#### 1. Functions 코드 (모든 함수의 region 옵션 수정)
+
+**`functions/src/github.ts`**
+```typescript
+export const getCommits = onRequest(
+  { cors: true, region: 'your-region' },  // 변경
+  async (req, res) => { ... }
+);
+// getFilename, getMarkdown, getRepositories, getBranches도 동일하게 수정
+```
+
+**`functions/src/hyperclovax.ts`**
+```typescript
+export const chatCompletions = onRequest(
+  { cors: true, region: 'your-region' },  // 변경
+  async (req, res) => { ... }
+);
+```
+
+**`functions/src/schedule.ts`**
+```typescript
+export const sendDaily8amPush = onSchedule(
+  {
+    schedule: '0 23 * * *',
+    timeZone: 'Asia/Seoul',
+    region: 'your-region'  // 변경
+  },
+  async () => { ... }
+);
+```
+
+#### 2. Setup 스크립트 (환경변수 자동 생성용)
+
+**`scripts/setup-proxy.js`**
+```javascript
+const envVars = {
+  VITE_FIREBASE_PROJECT_ID: projectId,
+  VITE_FIREBASE_REGION: 'your-region',  // 변경
+  VITE_FUNCTIONS_URL_LOCAL: `http://localhost:5001/${projectId}/your-region`,  // 변경
+  VITE_FUNCTIONS_URL_PROD: `https://your-region-${projectId}.cloudfunctions.net`  // 변경
+};
+```
+
+#### 3. 환경변수 재생성
+
+```bash
+# setup 스크립트 재실행하여 app/.env 업데이트
+pnpm env:setup
 ```
 
 ## 🚀 배포

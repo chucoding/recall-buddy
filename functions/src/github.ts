@@ -1,7 +1,7 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { Repository } from '@til-alarm/shared';
+import { Repository } from '@recall-buddy/shared';
 
 /**
  * Firebase ID Token 검증 및 사용자 정보 조회
@@ -60,7 +60,7 @@ async function getUserData(req: any): Promise<{
 
 // GitHub API 호출을 위한 HTTP Functions
 export const getCommits = onRequest(
-  { cors: true },
+  { cors: true, region: 'asia-northeast3' },
   async (req, res) => {
     try {
       const { since, until } = req.query;
@@ -105,7 +105,7 @@ export const getCommits = onRequest(
 );
 
 export const getFilename = onRequest(
-  { cors: true },
+  { cors: true, region: 'asia-northeast3' },
   async (req, res) => {
     try {
       const { commit_sha } = req.query;
@@ -149,7 +149,7 @@ export const getFilename = onRequest(
 );
 
 export const getMarkdown = onRequest(
-  { cors: true },
+  { cors: true, region: 'asia-northeast3' },
   async (req, res) => {
     try {
       const { filename } = req.query;
@@ -198,7 +198,7 @@ export const getMarkdown = onRequest(
  * Settings 페이지에서 리포지토리 선택을 위해 사용
  */
 export const getRepositories = onRequest(
-  { cors: true },
+  { cors: true, region: 'asia-northeast3' },
   async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
@@ -266,7 +266,7 @@ export const getRepositories = onRequest(
  * Settings 페이지에서 브랜치 선택을 위해 사용
  */
 export const getBranches = onRequest(
-  { cors: true },
+  { cors: true, region: 'asia-northeast3' },
   async (req, res) => {
     try {
       const { owner, repo } = req.query;
