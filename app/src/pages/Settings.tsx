@@ -688,6 +688,23 @@ const Settings: React.FC = () => {
           🔒 = Private 리포지토리, 🌐 = Public 리포지토리
         </p>
 
+        {/* 문의하기 */}
+        <div className="contact-zone">
+          <h2 className="contact-zone-title">💬 문의하기</h2>
+          <p className="contact-description">
+            서비스 이용 중 불편한 점이나 개선 사항이 있으신가요?
+          </p>
+          <a
+            href={`mailto:chucoding@gmail.com?subject=[TIL Alarm] 문의사항&body=안녕하세요,%0A%0A문의 내용을 작성해주세요.%0A%0A----%0A사용자: ${auth.currentUser?.displayName || ''}%0A이메일: ${auth.currentUser?.email || ''}`}
+            className="contact-button"
+          >
+            📧 이메일로 문의하기
+          </a>
+          <p className="contact-email">
+            또는 직접 이메일을 보내주세요: <a href="mailto:chucoding@gmail.com">chucoding@gmail.com</a>
+          </p>
+        </div>
+
         {/* 계정 관리 */}
         <div className="account-zone">
           <h2 className="account-zone-title">👤 계정 관리</h2>

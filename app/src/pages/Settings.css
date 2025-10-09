@@ -355,7 +355,7 @@
   margin: 0 0 8px 0;
   font-size: 0.85rem;
   color: #718096;
-  text-align: center;
+  text-align: left;
   line-height: 1.6;
 }
 
@@ -399,11 +399,75 @@
   100% { transform: rotate(360deg); }
 }
 
+/* 문의하기 */
+.contact-zone {
+  padding: 0;
+  border-top: 1px solid #e2e8f0;
+  text-align: left;
+  margin-top: 32px;
+  padding-top: 20px;
+}
+
+.contact-zone-title {
+  margin: 0 0 8px 0;
+  color: #4a5568;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.contact-description {
+  margin: 0 0 16px 0;
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.contact-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.contact-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.contact-email {
+  margin: 12px 0 0 0;
+  color: #a0aec0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.contact-email a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.contact-email a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
 /* 계정 관리 */
 .account-zone {
-  padding: 20px 24px;
+  padding: 0;
   border-top: 1px solid #e2e8f0;
-  text-align: center;
+  text-align: left;
+  margin-top: 16px;
+  padding-top: 20px;
 }
 
 .account-zone-title {
@@ -610,8 +674,27 @@
     font-size: 1.5rem;
   }
 
+  .contact-zone {
+    padding: 0;
+    padding-top: 16px;
+  }
+
+  .contact-zone-title {
+    font-size: 0.95rem;
+  }
+
+  .contact-description {
+    font-size: 0.85rem;
+  }
+
+  .contact-button {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+
   .account-zone {
-    padding: 16px 20px;
+    padding: 0;
+    padding-top: 16px;
   }
 
   .account-zone-title {
@@ -643,5 +726,7 @@
 .settings-footer {
   border-top: 1px solid #e0e0e0;
   text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
 }
 

@@ -13,24 +13,21 @@ const TermsLinks: React.FC = () => {
 
   return (
     <>
-      <p className="terms-links">
-        <button 
-          type="button"
-          className="terms-link"
-          onClick={() => openTermsModal('terms')}
-        >
-          이용약관
-        </button>
-        {' · '}
-        <button 
-          type="button"
-          className="terms-link"
-          onClick={() => openTermsModal('privacy')}
-        >
-          개인정보처리방침
-        </button>
-      </p>
-
+      <button 
+        type="button"
+        className="terms-link"
+        onClick={() => openTermsModal('terms')}
+      >
+        이용약관
+      </button>
+      {' · '}
+      <button 
+        type="button"
+        className="terms-link"
+        onClick={() => openTermsModal('privacy')}
+      >
+        개인정보처리방침
+      </button>
       <TermsModal 
         isOpen={showTermsModal}
         termsType={termsType}
