@@ -154,6 +154,26 @@ pnpm env:setup
 
 ## 🚀 배포
 
+### ⚠️ 배포 전 체크리스트
+
+**Firebase Hosting은 정적 파일 호스팅이므로, 환경 변수는 빌드 시점에 코드에 포함됩니다.**
+
+1. **`app/.env` 파일이 올바르게 설정되어 있는지 확인**
+   ```bash
+   # app/.env 파일이 있는지 확인
+   cat app/.env  # Linux/Mac
+   type app\.env  # Windows
+   ```
+
+2. **환경 변수 변경 시 반드시 재빌드**
+   ```bash
+   pnpm build
+   ```
+
+3. **민감 정보 주의**: `.env` 파일의 내용은 빌드된 JavaScript에 포함되어 브라우저에서 볼 수 있습니다.
+   - API 키, 프로젝트 ID 등은 괜찮음 (Firebase 자체적으로 보안 규칙으로 보호)
+   - 절대 비밀키(Secret Key)를 클라이언트 코드에 넣지 마세요!
+
 ### Functions 개별 배포
 ```bash
 cd functions
@@ -171,11 +191,55 @@ pnpm deploy:hypercloax
 pnpm deploy
 ```
 
-### 앱 배포
+### 앱 배포 (Hosting)
 ```bash
-# 루트에서 전체 배포
-pnpm deploy
+# 1. 빌드 (환경 변수 포함)
+pnpm build
+
+# 2. 배포
+firebase deploy --only hosting
+
+# 또는 한 번에 (루트에서 전체 빌드 + 배포)
+pnpm push
 ```
+
+### CI/CD 자동 배포 (GitHub Actions)
+
+GitHub Actions 워크플로우가 이미 설정되어 있습니다:
+- **PR 생성 시**: 미리보기 배포 (`.github/workflows/firebase-hosting-pull-request.yml`)
+- **main 브랜치 머지 시**: 프로덕션 배포 (`.github/workflows/firebase-hosting-merge.yml`)
+
+#### 🔧 GitHub Secrets 설정 (필수)
+
+GitHub Actions가 정상 동작하려면 환경 변수를 GitHub Secrets에 추가해야 합니다.
+
+**1. GitHub Repository 설정으로 이동**
+   - Repository 페이지 > Settings > Secrets and variables > Actions
+
+**2. New repository secret 클릭 후 다음 값들을 추가**
+
+로컬 `app/.env` 파일의 값을 복사하여 하나씩 추가:
+
+| Secret Name | 설명 |
+|-------------|------|
+| `VITE_API_KEY` | Firebase API 키 |
+| `VITE_AUTH_DOMAIN` | Firebase Auth 도메인 |
+| `VITE_PROJECT_ID` | Firebase 프로젝트 ID |
+| `VITE_STORAGE_BUCKET` | Firebase Storage 버킷 |
+| `VITE_MESSAGING_SENDER_ID` | FCM 발신자 ID |
+| `VITE_APP_ID` | Firebase 앱 ID |
+| `VITE_MEASUREMENT_ID` | Google Analytics 측정 ID |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase 프로젝트 ID (Functions용) |
+| `VITE_FIREBASE_REGION` | Firebase Functions 리전 |
+| `VITE_FUNCTIONS_URL_LOCAL` | Functions 로컬 URL |
+| `VITE_FUNCTIONS_URL_PROD` | Functions 프로덕션 URL |
+
+**3. Firebase Service Account (이미 설정되어 있음)**
+   - `FIREBASE_SERVICE_ACCOUNT_TIL_ALARM`은 이미 설정되어 있습니다.
+
+**4. 확인**
+   - main 브랜치에 푸시하거나 PR을 생성하면 자동으로 배포됩니다.
+   - Actions 탭에서 워크플로우 실행 상태를 확인할 수 있습니다.
 
 ## 🔄 API 구조
 
