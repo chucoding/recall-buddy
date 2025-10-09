@@ -81,9 +81,6 @@ importers:
 
   functions:
     dependencies:
-      '@recall-buddy/shared':
-        specifier: workspace:*
-        version: link:../packages/shared
       firebase-admin:
         specifier: ^12.0.0
         version: 12.7.0
