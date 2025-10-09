@@ -32,11 +32,13 @@ const Settings: React.FC = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState<boolean>(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const branchDropdownRef = useRef<HTMLDivElement>(null);
 
   // IndexedDB 훅
   const repositoriesDB = useIndexedDB('repositories');
@@ -49,16 +51,19 @@ const Settings: React.FC = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target as Node)) {
+        setIsBranchDropdownOpen(false);
+      }
     };
 
-    if (isDropdownOpen) {
+    if (isDropdownOpen || isBranchDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDropdownOpen]);
+  }, [isDropdownOpen, isBranchDropdownOpen]);
 
   // GitHub 리포지토리 목록 불러오기 (IndexedDB 캐싱)
   const fetchRepositories = useCallback(async (forceRefresh = false) => {
@@ -591,30 +596,50 @@ const Settings: React.FC = () => {
                     <span>브랜치 목록을 불러오는 중...</span>
                   </div>
                 ) : branches.length > 0 ? (
-                  <select
-                    id="branch"
-                    value={settings.branch}
-                    onChange={(e) => {
-                      setSettings({ ...settings, branch: e.target.value });
-                      setHasChanges(true);
-                    }}
-                    disabled={saving}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      fontSize: '14px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      backgroundColor: 'white',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {branches.map((branch) => (
-                      <option key={branch.name} value={branch.name}>
-                        {branch.name} {branch.protected ? '🔒' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="custom-select-container" ref={branchDropdownRef}>
+                    <button
+                      type="button"
+                      className={`custom-select-trigger ${isBranchDropdownOpen ? 'open' : ''} ${saving ? 'saving' : ''}`}
+                      onClick={() => !saving && setIsBranchDropdownOpen(!isBranchDropdownOpen)}
+                      disabled={saving}
+                    >
+                      {saving ? (
+                        <div className="selected-repo">
+                          <div className="loading-spinner-small"></div>
+                          <span className="repo-name">저장 중...</span>
+                        </div>
+                      ) : (
+                        <div className="selected-repo">
+                          <span className="repo-name">{settings.branch}</span>
+                          {branches.find(b => b.name === settings.branch)?.protected && (
+                            <span className="repo-badge">🔒 Protected</span>
+                          )}
+                        </div>
+                      )}
+                      <span className="dropdown-arrow">{isBranchDropdownOpen ? '▲' : '▼'}</span>
+                    </button>
+
+                    {isBranchDropdownOpen && !saving && (
+                      <div className="custom-select-dropdown">
+                        {branches.map((branch) => (
+                          <div
+                            key={branch.name}
+                            className={`custom-select-option ${settings.branch === branch.name ? 'selected' : ''}`}
+                            onClick={() => {
+                              setSettings({ ...settings, branch: branch.name });
+                              setHasChanges(true);
+                              setIsBranchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="option-header">
+                              <span className="option-name">{branch.name}</span>
+                              {branch.protected && <span className="option-badge">🔒</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <p className="form-hint" style={{ color: '#999', fontStyle: 'italic' }}>
                     리포지토리를 선택하면 브랜치 목록이 표시됩니다.
