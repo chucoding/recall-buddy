@@ -1,15 +1,15 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
-.pnp.js
+node_modules
 
 # testing
 /coverage
 
 # production
-/build
+app/dist
+functions/dist
+packages/shared/dist
 
 # misc
 .DS_Store
@@ -19,6 +19,9 @@
 .env.production.local
 
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .env
+!.env.example
+
+# firebase
+.firebase/
+firebase-debug.log*
