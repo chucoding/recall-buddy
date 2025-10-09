@@ -56,9 +56,9 @@ try {
   // 환경변수 내용 생성 (Functions용)
   const envVars = {
     VITE_FIREBASE_PROJECT_ID: projectId,
-    VITE_FIREBASE_REGION: 'us-central1',
-    VITE_FUNCTIONS_URL_LOCAL: `http://localhost:5001/${projectId}/us-central1`,
-    VITE_FUNCTIONS_URL_PROD: `https://us-central1-${projectId}.cloudfunctions.net`
+    VITE_FIREBASE_REGION: 'asia-northeast3',
+    VITE_FUNCTIONS_URL_LOCAL: `http://localhost:5001/${projectId}/asia-northeast3`,
+    VITE_FUNCTIONS_URL_PROD: `https://asia-northeast3-${projectId}.cloudfunctions.net`
   };
   
   let envFileContent = '';
