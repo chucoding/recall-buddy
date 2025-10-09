@@ -8,7 +8,6 @@ interface NavigationState {
   setCurrentPage: (page: Page) => void;
   navigateToSettings: () => void;
   navigateToFlashcard: () => void;
-  triggerFlashcardReload: () => void;
 }
 
 export const useNavigationStore = create<NavigationState>((set) => ({
@@ -16,9 +15,5 @@ export const useNavigationStore = create<NavigationState>((set) => ({
   flashcardReloadTrigger: 0,
   setCurrentPage: (page) => set({ currentPage: page }),
   navigateToSettings: () => set({ currentPage: 'settings' }),
-  navigateToFlashcard: () => set({ currentPage: 'flashcard' }),
-  triggerFlashcardReload: () => set((state) => ({ 
-    flashcardReloadTrigger: state.flashcardReloadTrigger + 1,
-    currentPage: 'flashcard'
-  })),
+  navigateToFlashcard: () => set({ currentPage: 'flashcard' })
 }));

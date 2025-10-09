@@ -22,7 +22,7 @@ const App: React.FC = () => {
   const [isScrollAtTop, setIsScrollAtTop] = useState<boolean>(true);
   const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(false);
   const [onboardingChecked, setOnboardingChecked] = useState<boolean>(false);
-  const { currentPage, navigateToSettings, navigateToFlashcard, triggerFlashcardReload } = useNavigationStore();
+  const { currentPage, navigateToSettings, navigateToFlashcard } = useNavigationStore();
   
   // 오늘의 플래시카드 데이터 로드
   const { loading, hasData } = useTodayFlashcards(user);
@@ -87,41 +87,8 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 인증 로딩 중 또는 온보딩 확인 중
-  if (authLoading || !onboardingChecked) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '1.2rem'
-      }}>
-        로딩 중...
-      </div>
-    );
-  }
-
-  // 로그인되지 않은 경우
-  if (!user) {
-    return <Login />;
-  }
-
-  // 온보딩이 필요한 경우
-  if (needsOnboarding) {
-    return (
-      <Onboarding 
-        onComplete={() => {
-          setNeedsOnboarding(false);
-          // 온보딩 완료 후 플래시카드 데이터 새로고침
-          triggerFlashcardReload();
-        }} 
-      />
-    );
-  }
-
-  // 데이터 로딩 중
-  if (loading) {
+  // 로딩 중 (인증, 온보딩 확인, 데이터 로딩)
+  if (authLoading || !onboardingChecked || loading) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -160,6 +127,23 @@ const App: React.FC = () => {
           }
         `}</style>
       </div>
+    );
+  }
+
+  // 로그인되지 않은 경우
+  if (!user) {
+    return <Login />;
+  }
+
+  // 온보딩이 필요한 경우
+  if (needsOnboarding) {
+    return (
+      <Onboarding 
+        onComplete={() => {
+          // 온보딩 완료 후 페이지 새로고침으로 깔끔하게 시작
+          window.location.reload();
+        }} 
+      />
     );
   }
 

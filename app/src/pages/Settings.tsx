@@ -5,7 +5,6 @@ import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, db, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '@til-alarm/shared';
-import { useNavigationStore } from '../stores/navigationStore';
 import TermsLinks from '../widgets/TermsLinks';
 import './Settings.css';
 
@@ -37,14 +36,12 @@ const Settings: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
-  const [hasChanges, setHasChanges] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
 
   // IndexedDB 훅
   const repositoriesDB = useIndexedDB('repositories');
   const flashcardsDB = useIndexedDB('data'); // 플래시카드 데이터 스토어
-  const { triggerFlashcardReload } = useNavigationStore();
   
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -255,8 +252,6 @@ const Settings: React.FC = () => {
     // 브랜치 목록 불러오기
     const [owner, repoName] = repo.full_name.split('/');
     await fetchBranches(owner, repoName);
-    
-    setHasChanges(true);
   };
 
   // 설정 저장
@@ -282,20 +277,14 @@ const Settings: React.FC = () => {
     setMessage(null);
 
     try {
-      // 기존 리포지토리 확인
+      // 기존 데이터 확인
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const existingData = userDoc.exists() ? userDoc.data() : {};
-      const previousRepo = existingData.repositoryFullName;
-      const previousBranch = existingData.branch;
-      
-      // 리포지토리 또는 브랜치가 변경되었는지 확인
-      const isRepoOrBranchChanged = 
-        (previousRepo && previousRepo !== settings.repositoryFullName) ||
-        (previousBranch && previousBranch !== settings.branch);
 
       // full_name에서 username과 repository 분리
       const [githubUsername, repositoryName] = settings.repositoryFullName.split('/');
 
+      // Firestore에 설정 저장
       await setDoc(doc(db, 'users', user.uid), {
         ...existingData,
         repositoryFullName: settings.repositoryFullName,
@@ -306,37 +295,22 @@ const Settings: React.FC = () => {
         updatedAt: new Date().toISOString(),
       });
 
-      // 리포지토리 또는 브랜치가 변경된 경우 플래시카드 데이터 삭제 후 홈으로 이동
-      if (isRepoOrBranchChanged) {
-        try {
-          // 모든 캐시된 플래시카드 데이터 삭제
-          await flashcardsDB.clear();
-          console.log('🗑️ 설정 변경으로 인해 플래시카드 데이터를 삭제했습니다.');
-          
-          setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
-          setHasChanges(false);
-          setSaving(false);
-          
-          // 플래시카드 페이지로 이동하면서 리로드 트리거
-          // 이렇게 하면 useTodayFlashcards 훅이 다시 실행되면서 새로운 데이터를 불러옴
-          setTimeout(() => {
-            triggerFlashcardReload();
-          }, 500);
-        } catch (clearError) {
-          console.error('❌ 플래시카드 데이터 삭제 실패:', clearError);
-          setMessage({ type: 'error', text: '데이터 삭제에 실패했습니다. 다시 시도해주세요.' });
-          setSaving(false);
-        }
-      } else {
-        // 리포지토리/브랜치 변경이 없는 경우 현재 페이지 유지
-        setMessage({ type: 'success', text: '✅ 설정이 성공적으로 저장되었습니다!' });
-        setHasChanges(false);
-        setSaving(false);
+      // 저장 후 항상 플래시카드 데이터 삭제하고 새로 생성
+      try {
+        // 모든 캐시된 플래시카드 데이터 삭제
+        await flashcardsDB.clear();
+        console.log('🗑️ 플래시카드 데이터를 삭제했습니다.');
         
-        // 3초 후 메시지 자동 제거
+        setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
+        
+        // 페이지 새로고침으로 플래시카드 새로 생성
         setTimeout(() => {
-          setMessage(null);
-        }, 3000);
+          window.location.reload();
+        }, 500);
+      } catch (clearError) {
+        console.error('❌ 플래시카드 데이터 삭제 실패:', clearError);
+        setMessage({ type: 'error', text: '데이터 삭제에 실패했습니다. 다시 시도해주세요.' });
+        setSaving(false);
       }
     } catch (error) {
       console.error('설정 저장 실패:', error);
@@ -628,7 +602,6 @@ const Settings: React.FC = () => {
                             className={`custom-select-option ${settings.branch === branch.name ? 'selected' : ''}`}
                             onClick={() => {
                               setSettings({ ...settings, branch: branch.name });
-                              setHasChanges(true);
                               setIsBranchDropdownOpen(false);
                             }}
                           >
@@ -661,23 +634,9 @@ const Settings: React.FC = () => {
               type="button"
               className="save-settings-button"
               onClick={handleSaveSettings}
-              disabled={saving || !hasChanges}
-              style={{
-                width: '100%',
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: 'white',
-                backgroundColor: hasChanges ? '#4CAF50' : '#ccc',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: hasChanges && !saving ? 'pointer' : 'not-allowed',
-                marginTop: '20px',
-                marginBottom: '20px',
-                transition: 'background-color 0.3s',
-              }}
+              disabled={saving || !settings.repositoryFullName || !settings.branch}
             >
-              {saving ? '저장 중...' : hasChanges ? '설정 저장' : '저장됨'}
+              {saving ? '저장 중...' : '🚀 설정 저장'}
             </button>
           )}
         </div>
