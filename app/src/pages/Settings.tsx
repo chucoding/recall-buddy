@@ -322,6 +322,16 @@ const Settings: React.FC = () => {
   // 선택된 리포지토리 찾기
   const selectedRepo = repositories.find(repo => repo.full_name === settings.repositoryFullName);
 
+  // 로그아웃 핸들러
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+      setMessage({ type: 'error', text: '로그아웃에 실패했습니다.' });
+    }
+  };
+
   // 회원탈퇴 핸들러
   const handleDeleteAccount = async () => {
     const user = auth.currentUser;
@@ -667,15 +677,24 @@ const Settings: React.FC = () => {
         <div className="account-zone">
           <h2 className="account-zone-title">👤 계정 관리</h2>
           <p className="account-description">
-            서비스 이용을 중단하고 싶으신가요?
+            계정 로그아웃 또는 서비스 탈퇴를 진행할 수 있습니다.
           </p>
-          <button
-            type="button"
-            className="delete-account-button"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            서비스 탈퇴
-          </button>
+          <div className="account-buttons">
+            <button
+              type="button"
+              className="logout-button"
+              onClick={handleLogout}
+            >
+              🚪 로그아웃
+            </button>
+            <button
+              type="button"
+              className="delete-account-button"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              서비스 탈퇴
+            </button>
+          </div>
         </div>
 
         {/* 이용약관 링크 */}

@@ -453,25 +453,51 @@
 
 .account-zone-title {
   margin: 0 0 8px 0;
-  color: #718096;
+  color: #4a5568;
   font-size: 1rem;
   font-weight: 600;
 }
 
 .account-description {
   margin: 0 0 16px 0;
-  color: #a0aec0;
+  color: #718096;
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
+.account-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.logout-button {
+  flex: 1;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.logout-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
 .delete-account-button {
-  padding: 8px 16px;
+  flex: 1;
+  padding: 12px 24px;
   background: transparent;
   color: #a0aec0;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -684,6 +710,15 @@
 
   .account-description {
     font-size: 0.85rem;
+  }
+
+  .account-buttons {
+    flex-direction: column;
+  }
+
+  .logout-button,
+  .delete-account-button {
+    width: 100%;
   }
 
   .modal-content {
