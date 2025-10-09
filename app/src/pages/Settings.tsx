@@ -647,21 +647,20 @@ const Settings: React.FC = () => {
           🔒 = Private 리포지토리, 🌐 = Public 리포지토리
         </p>
 
-        {/* 문의하기 */}
-        <div className="contact-zone">
-          <h2 className="contact-zone-title">💬 문의하기</h2>
-          <p className="contact-description">
-            서비스 이용 중 불편한 점이나 개선 사항이 있으신가요?
+        {/* 릴리즈 노트 */}
+        <div className="release-note-zone">
+          <h2 className="release-note-title">📝 릴리즈 노트</h2>
+          <p className="release-note-description">
+            새로운 기능과 개선사항을 확인하세요
           </p>
           <a
-            href={`mailto:chucoding@gmail.com?subject=[TIL Alarm] 문의사항&body=안녕하세요,%0A%0A문의 내용을 작성해주세요.%0A%0A----%0A사용자: ${auth.currentUser?.displayName || ''}%0A이메일: ${auth.currentUser?.email || ''}`}
-            className="contact-button"
+            href="https://chucoding.notion.site/Release-Note-287fd64d44a08080a7a3c74f2f2f66b3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="release-note-button"
           >
-            📧 이메일로 문의하기
+            📋 릴리즈 노트 보기
           </a>
-          <p className="contact-email">
-            또는 직접 이메일을 보내주세요: <a href="mailto:chucoding@gmail.com">chucoding@gmail.com</a>
-          </p>
         </div>
 
         {/* 계정 관리 */}

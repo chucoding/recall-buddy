@@ -399,8 +399,8 @@
   100% { transform: rotate(360deg); }
 }
 
-/* 문의하기 */
-.contact-zone {
+/* 릴리즈 노트 */
+.release-note-zone {
   padding: 0;
   border-top: 1px solid #e2e8f0;
   text-align: left;
@@ -408,21 +408,21 @@
   padding-top: 20px;
 }
 
-.contact-zone-title {
+.release-note-title {
   margin: 0 0 8px 0;
   color: #4a5568;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.contact-description {
+.release-note-description {
   margin: 0 0 16px 0;
   color: #718096;
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
-.contact-button {
+.release-note-button {
   display: inline-block;
   padding: 12px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -437,28 +437,9 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.contact-button:hover {
+.release-note-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
-
-.contact-email {
-  margin: 12px 0 0 0;
-  color: #a0aec0;
-  font-size: 0.85rem;
-  line-height: 1.6;
-}
-
-.contact-email a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.contact-email a:hover {
-  color: #764ba2;
-  text-decoration: underline;
 }
 
 /* 계정 관리 */
@@ -674,20 +655,20 @@
     font-size: 1.5rem;
   }
 
-  .contact-zone {
+  .release-note-zone {
     padding: 0;
     padding-top: 16px;
   }
 
-  .contact-zone-title {
+  .release-note-title {
     font-size: 0.95rem;
   }
 
-  .contact-description {
+  .release-note-description {
     font-size: 0.85rem;
   }
 
-  .contact-button {
+  .release-note-button {
     font-size: 0.9rem;
     padding: 10px 20px;
   }
