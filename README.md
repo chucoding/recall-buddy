@@ -1,4 +1,4 @@
-# Today I Learned Alarm
+# RecallBuddy
 
 매일 학습한 내용을 정리하고 알림을 받는 앱입니다.
 

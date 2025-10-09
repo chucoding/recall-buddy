@@ -673,6 +673,7 @@ const Settings: React.FC = () => {
                 borderRadius: '8px',
                 cursor: hasChanges && !saving ? 'pointer' : 'not-allowed',
                 marginTop: '20px',
+                marginBottom: '20px',
                 transition: 'background-color 0.3s',
               }}
             >
@@ -680,15 +681,12 @@ const Settings: React.FC = () => {
             </button>
           )}
         </div>
-
-        <div className="settings-footer">
-          <p className="info-text">
-            ℹ️ GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
-          </p>
-          <p className="info-text">
-            🔒 = Private 리포지토리, 🌐 = Public 리포지토리
-          </p>
-        </div>
+        <p className="info-text">
+          ℹ️ GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
+        </p>
+        <p className="info-text">
+          🔒 = Private 리포지토리, 🌐 = Public 리포지토리
+        </p>
 
         {/* 계정 관리 */}
         <div className="account-zone">
@@ -703,6 +701,11 @@ const Settings: React.FC = () => {
           >
             서비스 탈퇴
           </button>
+        </div>
+
+        {/* 이용약관 링크 */}
+        <div className="settings-footer">
+          <TermsLinks />
         </div>
       </div>
 
@@ -769,11 +772,6 @@ const Settings: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* 이용약관 링크 */}
-      <div className="settings-footer">
-        <TermsLinks />
-      </div>
     </div>
   );
 };

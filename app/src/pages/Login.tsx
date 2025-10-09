@@ -144,7 +144,7 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>Today I Learned</h1>
+          <h1>RecallBuddy</h1>
         </div>
         <div className="character-image-container">
           <img 
@@ -154,7 +154,7 @@ const Login: React.FC = () => {
           />
         </div>
         <div className="login-description">
-          <p>GitHub 계정으로 로그인하여 학습을 시작하세요</p>
+          <p>이제 GitHub에 남긴 학습 기록을<br />RecallBuddy를 통해 오래 기억하세요🍀</p>
         </div>
         
         {error && (

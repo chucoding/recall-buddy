@@ -350,12 +350,6 @@
   box-shadow: 0 2px 8px rgba(252, 129, 129, 0.2);
 }
 
-.settings-footer {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
-}
-
 .info-text {
   margin: 0 0 8px 0;
   font-size: 0.85rem;
@@ -406,7 +400,6 @@
 
 /* 계정 관리 */
 .account-zone {
-  margin-top: 40px;
   padding: 20px 24px;
   border-top: 1px solid #e2e8f0;
   text-align: center;
@@ -647,8 +640,6 @@
 
 /* 설정 페이지 푸터 */
 .settings-footer {
-  margin-top: 48px;
-  padding-top: 24px;
   border-top: 1px solid #e0e0e0;
   text-align: center;
 }
