@@ -3,12 +3,12 @@
   "packageManager": "pnpm@10.18.0",
   "workspaces": [
     "app",
-    "functions"
+    "functions",
+    "shared"
   ],
   "scripts": {
     "proxy": "node scripts/setup-proxy.js",
-    "dev": "concurrently --kill-others \"firebase emulators:start --only functions\" \"pnpm --filter app run dev\"",
-    "dev:build": "pnpm --filter functions build && pnpm dev",
+    "dev": "concurrently --kill-others \"firebase emulators:start\" \"pnpm --filter app run dev\"",
     "build": "pnpm -r run build",
     "push": "firebase deploy --only hosting,functions"
   },
