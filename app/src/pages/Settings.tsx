@@ -705,7 +705,7 @@ const Settings: React.FC = () => {
             새로운 기능과 개선사항을 확인하세요
           </p>
           <a
-            href="https://chucoding.notion.site/Release-Note-287fd64d44a08080a7a3c74f2f2f66b3"
+            href="https://www.notion.so/chucoding/RELEASE_NOTE-287fd64d44a080cd9564d2492b7de718"
             target="_blank"
             rel="noopener noreferrer"
             className="release-note-button"

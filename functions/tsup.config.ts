@@ -10,5 +10,7 @@ export default defineConfig({
   platform: 'node',
   shims: false,
   treeshake: true,
-  dts: false
+  dts: false,
+  // workspace 패키지를 번들에 포함 (Firebase 배포용)
+  noExternal: ['@recall-buddy/shared']
 });

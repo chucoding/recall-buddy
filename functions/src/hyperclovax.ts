@@ -2,7 +2,11 @@ import { onRequest } from 'firebase-functions/v2/https';
 
 // HyperCLOVA X API (HCX-007)
 export const chatCompletions = onRequest(
-  { cors: true, region: 'asia-northeast3' },
+  { 
+    cors: true,
+    region: 'asia-northeast3',
+    invoker: 'public'
+  },
   async (req, res) => {
     try {
       const { prompt, text } = req.body;
