@@ -1,4 +1,4 @@
 packages:
   - 'app'
   - 'functions'
-  - 'packages/*'
+  - 'shared'
