@@ -1,42 +1,12 @@
 import { apiClient } from '../modules/axios';
-
-interface ChatCompletionResponse {
-  status: {
-    code: string;
-    message: string;
-  };
-  result: {
-    message: {
-      role: string;
-      content: string;
-      thinkingContent?: string;
-    };
-    finishReason: string;
-    created: number;
-    seed: number;
-    usage: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-      completionTokensDetails?: {
-        thinkingTokens: number;
-      };
-    };
-    aiFilter?: Array<{
-      groupName: string;
-      name: string;
-      score: string;
-      result: string;
-    }>;
-  };
-}
+import type { ChatCompletionResponse, ContentType } from '@recall-buddy/shared';
 
 /**
  * CLOVA Studio - Firebase Functions를 통해 호출
  */
 export async function chatCompletions(
   text: string, 
-  contentType: 'markdown' | 'code-diff' = 'markdown'
+  contentType: ContentType = 'markdown'
 ): Promise<ChatCompletionResponse> {
     try {
         let prompt: string;

@@ -1,4 +1,5 @@
 import { onRequest } from 'firebase-functions/v2/https';
+import type { ChatCompletionResponse } from '@recall-buddy/shared';
 
 // HyperCLOVA X API (HCX-007)
 export const chatCompletions = onRequest(
@@ -66,7 +67,7 @@ export const chatCompletions = onRequest(
         throw new Error(`HCX API error: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as ChatCompletionResponse;
       res.json(data);
     } catch (error) {
       console.error('Error calling HCX API:', error);
