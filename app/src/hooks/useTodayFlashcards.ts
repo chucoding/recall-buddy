@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { User } from 'firebase/auth';
-import { chatCompletions } from '../api/ncloud-api';
+import { chatCompletions } from '../api/clova-api';
 import { getCommits, getFilename, getMarkdown, type CommitDetail } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
