@@ -31,10 +31,5 @@
         "destination": "/index.html"
       }
     ]
-  },
-  "emulators": {
-    "functions": {
-      "port": 5001
-    }
   }
 }

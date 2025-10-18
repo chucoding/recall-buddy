@@ -8,11 +8,9 @@
   ],
   "scripts": {
     "proxy": "node scripts/setup-proxy.js",
-    "dev": "concurrently --kill-others \"firebase emulators:start\" \"pnpm --filter app run dev\"",
+    "dev:functions": "firebase emulators:start --only functions",
+    "dev:app": "pnpm --filter app run dev",
     "build": "pnpm -r run build",
-    "push": "firebase deploy --only hosting,functions"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "push": "firebase deploy"
   }
 }
