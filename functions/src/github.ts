@@ -1,7 +1,7 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { Repository } from '@recall-buddy/shared';
+import type { Repository } from '@recall-buddy/shared';
 
 /**
  * Firebase ID Token 검증 및 사용자 정보 조회

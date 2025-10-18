@@ -1,2 +1,3 @@
-export * from './types';
+export * from './types/github';
+export * from './types/clova';
 
