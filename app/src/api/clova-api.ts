@@ -1,5 +1,5 @@
 import { apiClient } from '../modules/axios';
-import type { ChatCompletionResponse, ContentType } from '@recall-buddy/shared';
+import type { ChatCompletionResponse, ContentType } from '../types';
 
 /**
  * CLOVA Studio - Firebase Functions를 통해 호출

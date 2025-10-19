@@ -3,8 +3,7 @@
   "packageManager": "pnpm@10.18.0",
   "workspaces": [
     "app",
-    "functions",
-    "shared"
+    "functions"
   ],
   "scripts": {
     "proxy": "node scripts/setup-proxy.js",

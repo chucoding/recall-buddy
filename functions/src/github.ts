@@ -1,7 +1,18 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import type { Repository } from '@recall-buddy/shared';
+
+/**
+ * GitHub Repository
+ */
+interface Repository {
+  id: number;
+  name: string;
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  private: boolean;
+}
 
 /**
  * Firebase ID Token 검증 및 사용자 정보 조회

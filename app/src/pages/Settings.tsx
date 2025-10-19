@@ -4,7 +4,7 @@ import { reauthenticateWithPopup } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, store, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
-import { Repository } from '@recall-buddy/shared';
+import { Repository } from '../types';
 import TermsLinks from '../widgets/TermsLinks';
 import './Settings.css';
 

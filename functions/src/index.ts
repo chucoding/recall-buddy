@@ -7,6 +7,6 @@ setGlobalOptions({maxInstances: 10});
 
 initializeApp();
 
-export * from './github';
-export * from './schedule';
-export * from './clova';
+export * from './github.js';
+export * from './schedule.js';
+export * from './clova.js';

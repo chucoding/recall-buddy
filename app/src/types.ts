@@ -1,8 +1,17 @@
 /**
+ * GitHub Repository
+ */
+export interface Repository {
+  id: number;
+  name: string;
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  private: boolean;
+}
+
+/**
  * Content Type
- * 
- * markdown: 마크다운 콘텐츠
- * code-diff: 코드 변경 내용 (diff)
  */
 export type ContentType = 'markdown' | 'code-diff';
 

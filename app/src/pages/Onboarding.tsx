@@ -3,7 +3,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, store } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
-import { Repository } from '@recall-buddy/shared';
+import { Repository } from '../types';
 import './Onboarding.css';
 
 interface OnboardingProps {

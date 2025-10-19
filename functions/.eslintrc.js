@@ -18,7 +18,6 @@ module.exports = {
     sourceType: "module",
   },
   ignorePatterns: [
-    "/dist/**/*", // Ignore built files.
     "/lib/**/*", // Ignore built files.
     "/generated/**/*", // Ignore generated files.
   ],

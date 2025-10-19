@@ -1,5 +1,38 @@
 import { onRequest } from 'firebase-functions/v2/https';
-import type { ChatCompletionResponse } from '@recall-buddy/shared';
+
+/**
+ * CLOVA Studio Chat Completion API Response
+ */
+interface ChatCompletionResponse {
+  status: {
+    code: string;
+    message: string;
+  };
+  result: {
+    message: {
+      role: string;
+      content: string;
+      thinkingContent?: string;
+    };
+    finishReason: string;
+    created: number;
+    seed: number;
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+      completionTokensDetails?: {
+        thinkingTokens: number;
+      };
+    };
+    aiFilter?: Array<{
+      groupName: string;
+      name: string;
+      score: string;
+      result: string;
+    }>;
+  };
+}
 
 // HyperCLOVA X API (HCX-007)
 export const chatCompletions = onRequest(
