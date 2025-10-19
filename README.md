@@ -55,7 +55,7 @@ pnpm build
 
 ### 5. 배포
 ```bash
-pnpm publish
+pnpm push
 ```
 
 ## 🌏 리전
@@ -80,7 +80,7 @@ pnpm publish
 |version|date|link|
 |---|---|---|
 |v2.0|2025.10.20|[RecallBuddy 2.0 개발 후기](https://chucoding.tistory.com/163)|
-|v1.1|2024.03.03|[HyperCLOVA X를 활용한 공부앱 만들기](https://chucoding.tistory.com/137)|
+|v1.2|2024.03.03|[HyperCLOVA X를 활용한 공부앱 만들기](https://chucoding.tistory.com/137)|
 |v1.0|2023.11.19|[네이버클라우드 서비스를 활용한 알림(PUSH) 앱 배포하기](https://chucoding.tistory.com/130)|
 |v1.0|2023.10.15|[안드로이드, IOS 지식 없이 SENS로 알림(PUSH) 서비스 개발하기](https://chucoding.tistory.com/129)|
 

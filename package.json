@@ -10,6 +10,9 @@
     "serve": "firebase emulators:start --only functions",
     "dev": "pnpm --filter app dev",
     "build": "pnpm -r build",
-    "publish": "firebase deploy"
+    "push": "firebase deploy"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.30.1"
   }
 }
