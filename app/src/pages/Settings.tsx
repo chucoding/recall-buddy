@@ -308,16 +308,11 @@ const Settings: React.FC = () => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const existingData = userDoc.exists() ? userDoc.data() : {};
 
-      // full_name에서 username과 repository 분리
-      const [githubUsername, repositoryName] = settings.repositoryFullName.split('/');
-
       // Firestore에 설정 저장
       await setDoc(doc(db, 'users', user.uid), {
         ...existingData,
         repositoryFullName: settings.repositoryFullName,
         repositoryUrl: settings.repositoryUrl,
-        githubUsername,
-        repositoryName,
         branch: settings.branch,
         updatedAt: new Date().toISOString(),
       });

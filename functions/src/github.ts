@@ -8,8 +8,7 @@ import type { Repository } from '@recall-buddy/shared';
  */
 async function getUserData(req: any): Promise<{
   githubToken: string;
-  githubUsername: string;
-  repositoryName: string;
+  repositoryFullName: string;
   branch: string;
 }> {
   const authHeader = req.headers.authorization;
@@ -34,22 +33,20 @@ async function getUserData(req: any): Promise<{
     
     const userData = userDoc.data();
     const githubToken = userData?.githubToken;
-    const githubUsername = userData?.githubUsername;
-    const repositoryName = userData?.repositoryName;
+    const repositoryFullName = userData?.repositoryFullName;
     const branch = userData?.branch || 'main'; // 기본값 main
     
     if (!githubToken) {
       throw new Error('GitHub token not found. Please login with GitHub again.');
     }
     
-    if (!githubUsername || !repositoryName) {
+    if (!repositoryFullName) {
       throw new Error('Repository settings not found. Please configure in Settings page.');
     }
     
     return {
       githubToken,
-      githubUsername,
-      repositoryName,
+      repositoryFullName,
       branch,
     };
   } catch (error) {
@@ -75,10 +72,9 @@ export const getCommits = onRequest(
       }
 
       const userData = await getUserData(req);
-      const repoPath = `${userData.githubUsername}/${userData.repositoryName}`;
 
       // 브랜치를 지정하여 커밋 가져오기
-      const response = await fetch(`https://api.github.com/repos/${repoPath}/commits?sha=${userData.branch}&since=${since}&until=${until}`, {
+      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/commits?sha=${userData.branch}&since=${since}&until=${until}`, {
         headers: {
           "Authorization": `Bearer ${userData.githubToken}`,
           "Accept": "application/vnd.github.v3+json",
@@ -124,9 +120,8 @@ export const getFilename = onRequest(
       }
 
       const userData = await getUserData(req);
-      const repoPath = `${userData.githubUsername}/${userData.repositoryName}`;
 
-      const response = await fetch(`https://api.github.com/repos/${repoPath}/commits/${commit_sha}`, {
+      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/commits/${commit_sha}`, {
         headers: {
           "Authorization": `Bearer ${userData.githubToken}`,
           "Accept": "application/vnd.github.v3+json",
@@ -172,10 +167,9 @@ export const getMarkdown = onRequest(
       }
 
       const userData = await getUserData(req);
-      const repoPath = `${userData.githubUsername}/${userData.repositoryName}`;
 
       // 브랜치를 지정하여 파일 가져오기
-      const response = await fetch(`https://api.github.com/repos/${repoPath}/contents/${filename}?ref=${userData.branch}`, {
+      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/contents/${filename}?ref=${userData.branch}`, {
         headers: {
           "Accept": "application/vnd.github.raw",
           "Authorization": `Bearer ${userData.githubToken}`,

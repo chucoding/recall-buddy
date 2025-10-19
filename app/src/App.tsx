@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [onboardingChecked, setOnboardingChecked] = useState<boolean>(false);
   const { currentPage, navigateToSettings, navigateToFlashcard } = useNavigationStore();
   
-  // 오늘의 플래시카드 데이터 로드
+  // 오늘의 플래시카드 데이터 로드 (user가 null이면 로드하지 않음)
   const { loading, hasData } = useTodayFlashcards(user);
 
   // 인증 상태 감지
@@ -87,6 +87,11 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // 로그인되지 않은 경우
+  if (!user) {
+    return <Login />;
+  }
+
   // 로딩 중 (인증, 온보딩 확인, 데이터 로딩)
   if (authLoading || !onboardingChecked || loading) {
     return (
@@ -111,11 +116,6 @@ const App: React.FC = () => {
         `}</style>
       </Card>
     );
-  }
-
-  // 로그인되지 않은 경우
-  if (!user) {
-    return <Login />;
   }
 
   // 온보딩이 필요한 경우
