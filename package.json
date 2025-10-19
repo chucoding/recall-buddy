@@ -11,8 +11,5 @@
     "dev": "pnpm --filter app dev",
     "build": "pnpm -r build",
     "push": "firebase deploy"
-  },
-  "devDependencies": {
-    "firebase-tools": "^13.30.1"
   }
 }
