@@ -1,24 +1,13 @@
 import React, { useState } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, db } from '../firebase';
 import TermsLinks from '../widgets/TermsLinks';
 import './Login.css';
 
 const Login: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-
-  // 인증 상태 변경 감지
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   // GitHub 로그인 함수
   const handleGitHubLogin = async () => {
@@ -82,28 +71,6 @@ const Login: React.FC = () => {
     }
   };
 
-  // 로그아웃 함수
-  const handleLogout = async () => {
-    try {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        // 문서가 존재하는 경우에만 githubToken 필드만 업데이트
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          await updateDoc(userDocRef, {
-            githubToken: null,
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      }
-      await signOut(auth);
-      console.log('로그아웃 성공');
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -111,30 +78,6 @@ const Login: React.FC = () => {
         <div className="login-card">
           <div className="loading-spinner"></div>
           <p>로그인 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="login-container">
-        <div className="login-card">
-          <div className="user-info">
-            <img 
-              src={user.photoURL || ''} 
-              alt="프로필" 
-              className="profile-image"
-            />
-            <h2>안녕하세요, {user.displayName || user.email}님!</h2>
-            <p className="user-email">{user.email}</p>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="logout-button"
-          >
-            로그아웃
-          </button>
         </div>
       </div>
     );
