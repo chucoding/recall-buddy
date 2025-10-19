@@ -4,7 +4,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
 import { DBConfig } from './DBConfig';
-import { auth, db } from './firebase';
+import { auth, store } from './firebase';
 import FlashCardViewer from './pages/FlashCardViewer';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
@@ -27,7 +27,7 @@ const App: React.FC = () => {
   // 오늘의 플래시카드 데이터 로드 (user가 null이면 로드하지 않음)
   const { loading, hasData } = useTodayFlashcards(user);
 
-  // 인증 상태 감지
+  /* 인증 상태 감지 */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -46,7 +46,7 @@ const App: React.FC = () => {
       }
 
       try {
-        const userDocRef = doc(db, 'users', user.uid);
+        const userDocRef = doc(store, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
         // 문서가 없거나, 온보딩 완료 표시가 없고 리포지토리 설정도 없으면 온보딩 필요

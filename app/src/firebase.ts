@@ -19,7 +19,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
 // Firestore 인스턴스 생성
-export const db = getFirestore(app);
+export const store = getFirestore(app);
 
 // GitHub 프로바이더 생성
 export const githubProvider = new GithubAuthProvider();

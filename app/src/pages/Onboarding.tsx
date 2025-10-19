@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { useIndexedDB } from 'react-indexed-db-hook';
-import { auth, db } from '../firebase';
+import { auth, store } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '@recall-buddy/shared';
 import './Onboarding.css';
@@ -172,7 +172,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     try {
       setSaving(true);
       setError(null);
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      const userDocRef = doc(store, 'users', auth.currentUser.uid);
       await setDoc(userDocRef, {
         repositoryFullName: settings.repositoryFullName,
         repositoryUrl: settings.repositoryUrl,
@@ -222,7 +222,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       if (!auth.currentUser) return;
       
       // 온보딩을 건너뛰었다는 표시를 Firestore에 저장
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      const userDocRef = doc(store, 'users', auth.currentUser.uid);
       await setDoc(userDocRef, {
         onboardingCompleted: true,
         onboardingSkipped: true,
