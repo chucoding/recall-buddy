@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, db } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
@@ -238,16 +237,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      // 로그아웃 후 자동으로 Login 페이지로 이동됨
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-      alert('로그아웃에 실패했습니다.');
-    }
-  };
-
   return (
     <div className="onboarding-container">
       <div className="onboarding-background"></div>
@@ -317,12 +306,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <div className="error-content">
                   <p className="error-message">{error.message}</p>
                   <div className="error-actions">
-                    <button 
-                      className="error-action-button error-logout-button"
-                      onClick={handleLogout}
-                    >
-                      🔑 로그아웃 후 재로그인
-                    </button>
                     <button 
                       className="error-action-button error-skip-button"
                       onClick={handleSkipOnboarding}
