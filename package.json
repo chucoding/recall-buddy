@@ -8,9 +8,9 @@
   ],
   "scripts": {
     "proxy": "node scripts/setup-proxy.js",
-    "dev:functions": "firebase emulators:start --only functions",
-    "dev:app": "pnpm --filter app run dev",
-    "build": "pnpm -r run build",
+    "serve": "pnpm --filter functions serve",
+    "dev": "pnpm --filter app dev",
+    "build": "pnpm -r build",
     "push": "firebase deploy"
   }
 }
