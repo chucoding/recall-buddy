@@ -4,9 +4,10 @@ https://til-alarm.web.app/
 매일 github에서 학습하거나 커밋한 내용을 정리하고 알림을 받는 앱입니다.
 
 <p align="center">
-  <img src="assets/onboarding1.png" width="30%" />
-  <img src="assets/onboarding2.png" width="30%" />
-  <img src="assets/onboarding3.png" width="30%" />
+  <img src="assets/onboarding1.png" width="23%" />
+  <img src="assets/onboarding2.png" width="23%" />
+  <img src="assets/onboarding3.png" width="23%" />
+  <img src="assets/onboarding4.png" width="23%" />
 </p>
 
 ## 🚀 시작하기
