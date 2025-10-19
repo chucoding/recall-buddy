@@ -8,7 +8,6 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
-    "@recall-buddy/shared": "workspace:*",
     "axios": "^1.12.2",
     "firebase": "^10.4.0",
     "github-markdown-css": "^5.8.1",

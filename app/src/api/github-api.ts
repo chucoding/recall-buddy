@@ -1,5 +1,5 @@
 import { apiClient } from '../modules/axios';
-import type { Repository } from '@recall-buddy/shared';
+import type { Repository } from '../types';
 
 interface Commit {
   sha: string;
