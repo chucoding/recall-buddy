@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { User } from 'firebase/auth';
-import { chatCompletions } from '../api/ncloud-api';
+import { chatCompletions } from '../api/clova-api';
 import { getCommits, getFilename, getMarkdown, type CommitDetail } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
@@ -22,9 +22,7 @@ export interface FlashCardData {
 
 /**
  * 오늘의 플래시카드 데이터를 로드하는 커스텀 훅
- * 
- * @param user - 현재 로그인한 사용자 (로그인하지 않은 경우 null)
- * @returns loading - 데이터 로딩 중 여부
+ * user가 null이면 데이터를 로드하지 않음
  */
 export function useTodayFlashcards(user: User | null) {
   const { add, getByID } = useIndexedDB("data");
@@ -33,7 +31,7 @@ export function useTodayFlashcards(user: User | null) {
   const flashcardReloadTrigger = useNavigationStore((state) => state.flashcardReloadTrigger);
 
   useEffect(() => {
-    // 사용자가 로그인하지 않은 경우 로딩 종료
+    // 로그인하지 않은 경우 데이터 로드하지 않음
     if (!user) {
       setLoading(false);
       setHasData(false);

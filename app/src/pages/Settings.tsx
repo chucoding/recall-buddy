@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot } from 'firebase/firestore';
 import { reauthenticateWithPopup } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
-import { auth, db, githubProvider } from '../firebase';
+import { auth, store, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
-import { Repository } from '@recall-buddy/shared';
+import { Repository } from '../types';
 import TermsLinks from '../widgets/TermsLinks';
 import './Settings.css';
 
@@ -72,7 +72,7 @@ const Settings: React.FC = () => {
   // Firestore에서 공지사항 실시간 가져오기
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, 'notices'),
+      collection(store, 'notices'),
       (snapshot) => {
         const noticesList = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -221,7 +221,7 @@ const Settings: React.FC = () => {
       }
 
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userDoc = await getDoc(doc(store, 'users', user.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
           
@@ -305,19 +305,14 @@ const Settings: React.FC = () => {
 
     try {
       // 기존 데이터 확인
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDoc = await getDoc(doc(store, 'users', user.uid));
       const existingData = userDoc.exists() ? userDoc.data() : {};
 
-      // full_name에서 username과 repository 분리
-      const [githubUsername, repositoryName] = settings.repositoryFullName.split('/');
-
       // Firestore에 설정 저장
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(store, 'users', user.uid), {
         ...existingData,
         repositoryFullName: settings.repositoryFullName,
         repositoryUrl: settings.repositoryUrl,
-        githubUsername,
-        repositoryName,
         branch: settings.branch,
         updatedAt: new Date().toISOString(),
       });
@@ -377,31 +372,44 @@ const Settings: React.FC = () => {
       setDeleting(true);
       setMessage(null);
 
+      console.log('🚨 회원탈퇴 시작:', {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName
+      });
+
       // 1. 탈퇴 기록 생성 (재가입 방지용)
-      await setDoc(doc(db, 'deletedUsers', user.uid), {
+      console.log('📝 탈퇴 기록 생성 중...');
+      await setDoc(doc(store, 'deletedUsers', user.uid), {
         deletedAt: new Date().toISOString(),
         email: user.email,
         githubUsername: user.displayName,
       });
+      console.log('✅ 탈퇴 기록 생성 완료');
       
       // 2. Firestore 사용자 데이터 삭제
-      await deleteDoc(doc(db, 'users', user.uid));
+      console.log('🗑️ Firestore 사용자 데이터 삭제 중...');
+      await deleteDoc(doc(store, 'users', user.uid));
+      console.log('✅ Firestore 사용자 데이터 삭제 완료');
       
       // 3. IndexedDB 모든 데이터 삭제
       try {
+        console.log('🗑️ IndexedDB 데이터 삭제 중...');
         await flashcardsDB.clear();
         await repositoriesDB.clear();
-        console.log('🗑️ IndexedDB 데이터 삭제 완료');
+        console.log('✅ IndexedDB 데이터 삭제 완료');
       } catch (dbError) {
         console.error('❌ IndexedDB 삭제 실패:', dbError);
       }
       
       // 4. Firebase Auth 계정 삭제
+      console.log('🗑️ Firebase Auth 계정 삭제 중...');
       await user.delete();
+      console.log('✅ Firebase Auth 계정 삭제 완료');
       
-      console.log('✅ 회원탈퇴 완료');
+      console.log('🎉 회원탈퇴 완료');
     } catch (error: any) {
-      console.error('회원탈퇴 실패:', error);
+      console.error('❌ 회원탈퇴 실패:', error);
       
       // 재인증이 필요한 경우 (다양한 오류 코드 처리)
       const needsReauth = 
@@ -425,28 +433,35 @@ const Settings: React.FC = () => {
           setMessage({ type: 'error', text: '재인증되었습니다. 다시 탈퇴를 시도합니다...' });
           
           // 1. 탈퇴 기록 생성
-          await setDoc(doc(db, 'deletedUsers', user.uid), {
+          console.log('📝 (재시도) 탈퇴 기록 생성 중...');
+          await setDoc(doc(store, 'deletedUsers', user.uid), {
             deletedAt: new Date().toISOString(),
             email: user.email,
             githubUsername: user.displayName,
           });
+          console.log('✅ (재시도) 탈퇴 기록 생성 완료');
           
           // 2. Firestore 사용자 데이터 삭제
-          await deleteDoc(doc(db, 'users', user.uid));
+          console.log('🗑️ (재시도) Firestore 사용자 데이터 삭제 중...');
+          await deleteDoc(doc(store, 'users', user.uid));
+          console.log('✅ (재시도) Firestore 사용자 데이터 삭제 완료');
           
           // 3. IndexedDB 모든 데이터 삭제
           try {
+            console.log('🗑️ (재시도) IndexedDB 데이터 삭제 중...');
             await flashcardsDB.clear();
             await repositoriesDB.clear();
-            console.log('🗑️ IndexedDB 데이터 삭제 완료');
+            console.log('✅ (재시도) IndexedDB 데이터 삭제 완료');
           } catch (dbError) {
-            console.error('❌ IndexedDB 삭제 실패:', dbError);
+            console.error('❌ (재시도) IndexedDB 삭제 실패:', dbError);
           }
           
           // 4. Firebase Auth 계정 삭제
+          console.log('🗑️ (재시도) Firebase Auth 계정 삭제 중...');
           await user.delete();
+          console.log('✅ (재시도) Firebase Auth 계정 삭제 완료');
           
-          console.log('✅ 회원탈퇴 완료');
+          console.log('🎉 (재시도) 회원탈퇴 완료');
         } catch (reauthError: any) {
           console.error('재인증 실패:', reauthError);
           
@@ -756,7 +771,7 @@ const Settings: React.FC = () => {
               <p className="info-box-title">✨ 탈퇴 시 안내사항</p>
               <ul className="modal-info-list">
                 <li>저장된 모든 데이터가 삭제됩니다</li>
-                <li>탈퇴 후 24시간 이내에는 재가입할 수 없습니다</li>
+                <li>탈퇴 시 다음날부터 재가입할 수 있습니다</li>
                 <li className="info-reauth">💡 보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
               </ul>
             </div>

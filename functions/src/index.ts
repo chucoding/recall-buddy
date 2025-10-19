@@ -1,8 +1,12 @@
-import { initializeApp } from 'firebase-admin/app';
+import {setGlobalOptions} from "firebase-functions";
+import {initializeApp} from "firebase-admin/app";
 
-// Firebase Admin SDK 초기화
+// For cost control, set the maximum number of containers that can be
+// running at the same time.
+setGlobalOptions({maxInstances: 10});
+
 initializeApp();
 
-export * from './github';
-export * from './schedule';
-export * from './hyperclovax';
+export * from './github.js';
+export * from './schedule.js';
+export * from './clova.js';

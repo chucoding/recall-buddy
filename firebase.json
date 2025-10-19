@@ -8,10 +8,11 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "src",
-        "*.ts",
-        "tsconfig.json",
-        "tsup.config.ts"
+        "*.local"
+      ],
+      "predeploy": [
+        "pnpm --prefix \"$RESOURCE_DIR\" run lint",
+        "pnpm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
   ],
@@ -31,18 +32,5 @@
         "destination": "/index.html"
       }
     ]
-  },
-  "emulators": {
-    "functions": {
-      "port": 5001
-    },
-    "firestore": {
-      "port": 8080
-    },
-    "ui": {
-      "enabled": true,
-      "port": 4000
-    },
-    "singleProjectMode": true
   }
 }

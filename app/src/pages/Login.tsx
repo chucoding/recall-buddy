@@ -1,24 +1,13 @@
 import React, { useState } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged, User, GithubAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { auth, githubProvider, db } from '../firebase';
+import { auth, githubProvider, store } from '../firebase';
 import TermsLinks from '../widgets/TermsLinks';
 import './Login.css';
 
 const Login: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-
-  // 인증 상태 변경 감지
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   // GitHub 로그인 함수
   const handleGitHubLogin = async () => {
@@ -27,34 +16,54 @@ const Login: React.FC = () => {
       setError('');
       const result = await signInWithPopup(auth, githubProvider);
       
-      // 1. 탈퇴 기록 확인 (재가입 방지)
-      const deletedUserDocRef = doc(db, 'deletedUsers', result.user.uid);
-      const deletedUserDoc = await getDoc(deletedUserDocRef);
+      // 탈퇴 기록 확인
+      const deletedUserDocRef = doc(store, 'deletedUsers', result.user.uid);
       
-      if (deletedUserDoc.exists()) {
-        const deletedAt = new Date(deletedUserDoc.data().deletedAt);
-        const now = new Date();
-        const hoursSinceDeleted = (now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60);
+      try {
+        const deletedUserDoc = await getDoc(deletedUserDocRef);
         
-        if (hoursSinceDeleted < 24) {
-          // 24시간 이내 탈퇴한 사용자 - 재가입 거부
-          const remainingHours = Math.ceil(24 - hoursSinceDeleted);
-          await signOut(auth); // 즉시 로그아웃
-          setError(`회원탈퇴 후 24시간 동안은 재가입할 수 없습니다. (약 ${remainingHours}시간 남음)`);
-          setLoading(false);
-          return;
+        if (deletedUserDoc.exists()) {
+          const deletedData = deletedUserDoc.data();
+          
+          // 한국 시간 기준으로 날짜 비교
+          const now = new Date();
+          const kstOffset = 9 * 60; // KST = UTC+9
+          const kstNow = new Date(now.getTime() + kstOffset * 60 * 1000);
+          const deletedAt = new Date(deletedData.deletedAt);
+          const kstDeletedAt = new Date(deletedAt.getTime() + kstOffset * 60 * 1000);
+          
+          // 오늘 날짜와 탈퇴 날짜 비교 (YYYY-MM-DD 형식)
+          const todayKST = kstNow.toISOString().split('T')[0];
+          const deletedDateKST = kstDeletedAt.toISOString().split('T')[0];
+          
+          console.log('⚠️ 탈퇴 기록 발견:', {
+            deletedAt: deletedData.deletedAt,
+            deletedDateKST,
+            todayKST,
+            email: deletedData.email
+          });
+          
+          if (deletedDateKST === todayKST) {
+            await signOut(auth);
+            setError('회원탈퇴 후에는 다음날부터 재가입할 수 있습니다.');
+            setLoading(false);
+            return;
+          } else {
+            await deleteDoc(deletedUserDocRef);
+          }
         } else {
-          // 24시간 지난 경우 - 탈퇴 기록 삭제하고 정상 가입 허용
-          await deleteDoc(deletedUserDocRef);
-          console.log('✅ 탈퇴 기록 삭제 완료 (24시간 경과)');
         }
+      } catch (firestoreError) {
+        console.error('❌ Firestore 탈퇴 기록 확인 실패:', firestoreError);
+        // Firestore 오류가 있어도 로그인은 계속 진행
+        // 보안상 문제가 있을 수 있으므로 관리자에게 알림 필요
       }
       
       // 2. GitHub OAuth 토큰을 Firestore에 저장
       // Google의 at-rest encryption으로 자동 암호화됨
       const credential = GithubAuthProvider.credentialFromResult(result);
       if (credential && credential.accessToken && result.user) {
-        const userDocRef = doc(db, 'users', result.user.uid);
+        const userDocRef = doc(store, 'users', result.user.uid);
         const userDoc = await getDoc(userDocRef);
         
         if (userDoc.exists()) {
@@ -70,40 +79,20 @@ const Login: React.FC = () => {
             updatedAt: new Date().toISOString(),
           });
         }
-        console.log('로그인 성공 및 GitHub 토큰 저장 완료');
       }
-      
-      console.log('로그인 성공:', result.user);
     } catch (error: any) {
-      console.error('로그인 실패:', error);
-      setError('로그인에 실패했습니다. 다시 시도해주세요.');
+      if (error.code === 'auth/popup-closed-by-user') {
+        setError('로그인이 취소되었습니다.');
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
+      } else {
+        setError('로그인에 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // 로그아웃 함수
-  const handleLogout = async () => {
-    try {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        // 문서가 존재하는 경우에만 githubToken 필드만 업데이트
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          await updateDoc(userDocRef, {
-            githubToken: null,
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      }
-      await signOut(auth);
-      console.log('로그아웃 성공');
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -111,30 +100,6 @@ const Login: React.FC = () => {
         <div className="login-card">
           <div className="loading-spinner"></div>
           <p>로그인 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="login-container">
-        <div className="login-card">
-          <div className="user-info">
-            <img 
-              src={user.photoURL || ''} 
-              alt="프로필" 
-              className="profile-image"
-            />
-            <h2>안녕하세요, {user.displayName || user.email}님!</h2>
-            <p className="user-email">{user.email}</p>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="logout-button"
-          >
-            로그아웃
-          </button>
         </div>
       </div>
     );
@@ -168,13 +133,7 @@ const Login: React.FC = () => {
           className="github-login-button"
           disabled={loading}
         >
-          <svg 
-            className="github-icon" 
-            viewBox="0 0 24 24" 
-            fill="currentColor"
-          >
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
+          <img src="/github-mark-white.svg" alt="GitHub Logo" className="github-icon" />
           GitHub로 로그인
         </button>
 

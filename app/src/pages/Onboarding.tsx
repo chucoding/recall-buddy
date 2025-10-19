@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
-import { auth, db } from '../firebase';
+import { auth, store } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
-import { Repository } from '@recall-buddy/shared';
+import { Repository } from '../types';
 import './Onboarding.css';
 
 interface OnboardingProps {
@@ -173,7 +172,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     try {
       setSaving(true);
       setError(null);
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      const userDocRef = doc(store, 'users', auth.currentUser.uid);
       await setDoc(userDocRef, {
         repositoryFullName: settings.repositoryFullName,
         repositoryUrl: settings.repositoryUrl,
@@ -223,7 +222,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       if (!auth.currentUser) return;
       
       // 온보딩을 건너뛰었다는 표시를 Firestore에 저장
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      const userDocRef = doc(store, 'users', auth.currentUser.uid);
       await setDoc(userDocRef, {
         onboardingCompleted: true,
         onboardingSkipped: true,
@@ -235,16 +234,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       console.error('온보딩 스킵 저장 실패:', error);
       // 에러가 나도 일단 진행
       onComplete();
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      // 로그아웃 후 자동으로 Login 페이지로 이동됨
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-      alert('로그아웃에 실패했습니다.');
     }
   };
 
@@ -317,12 +306,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <div className="error-content">
                   <p className="error-message">{error.message}</p>
                   <div className="error-actions">
-                    <button 
-                      className="error-action-button error-logout-button"
-                      onClick={handleLogout}
-                    >
-                      🔑 로그아웃 후 재로그인
-                    </button>
                     <button 
                       className="error-action-button error-skip-button"
                       onClick={handleSkipOnboarding}
