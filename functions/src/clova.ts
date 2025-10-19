@@ -1,4 +1,4 @@
-import { onRequest } from 'firebase-functions/v2/https';
+import {onRequest} from "firebase-functions/v2/https";
 
 /**
  * CLOVA Studio Chat Completion API Response
@@ -36,54 +36,54 @@ interface ChatCompletionResponse {
 
 // HyperCLOVA X API (HCX-007)
 export const chatCompletions = onRequest(
-  { 
+  {
     cors: true,
-    region: 'asia-northeast3',
-    invoker: 'public'
+    region: "asia-northeast3",
+    invoker: "public",
   },
   async (req, res) => {
     try {
-      const { prompt, text } = req.body;
-      
+      const {prompt, text} = req.body;
+
       if (!prompt || !text) {
-        res.status(400).json({ error: 'prompt and text are required' });
+        res.status(400).json({error: "prompt and text are required"});
         return;
       }
 
       // 고유한 요청 ID 생성
-      const requestId = crypto.randomUUID().replace(/-/g, '');
+      const requestId = crypto.randomUUID().replace(/-/g, "");
 
       // HyperCLOVA X API 호출 (HCX-007 모델)
-      const response = await fetch('https://clovastudio.stream.ntruss.com/v3/chat-completions/HCX-007', {
-        method: 'POST',
+      const response = await fetch("https://clovastudio.stream.ntruss.com/v3/chat-completions/HCX-007", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.CLOVA_API_KEY || ''}`,
-          'X-NCP-CLOVASTUDIO-REQUEST-ID': requestId
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.CLOVA_API_KEY || ""}`,
+          "X-NCP-CLOVASTUDIO-REQUEST-ID": requestId,
         },
         body: JSON.stringify({
           messages: [
             {
-              role: 'system',
+              role: "system",
               content: [
                 {
-                  type: 'text',
-                  text: prompt
-                }
-              ]
+                  type: "text",
+                  text: prompt,
+                },
+              ],
             },
             {
-              role: 'user',
+              role: "user",
               content: [
                 {
-                  type: 'text',
-                  text: text
-                }
-              ]
-            }
+                  type: "text",
+                  text: text,
+                },
+              ],
+            },
           ],
           thinking: {
-            effort: 'low'
+            effort: "low",
           },
           topP: 0.8,
           topK: 0,
@@ -91,8 +91,8 @@ export const chatCompletions = onRequest(
           temperature: 0.5,
           repetitionPenalty: 1.1,
           seed: 0,
-          includeAiFilters: true
-        })
+          includeAiFilters: true,
+        }),
       });
 
       if (!response.ok) {
@@ -103,8 +103,8 @@ export const chatCompletions = onRequest(
       const data = await response.json() as ChatCompletionResponse;
       res.json(data);
     } catch (error) {
-      console.error('Error calling HCX API:', error);
-      res.status(500).json({ error: 'Failed to call HCX API' });
+      console.error("Error calling HCX API:", error);
+      res.status(500).json({error: "Failed to call HCX API"});
     }
   }
 );
