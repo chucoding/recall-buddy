@@ -8,10 +8,11 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "src",
-        "*.ts",
-        "tsconfig.json",
-        "tsup.config.ts"
+        "*.local"
+      ],
+      "predeploy": [
+        "pnpm --prefix \"$RESOURCE_DIR\" run lint",
+        "pnpm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
   ],
