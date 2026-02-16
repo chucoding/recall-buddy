@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { initDB } from "react-indexed-db-hook";
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-import { DBConfig } from './DBConfig';
 import { auth, store } from './firebase';
 import FlashCardViewer from './pages/FlashCardViewer';
 import Login from './pages/Login';
@@ -13,8 +11,6 @@ import Onboarding from './pages/Onboarding';
 import Card from './components/Card';
 import { useTodayFlashcards } from './hooks/useTodayFlashcards';
 import { useNavigationStore } from './stores/navigationStore';
-
-initDB(DBConfig);
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
