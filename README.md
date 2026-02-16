@@ -15,9 +15,11 @@ https://til-alarm.web.app/
 - Node.js 22+
 - pnpm (패키지 매니저)
 
-### 1. 환경 설정
+### 1. 온보딩
 
-#### app/.env
+#### 1.1. 환경 설정
+
+##### app/.env
 Firebase Web 설정 (Console > 프로젝트 설정 > 일반 > 웹 앱 구성에서 복사)
 ```bash
 VITE_API_KEY=...
@@ -33,12 +35,23 @@ VITE_MEASUREMENT_ID=...
 CLOVA_API_KEY=your_clova_api_key
 ```
 
-### 2. 프록시 서버 셋팅
+##### Firebase 초기화
+```bash
+firebase login
+firebase init
+```
+
+#### 1.2. 프로젝트 셋팅
+```bash
+pnpm install
+```
+
+#### 1.3. 프록시 서버 셋팅
 ```bash
 pnpm proxy
 ```
 
-### 3. 개발 서버 시작
+### 2. 개발 서버 시작
 ```bash
 # BE
 pnpm serve
@@ -47,12 +60,12 @@ pnpm serve
 pnpm dev
 ```
 
-### 4. 빌드
+### 3. 빌드
 ```bash
 pnpm build
 ```
 
-### 5. 배포
+### 4. 배포
 ```bash
 pnpm publish
 ```
