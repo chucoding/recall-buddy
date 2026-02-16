@@ -20,7 +20,6 @@ interface Repository {
 async function getUserData(req: any): Promise<{
   githubToken: string;
   repositoryFullName: string;
-  branch: string;
 }> {
   const authHeader = req.headers.authorization;
 
@@ -45,7 +44,6 @@ async function getUserData(req: any): Promise<{
     const userData = userDoc.data();
     const githubToken = userData?.githubToken;
     const repositoryFullName = userData?.repositoryFullName;
-    const branch = userData?.branch || "main"; // 기본값 main
 
     if (!githubToken) {
       throw new Error("GitHub token not found. Please login with GitHub again.");
@@ -58,7 +56,6 @@ async function getUserData(req: any): Promise<{
     return {
       githubToken,
       repositoryFullName,
-      branch,
     };
   } catch (error) {
     console.error("Authentication error:", error);
@@ -84,8 +81,8 @@ export const getCommits = onRequest(
 
       const userData = await getUserData(req);
 
-      // 브랜치를 지정하여 커밋 가져오기
-      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/commits?sha=${userData.branch}&since=${since}&until=${until}`, {
+      // 리포지토리 기본 브랜치의 커밋 가져오기 (브랜치 사용시 sha 파라미터 추가)
+      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/commits?since=${since}&until=${until}`, {
         headers: {
           "Authorization": `Bearer ${userData.githubToken}`,
           "Accept": "application/vnd.github.v3+json",
@@ -179,8 +176,8 @@ export const getMarkdown = onRequest(
 
       const userData = await getUserData(req);
 
-      // 브랜치를 지정하여 파일 가져오기
-      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/contents/${filename}?ref=${userData.branch}`, {
+      // 리포지토리 기본 브랜치에서 파일 가져오기 (브랜치 사용시 ref 파라미터 추가)
+      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/contents/${filename}`, {
         headers: {
           "Accept": "application/vnd.github.raw",
           "Authorization": `Bearer ${userData.githubToken}`,
@@ -285,6 +282,10 @@ export const getRepositories = onRequest(
 /**
  * 특정 리포지토리의 브랜치 목록 가져오기
  * Settings 페이지에서 브랜치 선택을 위해 사용
+ * @deprecated
+ * 과한 정보 제공으로 인해 사용하지 않음 2026-02-16
+ * @TODO
+ * 결제 기능 생기면 복구
  */
 export const getBranches = onRequest(
   {

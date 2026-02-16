@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
-import { getRepositories, getBranches, Branch } from '../api/github-api';
+import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
 import './Onboarding.css';
 
@@ -12,7 +12,6 @@ interface OnboardingProps {
 interface RepositorySettings {
   repositoryFullName: string;
   repositoryUrl: string;
-  branch: string;
 }
 
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
@@ -20,16 +19,12 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [settings, setSettings] = useState<RepositorySettings>({
     repositoryFullName: '',
     repositoryUrl: '',
-    branch: 'main',
   });
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
   const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
-  const [loadingBranches, setLoadingBranches] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState<boolean>(false);
-  const [error, setError] = useState<{ type: 'repos' | 'branches' | 'save'; message: string } | null>(null);
+  const [error, setError] = useState<{ type: 'repos' | 'save'; message: string } | null>(null);
 
   // 리포지토리 목록 가져오기
   const fetchRepositories = useCallback(async () => {
@@ -53,28 +48,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     }
   }, []);
 
-  // 브랜치 목록 가져오기
-  const fetchBranches = useCallback(async (owner: string, repo: string) => {
-    try {
-      setLoadingBranches(true);
-      setError(null);
-      const branchList = await getBranches(owner, repo);
-      setBranches(branchList);
-      setLoadingBranches(false);
-    } catch (error: any) {
-      console.error('브랜치 불러오기 실패:', error);
-      const errorMessage = error?.response?.status === 401 || error?.response?.status === 403
-        ? 'GitHub 접근 권한이 없습니다. 다시 로그인해주세요.'
-        : '브랜치 목록을 불러오는데 실패했습니다.';
-      
-      setError({
-        type: 'branches',
-        message: errorMessage
-      });
-      setLoadingBranches(false);
-    }
-  }, []);
-
   // Step 2에 진입하면 리포지토리 목록 로드
   useEffect(() => {
     if (step === 2 && repositories.length === 0) {
@@ -82,37 +55,20 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     }
   }, [step, repositories.length, fetchRepositories]);
 
-  // 리포지토리 선택 시 브랜치 로드
-  useEffect(() => {
-    if (settings.repositoryFullName && step === 2) {
-      const [owner, repo] = settings.repositoryFullName.split('/');
-      if (owner && repo) {
-        fetchBranches(owner, repo);
-      }
-    }
-  }, [settings.repositoryFullName, step, fetchBranches]);
-
   const handleRepositorySelect = (repo: Repository) => {
     setSettings({
       repositoryFullName: repo.full_name,
       repositoryUrl: repo.html_url,
-      branch: 'main',
     });
     setIsDropdownOpen(false);
-    setBranches([]);
-  };
-
-  const handleBranchSelect = (branch: Branch) => {
-    setSettings(prev => ({ ...prev, branch: branch.name }));
-    setIsBranchDropdownOpen(false);
   };
 
   const handleSaveSettings = async () => {
     if (!auth.currentUser) return;
-    if (!settings.repositoryFullName || !settings.branch) {
+    if (!settings.repositoryFullName) {
       setError({
         type: 'save',
-        message: '리포지토리와 브랜치를 모두 선택해주세요.'
+        message: '리포지토리를 선택해주세요.'
       });
       return;
     }
@@ -124,7 +80,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       await setDoc(userDocRef, {
         repositoryFullName: settings.repositoryFullName,
         repositoryUrl: settings.repositoryUrl,
-        branch: settings.branch,
         onboardingCompleted: true,
         onboardingSkipped: false,
         updatedAt: new Date(),
@@ -157,7 +112,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   const canProceed = () => {
     if (step === 1) return true;
-    if (step === 2) return settings.repositoryFullName && settings.branch;
+    if (step === 2) return !!settings.repositoryFullName;
     return false;
   };
 
@@ -308,46 +263,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   )}
                 </div>
               </div>
-
-              {/* 브랜치 선택 */}
-              {settings.repositoryFullName && (
-                <div className="form-group">
-                  <label className="form-label">
-                    브랜치 *
-                    {loadingBranches && <span className="form-loading"> (로딩 중...)</span>}
-                  </label>
-                  <div className="custom-dropdown">
-                    <button
-                      className="dropdown-button"
-                      onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
-                      disabled={loadingBranches}
-                    >
-                      <span>{settings.branch}</span>
-                      <span className="dropdown-arrow">▼</span>
-                    </button>
-                    
-                    {isBranchDropdownOpen && (
-                      <div className="dropdown-menu">
-                        {branches.length === 0 ? (
-                          <div className="dropdown-item disabled">
-                            브랜치가 없습니다
-                          </div>
-                        ) : (
-                          branches.map((branch) => (
-                            <div
-                              key={branch.name}
-                              className="dropdown-item"
-                              onClick={() => handleBranchSelect(branch)}
-                            >
-                              {branch.name}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
             <button 
@@ -394,4 +309,3 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 };
 
 export default Onboarding;
-
