@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Slider from "react-slick";
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -43,7 +43,7 @@ const FlashCardViewer: React.FC = () => {
         setFlipped(!flipped);
     };
 
-    // Firestore onSnapshot으로 실시간 구독
+    // Firestore에서 오늘의 플래시카드 1회 조회
     useEffect(() => {
         const user = auth.currentUser;
         if (!user) return;
@@ -51,7 +51,7 @@ const FlashCardViewer: React.FC = () => {
         const todayDate = getCurrentDate();
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
 
-        const unsubscribe = onSnapshot(flashcardDocRef, (snapshot) => {
+        getDoc(flashcardDocRef).then((snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
                 setCards(data.data || []);
@@ -59,8 +59,6 @@ const FlashCardViewer: React.FC = () => {
                 setCards([]);
             }
         });
-
-        return () => unsubscribe();
     }, []);
     
     // 키보드 단축키 추가

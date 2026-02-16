@@ -18,10 +18,6 @@ interface Notice {
   message: string;
 }
 
-// 캐시 설정 (컴포넌트 외부로 이동)
-const CACHE_KEY = 'github_repositories';
-const getBranchCacheKey = (owner: string, repo: string) => `github_branches_${owner}_${repo}`;
-
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<RepositorySettings>({
     repositoryFullName: '',
@@ -85,50 +81,12 @@ const Settings: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // GitHub 리포지토리 목록 불러오기 (Firestore 캐싱)
-  const fetchRepositories = useCallback(async (forceRefresh = false) => {
-    const user = auth.currentUser;
-    if (!user) return;
-
+  // GitHub 리포지토리 목록 불러오기
+  const fetchRepositories = useCallback(async () => {
     try {
       setLoadingRepos(true);
-
-      // 캐시 확인 (수동 새로고침이 아닌 경우)
-      if (!forceRefresh) {
-        try {
-          const cacheDoc = await getDoc(doc(store, 'users', user.uid, 'cache', CACHE_KEY));
-          if (cacheDoc.exists()) {
-            const cached = cacheDoc.data();
-            const cacheAge = Date.now() - cached.timestamp;
-            console.log(`✅ 캐시된 리포지토리 목록 사용 (Firestore) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
-            setRepositories(cached.data);
-            setLoadingRepos(false);
-            return;
-          } else {
-            console.log('📭 캐시 없음 - API 호출');
-          }
-        } catch (cacheError) {
-          console.error('❌ 캐시 읽기 실패:', cacheError);
-        }
-      } else {
-        console.log('🔄 수동 새로고침 - API 호출');
-      }
-
-      // API 호출
-      console.log('🌐 API에서 리포지토리 목록 불러오기...');
       const repos = await getRepositories();
       setRepositories(repos);
-
-      // Firestore에 캐시 저장
-      try {
-        await setDoc(doc(store, 'users', user.uid, 'cache', CACHE_KEY), {
-          data: repos,
-          timestamp: Date.now(),
-        });
-        console.log('💾 리포지토리 목록 캐시 저장 완료 (Firestore)');
-      } catch (saveError) {
-        console.error('❌ 캐시 저장 실패:', saveError);
-      }
     } catch (error) {
       console.error('❌ 리포지토리 불러오기 실패:', error);
       setMessage({ type: 'error', text: '리포지토리 목록을 불러오는데 실패했습니다.' });
@@ -137,52 +95,12 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  // 브랜치 목록 불러오기 (Firestore 캐싱)
-  const fetchBranches = useCallback(async (owner: string, repo: string, forceRefresh = false) => {
-    const user = auth.currentUser;
-    if (!user) return;
-
+  // 브랜치 목록 불러오기
+  const fetchBranches = useCallback(async (owner: string, repo: string) => {
     try {
       setLoadingBranches(true);
-      const cacheKey = getBranchCacheKey(owner, repo);
-
-      // 캐시 확인 (수동 새로고침이 아닌 경우)
-      if (!forceRefresh) {
-        try {
-          const cacheDoc = await getDoc(doc(store, 'users', user.uid, 'cache', cacheKey));
-          if (cacheDoc.exists()) {
-            const cached = cacheDoc.data();
-            const cacheAge = Date.now() - cached.timestamp;
-            console.log(`✅ 캐시된 브랜치 목록 사용 (Firestore) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
-            setBranches(cached.data);
-            setLoadingBranches(false);
-            return;
-          } else {
-            console.log('📭 브랜치 캐시 없음 - API 호출');
-          }
-        } catch (cacheError) {
-          console.error('❌ 브랜치 캐시 읽기 실패:', cacheError);
-        }
-      } else {
-        console.log('🔄 수동 새로고침 - API 호출');
-      }
-
-      // API 호출
-      console.log(`🌿 API에서 브랜치 목록 불러오기: ${owner}/${repo}`);
       const branchList = await getBranches(owner, repo);
       setBranches(branchList);
-      console.log(`✅ ${branchList.length}개의 브랜치 발견`);
-
-      // Firestore에 캐시 저장
-      try {
-        await setDoc(doc(store, 'users', user.uid, 'cache', cacheKey), {
-          data: branchList,
-          timestamp: Date.now(),
-        });
-        console.log('💾 브랜치 목록 캐시 저장 완료 (Firestore)');
-      } catch (saveError) {
-        console.error('❌ 브랜치 캐시 저장 실패:', saveError);
-      }
     } catch (error) {
       console.error('❌ 브랜치 불러오기 실패:', error);
       setMessage({ type: 'error', text: '브랜치 목록을 불러오는데 실패했습니다.' });
@@ -389,19 +307,7 @@ const Settings: React.FC = () => {
         console.error('❌ Firestore 플래시카드 삭제 실패:', dbError);
       }
 
-      // 4. Firestore 캐시 서브컬렉션 삭제
-      try {
-        console.log('🗑️ Firestore 캐시 데이터 삭제 중...');
-        const cacheRef = collection(store, 'users', user.uid, 'cache');
-        const cacheSnapshot = await getDocs(cacheRef);
-        const cacheDeletePromises = cacheSnapshot.docs.map(d => deleteDoc(d.ref));
-        await Promise.all(cacheDeletePromises);
-        console.log('✅ Firestore 캐시 데이터 삭제 완료');
-      } catch (dbError) {
-        console.error('❌ Firestore 캐시 삭제 실패:', dbError);
-      }
-      
-      // 5. Firebase Auth 계정 삭제
+      // 4. Firebase Auth 계정 삭제
       console.log('🗑️ Firebase Auth 계정 삭제 중...');
       await user.delete();
       console.log('✅ Firebase Auth 계정 삭제 완료');
@@ -457,19 +363,7 @@ const Settings: React.FC = () => {
             console.error('❌ (재시도) Firestore 플래시카드 삭제 실패:', dbError);
           }
 
-          // 4. Firestore 캐시 서브컬렉션 삭제
-          try {
-            console.log('🗑️ (재시도) Firestore 캐시 데이터 삭제 중...');
-            const cacheRef = collection(store, 'users', user.uid, 'cache');
-            const cacheSnapshot = await getDocs(cacheRef);
-            const cacheDeletePromises = cacheSnapshot.docs.map(d => deleteDoc(d.ref));
-            await Promise.all(cacheDeletePromises);
-            console.log('✅ (재시도) Firestore 캐시 데이터 삭제 완료');
-          } catch (dbError) {
-            console.error('❌ (재시도) Firestore 캐시 삭제 실패:', dbError);
-          }
-          
-          // 5. Firebase Auth 계정 삭제
+          // 4. Firebase Auth 계정 삭제
           console.log('🗑️ (재시도) Firebase Auth 계정 삭제 중...');
           await user.delete();
           console.log('✅ (재시도) Firebase Auth 계정 삭제 완료');
@@ -536,7 +430,7 @@ const Settings: React.FC = () => {
               <button
                 type="button"
                 className="refresh-button"
-                onClick={() => fetchRepositories(true)}
+                onClick={() => fetchRepositories()}
                 disabled={loadingRepos}
                 title="리포지토리 목록 새로고침"
               >
@@ -630,7 +524,7 @@ const Settings: React.FC = () => {
                       className="refresh-button"
                       onClick={() => {
                         const [owner, repoName] = settings.repositoryFullName.split('/');
-                        fetchBranches(owner, repoName, true);
+                        fetchBranches(owner, repoName);
                       }}
                       disabled={loadingBranches}
                       title="브랜치 목록 새로고침"
