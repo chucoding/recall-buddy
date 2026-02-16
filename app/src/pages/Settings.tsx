@@ -28,6 +28,7 @@ const Settings: React.FC = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
+  const [reposFetchError, setReposFetchError] = useState<boolean>(false);
   const [loadingBranches, setLoadingBranches] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -85,10 +86,12 @@ const Settings: React.FC = () => {
   const fetchRepositories = useCallback(async () => {
     try {
       setLoadingRepos(true);
+      setReposFetchError(false);
       const repos = await getRepositories();
       setRepositories(repos);
     } catch (error) {
       console.error('❌ 리포지토리 불러오기 실패:', error);
+      setReposFetchError(true);
       setMessage({ type: 'error', text: '리포지토리 목록을 불러오는데 실패했습니다.' });
     } finally {
       setLoadingRepos(false);
@@ -430,7 +433,7 @@ const Settings: React.FC = () => {
                 <div className="loading-spinner-small"></div>
                 <span>리포지토리 목록을 불러오는 중...</span>
               </div>
-            ) : repositories.length === 0 ? (
+            ) : reposFetchError ? (
               <div className="loading-repos">
                 <span>리포지토리를 불러오지 못했습니다.</span>
                 <button
