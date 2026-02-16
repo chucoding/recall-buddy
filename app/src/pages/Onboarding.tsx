@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { doc, setDoc } from 'firebase/firestore';
-import { useIndexedDB } from 'react-indexed-db-hook';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '../types';
@@ -35,19 +34,20 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState<boolean>(false);
   const [error, setError] = useState<{ type: 'repos' | 'branches' | 'save'; message: string } | null>(null);
 
-  const repositoriesDB = useIndexedDB('repositories');
-
-  // 리포지토리 목록 가져오기
+  // 리포지토리 목록 가져오기 (Firestore 캐싱)
   const fetchRepositories = useCallback(async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
     try {
       setLoadingRepos(true);
       setError(null);
 
       // 캐시 확인
       try {
-        const cached = await repositoriesDB.getByID(CACHE_KEY);
-        if (cached) {
-          setRepositories(cached.data);
+        const cacheDoc = await getDoc(doc(store, 'users', user.uid, 'cache', CACHE_KEY));
+        if (cacheDoc.exists()) {
+          setRepositories(cacheDoc.data().data);
           setLoadingRepos(false);
           return;
         }
@@ -59,9 +59,12 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       const repos = await getRepositories();
       setRepositories(repos);
 
-      // 캐시 저장
+      // Firestore에 캐시 저장
       try {
-        await repositoriesDB.add({ id: CACHE_KEY, data: repos, timestamp: Date.now() });
+        await setDoc(doc(store, 'users', user.uid, 'cache', CACHE_KEY), {
+          data: repos,
+          timestamp: Date.now(),
+        });
       } catch (error) {
         console.error('캐시 저장 실패:', error);
       }
@@ -79,10 +82,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       });
       setLoadingRepos(false);
     }
-  }, [repositoriesDB]);
+  }, []);
 
-  // 브랜치 목록 가져오기
+  // 브랜치 목록 가져오기 (Firestore 캐싱)
   const fetchBranches = useCallback(async (owner: string, repo: string) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
     try {
       setLoadingBranches(true);
       setError(null);
@@ -91,9 +97,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       
       // 캐시 확인
       try {
-        const cached = await repositoriesDB.getByID(cacheKey);
-        if (cached) {
-          setBranches(cached.data);
+        const cacheDoc = await getDoc(doc(store, 'users', user.uid, 'cache', cacheKey));
+        if (cacheDoc.exists()) {
+          setBranches(cacheDoc.data().data);
           setLoadingBranches(false);
           return;
         }
@@ -105,9 +111,12 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       const branchList = await getBranches(owner, repo);
       setBranches(branchList);
 
-      // 캐시 저장
+      // Firestore에 캐시 저장
       try {
-        await repositoriesDB.add({ id: cacheKey, data: branchList, timestamp: Date.now() });
+        await setDoc(doc(store, 'users', user.uid, 'cache', cacheKey), {
+          data: branchList,
+          timestamp: Date.now(),
+        });
       } catch (error) {
         console.error('브랜치 캐시 저장 실패:', error);
       }
@@ -125,7 +134,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       });
       setLoadingBranches(false);
     }
-  }, [repositoriesDB]);
+  }, []);
 
   // Step 2에 진입하면 리포지토리 목록 로드
   useEffect(() => {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { reauthenticateWithPopup } from 'firebase/auth';
-import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, store, githubProvider } from '../firebase';
 import { getRepositories, getBranches, Branch } from '../api/github-api';
 import { Repository } from '../types';
@@ -45,9 +44,6 @@ const Settings: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
 
-  // IndexedDB 훅 (리포지토리 캐시용)
-  const repositoriesDB = useIndexedDB('repositories');
-  
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -89,19 +85,22 @@ const Settings: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // GitHub 리포지토리 목록 불러오기 (IndexedDB 캐싱)
+  // GitHub 리포지토리 목록 불러오기 (Firestore 캐싱)
   const fetchRepositories = useCallback(async (forceRefresh = false) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
     try {
       setLoadingRepos(true);
 
       // 캐시 확인 (수동 새로고침이 아닌 경우)
       if (!forceRefresh) {
         try {
-          const cached = await repositoriesDB.getByID(CACHE_KEY);
-          if (cached) {
-            const now = Date.now();
-            const cacheAge = now - cached.timestamp;
-            console.log(`✅ 캐시된 리포지토리 목록 사용 (IndexedDB) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
+          const cacheDoc = await getDoc(doc(store, 'users', user.uid, 'cache', CACHE_KEY));
+          if (cacheDoc.exists()) {
+            const cached = cacheDoc.data();
+            const cacheAge = Date.now() - cached.timestamp;
+            console.log(`✅ 캐시된 리포지토리 목록 사용 (Firestore) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
             setRepositories(cached.data);
             setLoadingRepos(false);
             return;
@@ -120,22 +119,13 @@ const Settings: React.FC = () => {
       const repos = await getRepositories();
       setRepositories(repos);
 
-      // IndexedDB에 캐시 저장
+      // Firestore에 캐시 저장
       try {
-        const cacheData = {
-          id: CACHE_KEY,
+        await setDoc(doc(store, 'users', user.uid, 'cache', CACHE_KEY), {
           data: repos,
           timestamp: Date.now(),
-        };
-
-        // 기존 캐시 확인
-        const existing = await repositoriesDB.getByID(CACHE_KEY);
-        if (existing) {
-          await repositoriesDB.update(cacheData);
-        } else {
-          await repositoriesDB.add(cacheData);
-        }
-        console.log('💾 리포지토리 목록 캐시 저장 완료 (IndexedDB)');
+        });
+        console.log('💾 리포지토리 목록 캐시 저장 완료 (Firestore)');
       } catch (saveError) {
         console.error('❌ 캐시 저장 실패:', saveError);
       }
@@ -147,8 +137,11 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  // 브랜치 목록 불러오기 (IndexedDB 캐싱)
+  // 브랜치 목록 불러오기 (Firestore 캐싱)
   const fetchBranches = useCallback(async (owner: string, repo: string, forceRefresh = false) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
     try {
       setLoadingBranches(true);
       const cacheKey = getBranchCacheKey(owner, repo);
@@ -156,11 +149,11 @@ const Settings: React.FC = () => {
       // 캐시 확인 (수동 새로고침이 아닌 경우)
       if (!forceRefresh) {
         try {
-          const cached = await repositoriesDB.getByID(cacheKey);
-          if (cached) {
-            const now = Date.now();
-            const cacheAge = now - cached.timestamp;
-            console.log(`✅ 캐시된 브랜치 목록 사용 (IndexedDB) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
+          const cacheDoc = await getDoc(doc(store, 'users', user.uid, 'cache', cacheKey));
+          if (cacheDoc.exists()) {
+            const cached = cacheDoc.data();
+            const cacheAge = Date.now() - cached.timestamp;
+            console.log(`✅ 캐시된 브랜치 목록 사용 (Firestore) - ${Math.floor(cacheAge / 1000 / 60)}분 전 캐시`);
             setBranches(cached.data);
             setLoadingBranches(false);
             return;
@@ -180,22 +173,13 @@ const Settings: React.FC = () => {
       setBranches(branchList);
       console.log(`✅ ${branchList.length}개의 브랜치 발견`);
 
-      // IndexedDB에 캐시 저장
+      // Firestore에 캐시 저장
       try {
-        const cacheData = {
-          id: cacheKey,
+        await setDoc(doc(store, 'users', user.uid, 'cache', cacheKey), {
           data: branchList,
           timestamp: Date.now(),
-        };
-
-        // 기존 캐시 확인
-        const existing = await repositoriesDB.getByID(cacheKey);
-        if (existing) {
-          await repositoriesDB.update(cacheData);
-        } else {
-          await repositoriesDB.add(cacheData);
-        }
-        console.log('💾 브랜치 목록 캐시 저장 완료 (IndexedDB)');
+        });
+        console.log('💾 브랜치 목록 캐시 저장 완료 (Firestore)');
       } catch (saveError) {
         console.error('❌ 브랜치 캐시 저장 실패:', saveError);
       }
@@ -206,7 +190,7 @@ const Settings: React.FC = () => {
     } finally {
       setLoadingBranches(false);
     }
-  }, [repositoriesDB]);
+  }, []);
 
   // 설정 및 리포지토리 목록 불러오기
   useEffect(() => {
@@ -405,13 +389,16 @@ const Settings: React.FC = () => {
         console.error('❌ Firestore 플래시카드 삭제 실패:', dbError);
       }
 
-      // 4. IndexedDB 캐시 데이터 삭제
+      // 4. Firestore 캐시 서브컬렉션 삭제
       try {
-        console.log('🗑️ IndexedDB 캐시 데이터 삭제 중...');
-        await repositoriesDB.clear();
-        console.log('✅ IndexedDB 캐시 데이터 삭제 완료');
+        console.log('🗑️ Firestore 캐시 데이터 삭제 중...');
+        const cacheRef = collection(store, 'users', user.uid, 'cache');
+        const cacheSnapshot = await getDocs(cacheRef);
+        const cacheDeletePromises = cacheSnapshot.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(cacheDeletePromises);
+        console.log('✅ Firestore 캐시 데이터 삭제 완료');
       } catch (dbError) {
-        console.error('❌ IndexedDB 캐시 삭제 실패:', dbError);
+        console.error('❌ Firestore 캐시 삭제 실패:', dbError);
       }
       
       // 5. Firebase Auth 계정 삭제
@@ -470,13 +457,16 @@ const Settings: React.FC = () => {
             console.error('❌ (재시도) Firestore 플래시카드 삭제 실패:', dbError);
           }
 
-          // 4. IndexedDB 캐시 데이터 삭제
+          // 4. Firestore 캐시 서브컬렉션 삭제
           try {
-            console.log('🗑️ (재시도) IndexedDB 캐시 데이터 삭제 중...');
-            await repositoriesDB.clear();
-            console.log('✅ (재시도) IndexedDB 캐시 데이터 삭제 완료');
+            console.log('🗑️ (재시도) Firestore 캐시 데이터 삭제 중...');
+            const cacheRef = collection(store, 'users', user.uid, 'cache');
+            const cacheSnapshot = await getDocs(cacheRef);
+            const cacheDeletePromises = cacheSnapshot.docs.map(d => deleteDoc(d.ref));
+            await Promise.all(cacheDeletePromises);
+            console.log('✅ (재시도) Firestore 캐시 데이터 삭제 완료');
           } catch (dbError) {
-            console.error('❌ (재시도) IndexedDB 캐시 삭제 실패:', dbError);
+            console.error('❌ (재시도) Firestore 캐시 삭제 실패:', dbError);
           }
           
           // 5. Firebase Auth 계정 삭제
