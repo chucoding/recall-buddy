@@ -29,7 +29,8 @@ const Settings: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
   const [reposFetchError, setReposFetchError] = useState<boolean>(false);
-  const [loadingBranches, setLoadingBranches] = useState<boolean>(false);
+  const [loadingBranches, setLoadingBranches] = useState<boolean>(false); //TODO : Tanstack Query로 변경
+  const [branchesFetchError, setBranchesFetchError] = useState<boolean>(false); //TODO : Tanstack Query로 변경
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -102,10 +103,12 @@ const Settings: React.FC = () => {
   const fetchBranches = useCallback(async (owner: string, repo: string) => {
     try {
       setLoadingBranches(true);
+      setBranchesFetchError(false);
       const branchList = await getBranches(owner, repo);
       setBranches(branchList);
     } catch (error) {
       console.error('❌ 브랜치 불러오기 실패:', error);
+      setBranchesFetchError(true);
       setMessage({ type: 'error', text: '브랜치 목록을 불러오는데 실패했습니다.' });
       setBranches([]);
     } finally {
@@ -524,6 +527,21 @@ const Settings: React.FC = () => {
                   <div className="loading-repos">
                     <div className="loading-spinner-small"></div>
                     <span>브랜치 목록을 불러오는 중...</span>
+                  </div>
+                ) : branchesFetchError ? (
+                  <div className="loading-repos">
+                    <span>브랜치 목록을 불러오지 못했습니다.</span>
+                    <button
+                      type="button"
+                      className="refresh-button"
+                      onClick={() => {
+                        const [owner, repoName] = settings.repositoryFullName.split('/');
+                        fetchBranches(owner, repoName);
+                      }}
+                      style={{ marginLeft: '8px' }}
+                    >
+                      🔄 다시 시도
+                    </button>
                   </div>
                 ) : branches.length > 0 ? (
                   <div className="custom-select-container" ref={branchDropdownRef}>
