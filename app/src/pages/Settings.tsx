@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { reauthenticateWithPopup } from 'firebase/auth';
 import { useIndexedDB } from 'react-indexed-db-hook';
 import { auth, store, githubProvider } from '../firebase';
@@ -45,9 +45,8 @@ const Settings: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
 
-  // IndexedDB 훅
+  // IndexedDB 훅 (리포지토리 캐시용)
   const repositoriesDB = useIndexedDB('repositories');
-  const flashcardsDB = useIndexedDB('data'); // 플래시카드 데이터 스토어
   
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -317,11 +316,13 @@ const Settings: React.FC = () => {
         updatedAt: new Date().toISOString(),
       });
 
-      // 저장 후 항상 플래시카드 데이터 삭제하고 새로 생성
+      // 저장 후 Firestore에서 플래시카드 데이터 삭제하고 새로 생성
       try {
-        // 모든 캐시된 플래시카드 데이터 삭제
-        await flashcardsDB.clear();
-        console.log('🗑️ 플래시카드 데이터를 삭제했습니다.');
+        const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
+        const flashcardsSnapshot = await getDocs(flashcardsRef);
+        const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+        console.log('🗑️ Firestore 플래시카드 데이터를 삭제했습니다.');
         
         setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
         
@@ -392,17 +393,28 @@ const Settings: React.FC = () => {
       await deleteDoc(doc(store, 'users', user.uid));
       console.log('✅ Firestore 사용자 데이터 삭제 완료');
       
-      // 3. IndexedDB 모든 데이터 삭제
+      // 3. Firestore 플래시카드 서브컬렉션 삭제
       try {
-        console.log('🗑️ IndexedDB 데이터 삭제 중...');
-        await flashcardsDB.clear();
-        await repositoriesDB.clear();
-        console.log('✅ IndexedDB 데이터 삭제 완료');
+        console.log('🗑️ Firestore 플래시카드 데이터 삭제 중...');
+        const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
+        const flashcardsSnapshot = await getDocs(flashcardsRef);
+        const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+        console.log('✅ Firestore 플래시카드 데이터 삭제 완료');
       } catch (dbError) {
-        console.error('❌ IndexedDB 삭제 실패:', dbError);
+        console.error('❌ Firestore 플래시카드 삭제 실패:', dbError);
+      }
+
+      // 4. IndexedDB 캐시 데이터 삭제
+      try {
+        console.log('🗑️ IndexedDB 캐시 데이터 삭제 중...');
+        await repositoriesDB.clear();
+        console.log('✅ IndexedDB 캐시 데이터 삭제 완료');
+      } catch (dbError) {
+        console.error('❌ IndexedDB 캐시 삭제 실패:', dbError);
       }
       
-      // 4. Firebase Auth 계정 삭제
+      // 5. Firebase Auth 계정 삭제
       console.log('🗑️ Firebase Auth 계정 삭제 중...');
       await user.delete();
       console.log('✅ Firebase Auth 계정 삭제 완료');
@@ -446,17 +458,28 @@ const Settings: React.FC = () => {
           await deleteDoc(doc(store, 'users', user.uid));
           console.log('✅ (재시도) Firestore 사용자 데이터 삭제 완료');
           
-          // 3. IndexedDB 모든 데이터 삭제
+          // 3. Firestore 플래시카드 서브컬렉션 삭제
           try {
-            console.log('🗑️ (재시도) IndexedDB 데이터 삭제 중...');
-            await flashcardsDB.clear();
-            await repositoriesDB.clear();
-            console.log('✅ (재시도) IndexedDB 데이터 삭제 완료');
+            console.log('🗑️ (재시도) Firestore 플래시카드 데이터 삭제 중...');
+            const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
+            const flashcardsSnapshot = await getDocs(flashcardsRef);
+            const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
+            await Promise.all(deletePromises);
+            console.log('✅ (재시도) Firestore 플래시카드 데이터 삭제 완료');
           } catch (dbError) {
-            console.error('❌ (재시도) IndexedDB 삭제 실패:', dbError);
+            console.error('❌ (재시도) Firestore 플래시카드 삭제 실패:', dbError);
+          }
+
+          // 4. IndexedDB 캐시 데이터 삭제
+          try {
+            console.log('🗑️ (재시도) IndexedDB 캐시 데이터 삭제 중...');
+            await repositoriesDB.clear();
+            console.log('✅ (재시도) IndexedDB 캐시 데이터 삭제 완료');
+          } catch (dbError) {
+            console.error('❌ (재시도) IndexedDB 캐시 삭제 실패:', dbError);
           }
           
-          // 4. Firebase Auth 계정 삭제
+          // 5. Firebase Auth 계정 삭제
           console.log('🗑️ (재시도) Firebase Auth 계정 삭제 중...');
           await user.delete();
           console.log('✅ (재시도) Firebase Auth 계정 삭제 완료');

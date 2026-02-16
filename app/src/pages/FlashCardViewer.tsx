@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Slider from "react-slick";
+import { doc, onSnapshot } from 'firebase/firestore';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -7,7 +8,8 @@ import "./FlashCardViewer.css";
 
 import MarkdownBlock from '../templates/MarkdownBlock';
 import CodeDiffBlock from '../templates/CodeDiffBlock';
-import { useIndexedDB } from "react-indexed-db-hook";
+import { auth, store } from '../firebase';
+import { getCurrentDate } from '../modules/utils';
 import type { ContentType } from '../hooks/useTodayFlashcards';
 
 interface Card {
@@ -18,11 +20,6 @@ interface Card {
     filename?: string;
     commitMessage?: string;
   };
-}
-
-interface DBData {
-  date: string;
-  data: Card[];
 }
 
 const FlashCardViewer: React.FC = () => {
@@ -46,55 +43,25 @@ const FlashCardViewer: React.FC = () => {
         setFlipped(!flipped);
     };
 
-    const { getAll } = useIndexedDB("data");
-    
-    // IndexedDB에서 데이터 로드하는 함수
-    const loadCards = () => {
-        getAll().then((dataFromDB: DBData[]) => {
-            if (dataFromDB && dataFromDB.length > 0) {
-                setCards(dataFromDB[0].data);
+    // Firestore onSnapshot으로 실시간 구독
+    useEffect(() => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const todayDate = getCurrentDate();
+        const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
+
+        const unsubscribe = onSnapshot(flashcardDocRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                setCards(data.data || []);
             } else {
                 setCards([]);
             }
         });
-    };
-    
-    // 컴포넌트 마운트 시 데이터 로드
-    useEffect(() => {
-        loadCards();
-    }, [getAll]);
-    
-    // 페이지가 다시 포커스되거나 보일 때 데이터 다시 로드
-    useEffect(() => {
-        const handleFocus = () => {
-            console.log('🔄 페이지 포커스 - 플래시카드 데이터 새로고침');
-            loadCards();
-        };
-        
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                console.log('👁️ 페이지 visible - 플래시카드 데이터 새로고침');
-                loadCards();
-            }
-        };
-        
-        window.addEventListener('focus', handleFocus);
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        
-        return () => {
-            window.removeEventListener('focus', handleFocus);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, [getAll]);
-    
-    // 주기적으로 IndexedDB 체크 (5초마다)
-    useEffect(() => {
-        const interval = setInterval(() => {
-            loadCards();
-        }, 5000);
-        
-        return () => clearInterval(interval);
-    }, [getAll]);
+
+        return () => unsubscribe();
+    }, []);
     
     // 키보드 단축키 추가
     useEffect(() => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useIndexedDB } from 'react-indexed-db-hook';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
+import { store } from '../firebase';
 import { chatCompletions } from '../api/clova-api';
 import { getCommits, getFilename, getMarkdown, type CommitDetail } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
@@ -22,16 +23,15 @@ export interface FlashCardData {
 
 /**
  * 오늘의 플래시카드 데이터를 로드하는 커스텀 훅
- * user가 null이면 데이터를 로드하지 않음
+ * 로그인하지 않은 유저는는 데이터를 로드하지 않음
+ * Firestore 경로: users/{uid}/flashcards/{date}
  */
 export function useTodayFlashcards(user: User | null) {
-  const { add, getByID } = useIndexedDB("data");
   const [loading, setLoading] = useState<boolean>(true);
   const [hasData, setHasData] = useState<boolean>(false);
   const flashcardReloadTrigger = useNavigationStore((state) => state.flashcardReloadTrigger);
 
   useEffect(() => {
-    // 로그인하지 않은 경우 데이터 로드하지 않음
     if (!user) {
       setLoading(false);
       setHasData(false);
@@ -41,21 +41,24 @@ export function useTodayFlashcards(user: User | null) {
     const loadFlashcards = async () => {
       try {
         setLoading(true);
+        const todayDate = getCurrentDate();
+        const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
         
-        // 오늘 날짜의 데이터가 이미 있는지 확인
-        const todayData = await getByID(getCurrentDate());
-        if (todayData) {
+        // Firestore에서 오늘 날짜의 데이터 확인
+        const todayDoc = await getDoc(flashcardDocRef);
+        if (todayDoc.exists()) {
+          const docData = todayDoc.data();
           setLoading(false);
-          setHasData(todayData.data && todayData.data.length > 0);
+          setHasData(docData.data && docData.data.length > 0);
           return;
         }
 
         // 오늘 데이터가 없으면 새로 생성
         const list = await generateFlashcards();
         
-        // 생성된 플래시카드가 있으면 저장
+        // 생성된 플래시카드가 있으면 Firestore에 저장
         if (list.length > 0) {
-          await add({ date: getCurrentDate(), data: list });
+          await setDoc(flashcardDocRef, { data: list });
           setHasData(true);
         } else {
           setHasData(false);
@@ -70,7 +73,7 @@ export function useTodayFlashcards(user: User | null) {
     };
 
     loadFlashcards();
-  }, [add, getByID, user, flashcardReloadTrigger]);
+  }, [user, flashcardReloadTrigger]);
 
   return { loading, hasData };
 }
