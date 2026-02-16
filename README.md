@@ -4,9 +4,10 @@ https://til-alarm.web.app/
 매일 github에서 학습하거나 커밋한 내용을 정리하고 알림을 받는 앱입니다.
 
 <p align="center">
-  <img src="assets/onboarding1.png" width="30%" />
-  <img src="assets/onboarding2.png" width="30%" />
-  <img src="assets/onboarding3.png" width="30%" />
+  <img src="assets/onboarding1.png" width="23%" />
+  <img src="assets/onboarding2.png" width="23%" />
+  <img src="assets/onboarding3.png" width="23%" />
+  <img src="assets/onboarding4.png" width="23%" />
 </p>
 
 ## 🚀 시작하기
@@ -67,7 +68,7 @@ pnpm build
 
 ### 4. 배포
 ```bash
-pnpm publish
+pnpm push
 ```
 
 ## 🌏 리전
@@ -92,7 +93,7 @@ pnpm publish
 |version|date|link|
 |---|---|---|
 |v2.0|2025.10.20|[RecallBuddy 2.0 개발 후기](https://chucoding.tistory.com/163)|
-|v1.1|2024.03.03|[HyperCLOVA X를 활용한 공부앱 만들기](https://chucoding.tistory.com/137)|
+|v1.2|2024.03.03|[HyperCLOVA X를 활용한 공부앱 만들기](https://chucoding.tistory.com/137)|
 |v1.0|2023.11.19|[네이버클라우드 서비스를 활용한 알림(PUSH) 앱 배포하기](https://chucoding.tistory.com/130)|
 |v1.0|2023.10.15|[안드로이드, IOS 지식 없이 SENS로 알림(PUSH) 서비스 개발하기](https://chucoding.tistory.com/129)|
 
