@@ -414,21 +414,10 @@ const Settings: React.FC = () => {
 
         <div className="settings-form">
           <div className="form-group">
-            <div className="form-label-row">
-              <label htmlFor="repository">
-                GitHub 리포지토리
-                <span className="required">*</span>
-              </label>
-              <button
-                type="button"
-                className="refresh-button"
-                onClick={() => fetchRepositories()}
-                disabled={loadingRepos}
-                title="리포지토리 목록 새로고침"
-              >
-                {loadingRepos ? '⏳' : '🔄'}
-              </button>
-            </div>
+            <label htmlFor="repository">
+              GitHub 리포지토리
+              <span className="required">*</span>
+            </label>
             
             <p className="form-hint">
               {repositories.length > 0 
@@ -510,20 +499,6 @@ const Settings: React.FC = () => {
                     브랜치 이름
                     <span className="required">*</span>
                   </label>
-                  {settings.repositoryFullName && (
-                    <button
-                      type="button"
-                      className="refresh-button"
-                      onClick={() => {
-                        const [owner, repoName] = settings.repositoryFullName.split('/');
-                        fetchBranches(owner, repoName);
-                      }}
-                      disabled={loadingBranches}
-                      title="브랜치 목록 새로고침"
-                    >
-                      {loadingBranches ? '⏳' : '🔄'}
-                    </button>
-                  )}
                 </div>
                 <p className="form-hint">
                   커밋을 가져올 브랜치를 선택하세요
