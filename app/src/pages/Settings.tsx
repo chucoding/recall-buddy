@@ -290,24 +290,20 @@ const Settings: React.FC = () => {
       });
       console.log('✅ 탈퇴 기록 생성 완료');
       
-      // 2. Firestore 사용자 데이터 삭제
+      // 2. Firestore 플래시카드 서브컬렉션 삭제 (Auth 삭제 전에 처리해야 함)
+      console.log('🗑️ Firestore 플래시카드 데이터 삭제 중...');
+      const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
+      const flashcardsSnapshot = await getDocs(flashcardsRef);
+      const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletePromises);
+      console.log('✅ Firestore 플래시카드 데이터 삭제 완료');
+
+      // 3. Firestore 사용자 데이터 삭제
       console.log('🗑️ Firestore 사용자 데이터 삭제 중...');
       await deleteDoc(doc(store, 'users', user.uid));
       console.log('✅ Firestore 사용자 데이터 삭제 완료');
-      
-      // 3. Firestore 플래시카드 서브컬렉션 삭제
-      try {
-        console.log('🗑️ Firestore 플래시카드 데이터 삭제 중...');
-        const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
-        const flashcardsSnapshot = await getDocs(flashcardsRef);
-        const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
-        await Promise.all(deletePromises);
-        console.log('✅ Firestore 플래시카드 데이터 삭제 완료');
-      } catch (dbError) {
-        console.error('❌ Firestore 플래시카드 삭제 실패:', dbError);
-      }
 
-      // 4. Firebase Auth 계정 삭제
+      // 4. Firebase Auth 계정 삭제 (항상 마지막 — 이후 인증 불가)
       console.log('🗑️ Firebase Auth 계정 삭제 중...');
       await user.delete();
       console.log('✅ Firebase Auth 계정 삭제 완료');
@@ -346,24 +342,20 @@ const Settings: React.FC = () => {
           });
           console.log('✅ (재시도) 탈퇴 기록 생성 완료');
           
-          // 2. Firestore 사용자 데이터 삭제
+          // 2. Firestore 플래시카드 서브컬렉션 삭제 (Auth 삭제 전에 처리해야 함)
+          console.log('🗑️ (재시도) Firestore 플래시카드 데이터 삭제 중...');
+          const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
+          const flashcardsSnapshot = await getDocs(flashcardsRef);
+          const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
+          await Promise.all(deletePromises);
+          console.log('✅ (재시도) Firestore 플래시카드 데이터 삭제 완료');
+
+          // 3. Firestore 사용자 데이터 삭제
           console.log('🗑️ (재시도) Firestore 사용자 데이터 삭제 중...');
           await deleteDoc(doc(store, 'users', user.uid));
           console.log('✅ (재시도) Firestore 사용자 데이터 삭제 완료');
-          
-          // 3. Firestore 플래시카드 서브컬렉션 삭제
-          try {
-            console.log('🗑️ (재시도) Firestore 플래시카드 데이터 삭제 중...');
-            const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
-            const flashcardsSnapshot = await getDocs(flashcardsRef);
-            const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
-            await Promise.all(deletePromises);
-            console.log('✅ (재시도) Firestore 플래시카드 데이터 삭제 완료');
-          } catch (dbError) {
-            console.error('❌ (재시도) Firestore 플래시카드 삭제 실패:', dbError);
-          }
 
-          // 4. Firebase Auth 계정 삭제
+          // 4. Firebase Auth 계정 삭제 (항상 마지막 — 이후 인증 불가)
           console.log('🗑️ (재시도) Firebase Auth 계정 삭제 중...');
           await user.delete();
           console.log('✅ (재시도) Firebase Auth 계정 삭제 완료');
