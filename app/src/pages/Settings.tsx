@@ -430,6 +430,18 @@ const Settings: React.FC = () => {
                 <div className="loading-spinner-small"></div>
                 <span>리포지토리 목록을 불러오는 중...</span>
               </div>
+            ) : repositories.length === 0 ? (
+              <div className="loading-repos">
+                <span>리포지토리를 불러오지 못했습니다.</span>
+                <button
+                  type="button"
+                  className="refresh-button"
+                  onClick={() => fetchRepositories()}
+                  style={{ marginLeft: '8px' }}
+                >
+                  🔄 다시 시도
+                </button>
+              </div>
             ) : (
               <div className="custom-select-container" ref={dropdownRef}>
                 <button
