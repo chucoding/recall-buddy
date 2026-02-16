@@ -65,6 +65,12 @@ export async function getRepositories(): Promise<Repository[]> {
   return response.data;
 }
 
+/**
+ * @deprecated
+ * 과한 정보 제공으로 인해 사용하지 않음 2026-02-16
+ * @TODO
+ * 결제 기능 생기면 복구
+ */
 export interface Branch {
   name: string;
   protected: boolean;
@@ -76,3 +82,4 @@ export async function getBranches(owner: string, repo: string): Promise<Branch[]
   });
   return response.data;
 }
+
