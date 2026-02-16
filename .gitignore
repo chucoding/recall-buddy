@@ -31,4 +31,5 @@ npm-debug.log*
 
 # firebase
 .firebase/
+.firebaserc
 firebase-debug.log*
