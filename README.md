@@ -1,5 +1,5 @@
-# RecallBuddy
-https://til-alarm.web.app/
+# CodeRecall
+https://coderecall.app/
 
 매일 github에서 학습하거나 커밋한 내용을 정리하고 알림을 받는 앱입니다.
 
@@ -100,4 +100,4 @@ pnpm push
 ## 라이센스
 
 <a href="https://www.linkedin.com/in/chucoding/" target="_blank">Prod By. 외계공룡</a><br/>
-Copyright &copy; RecallBuddy<br/>All Rights Reserved.</p>
+Copyright &copy; CodeRecall<br/>All Rights Reserved.</p>
