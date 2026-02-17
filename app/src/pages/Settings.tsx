@@ -5,7 +5,6 @@ import { auth, store, githubProvider } from '../firebase';
 import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
 import TermsLinks from '../widgets/TermsLinks';
-import './Settings.css';
 
 interface RepositorySettings {
   repositoryFullName: string;

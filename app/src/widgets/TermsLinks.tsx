@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import TermsModal from './TermsModal';
-import './TermsLinks.css';
 
 const TermsLinks: React.FC = () => {
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
@@ -15,7 +14,7 @@ const TermsLinks: React.FC = () => {
     <>
       <button 
         type="button"
-        className="terms-link"
+        className="bg-transparent border-none text-[#999] no-underline cursor-pointer text-[0.8rem] p-0 font-inherit transition-colors duration-200 hover:text-primary hover:underline"
         onClick={() => openTermsModal('terms')}
       >
         이용약관
@@ -23,7 +22,7 @@ const TermsLinks: React.FC = () => {
       {' · '}
       <button 
         type="button"
-        className="terms-link"
+        className="bg-transparent border-none text-[#999] no-underline cursor-pointer text-[0.8rem] p-0 font-inherit transition-colors duration-200 hover:text-primary hover:underline"
         onClick={() => openTermsModal('privacy')}
       >
         개인정보처리방침
@@ -38,4 +37,3 @@ const TermsLinks: React.FC = () => {
 };
 
 export default TermsLinks;
-

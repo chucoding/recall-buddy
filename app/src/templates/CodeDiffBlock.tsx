@@ -23,7 +23,7 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
               if (isDiff) {
                 // diff 코드용 커스텀 렌더링
                 return (
-                  <div className="github-diff-container">
+                  <div className="my-3 border border-[#d0d7de] rounded-md overflow-hidden">
                     <SyntaxHighlighter
                       style={github}
                       language="diff"
@@ -84,40 +84,27 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
             );
           },
           h2: ({ children }) => (
-            <h2 style={{
-              fontSize: '1.5em',
-              fontWeight: '600',
-              marginTop: '24px',
-              marginBottom: '16px',
-              borderBottom: '1px solid #d0d7de',
-              paddingBottom: '8px',
-            }}>
+            <h2 className="text-[1.5em] font-semibold mt-6 mb-4 border-b border-[#d0d7de] pb-2">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 style={{
-              fontSize: '1.25em',
-              fontWeight: '600',
-              marginTop: '20px',
-              marginBottom: '12px',
-              color: '#24292f',
-            }}>
+            <h3 className="text-[1.25em] font-semibold mt-5 mb-3 text-[#24292f]">
               📄 {children}
             </h3>
           ),
           strong: ({ children }) => {
             const text = String(children);
-            let color = '#24292f';
+            let colorClass = 'text-[#24292f]';
             
             if (text.includes('Status')) {
-              color = '#0969da';
+              colorClass = 'text-[#0969da]';
             } else if (text.includes('Changes')) {
-              color = '#8250df';
+              colorClass = 'text-[#8250df]';
             }
             
             return (
-              <strong style={{ color }}>
+              <strong className={colorClass}>
                 {children}
               </strong>
             );
@@ -132,4 +119,3 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
 };
 
 export default CodeDiffBlock;
-

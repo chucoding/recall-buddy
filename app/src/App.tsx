@@ -92,24 +92,10 @@ const App: React.FC = () => {
   if (authLoading || !onboardingChecked || loading) {
     return (
       <Card>
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '3px solid rgba(255, 255, 255, 0.3)',
-          borderTop: '3px solid white',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 20px'
-        }}></div>
-        <h2 style={{ marginBottom: '10px', fontSize: '1.25rem' }}>📚 플래시카드 준비 중</h2>
-        <p style={{ fontSize: '1rem' }}>GitHub에서 최근 커밋을 분석하고 있습니다...</p>
-        <p style={{ marginTop: '10px', fontSize: '0.9rem', opacity: '0.8' }}>⏱️ 데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
+        <div className="w-[50px] h-[50px] border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
+        <h2 className="mb-2.5 text-xl">📚 플래시카드 준비 중</h2>
+        <p className="text-base">GitHub에서 최근 커밋을 분석하고 있습니다...</p>
+        <p className="mt-2.5 text-[0.9rem] opacity-80">⏱️ 데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
       </Card>
     );
   }
@@ -134,52 +120,12 @@ const App: React.FC = () => {
   // 메인 앱 렌더링
   return (
     <main>
-      {/* 네비게이션 */}
-      <nav style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        background: 'transparent',
-        zIndex: 1000,
-        padding: '12px 20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        opacity: isScrollAtTop ? 1 : 0,
-        transform: isScrollAtTop ? 'translateY(0)' : 'translateY(-20px)',
-        transition: 'opacity 0.3s ease, transform 0.3s ease',
-        pointerEvents: isScrollAtTop ? 'auto' : 'none',
-      }}>
+      <nav className={`fixed top-0 left-0 right-0 bg-transparent z-[1000] px-5 py-3 flex justify-between items-center transition-all duration-300 ease-in-out ${isScrollAtTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-5 pointer-events-none'}`}>
         <div>
           {currentPage === 'settings' && (
             <button
               onClick={navigateToFlashcard}
-              style={{
-                padding: '8px 16px',
-                background: 'rgba(255, 255, 255, 0.95)',
-                color: '#333',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                transition: 'all 0.2s',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                backdropFilter: 'blur(10px)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-              }}
+              className="py-2 px-4 bg-white/95 text-[#333] border border-black/10 rounded-lg cursor-pointer font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center gap-1.5 backdrop-blur-sm hover:bg-white hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
             >
               ← 뒤로가기
             </button>
@@ -189,28 +135,7 @@ const App: React.FC = () => {
         {currentPage === 'flashcard' && (
           <button
             onClick={navigateToSettings}
-            style={{
-              padding: '8px 16px',
-              background: 'rgba(255, 255, 255, 0.95)',
-              color: '#333',
-              border: '1px solid rgba(0, 0, 0, 0.1)',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '1.2rem',
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              backdropFilter: 'blur(10px)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            }}
+            className="py-2 px-4 bg-white/95 text-[#333] border border-black/10 rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-sm hover:bg-white hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
             title="설정"
           >
             ⚙️
@@ -218,7 +143,6 @@ const App: React.FC = () => {
         )}
       </nav>
 
-      {/* 페이지 컨텐츠 */}
       <div>
         {currentPage === 'flashcard' && <FlashCardViewer />}
         {currentPage === 'settings' && <Settings />}
