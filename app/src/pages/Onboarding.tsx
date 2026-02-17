@@ -3,7 +3,6 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
 import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
-import './Onboarding.css';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -141,51 +140,51 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="onboarding-container">
-      <div className="onboarding-background"></div>
+    <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-[9999] p-5 overflow-y-auto">
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary to-primary-dark animate-[gradientShift_10s_ease-in-out_infinite]"></div>
       
-      <div className="onboarding-card">
+      <div className="relative bg-white rounded-3xl pt-12 px-10 pb-10 max-w-[560px] w-full max-h-[calc(100vh-40px)] overflow-y-auto shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up m-auto max-[640px]:pt-10 max-[640px]:px-6 max-[640px]:pb-8 max-[640px]:mx-4">
         {/* Progress Bar */}
-        <div className="onboarding-progress">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-primary/10 rounded-t-3xl overflow-hidden">
           <div 
-            className="onboarding-progress-bar" 
+            className="h-full bg-gradient-to-r from-primary to-primary-dark transition-[width] duration-[400ms] ease-out"
             style={{ width: `${(step / 3) * 100}%` }}
           ></div>
         </div>
 
         {/* Step 1: 환영 */}
         {step === 1 && (
-          <div className="onboarding-step onboarding-step-1">
-            <div className="onboarding-character">
+          <div className="text-center animate-fade-in">
+            <div className="flex justify-center">
               <img 
                 src="/onboarding.png" 
                 alt="CodeRecall 캐릭터" 
-                className="character-image"
+                className="w-40 max-w-full h-auto object-contain max-[640px]:w-[140px]"
               />
             </div>
-            <h1 className="onboarding-title">환영합니다!</h1>
-            <p className="onboarding-description">
+            <h1 className="text-3xl font-bold text-text-dark mb-4 m-0 max-[640px]:text-[28px]">환영합니다!</h1>
+            <p className="text-base text-text-light leading-relaxed mb-8 m-0 [&_strong]:text-primary [&_strong]:font-semibold max-[640px]:text-sm">
               <strong>CodeRecall</strong>가 여러분의 학습을<br />
               소중한 장기 기억으로 만들어드립니다
             </p>
             
-            <div className="onboarding-features">
-              <div className="onboarding-feature">
-                <span className="feature-icon">🔄</span>
-                <span className="feature-text">1일, 7일, 30일 전 커밋 자동 분석</span>
+            <div className="my-8 text-left">
+              <div className="flex items-center gap-3 p-4 bg-surface rounded-xl mb-3 transition-all duration-300 ease-out hover:bg-[#edf2f7] hover:translate-x-1">
+                <span className="text-2xl shrink-0">🔄</span>
+                <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">1일, 7일, 30일 전 커밋 자동 분석</span>
               </div>
-              <div className="onboarding-feature">
-                <span className="feature-icon">💡</span>
-                <span className="feature-text">AI가 핵심 내용을 질문으로 변환</span>
+              <div className="flex items-center gap-3 p-4 bg-surface rounded-xl mb-3 transition-all duration-300 ease-out hover:bg-[#edf2f7] hover:translate-x-1">
+                <span className="text-2xl shrink-0">💡</span>
+                <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">AI가 핵심 내용을 질문으로 변환</span>
               </div>
-              <div className="onboarding-feature">
-                <span className="feature-icon">📱</span>
-                <span className="feature-text">매일 아침 푸시 알림으로 학습</span>
+              <div className="flex items-center gap-3 p-4 bg-surface rounded-xl mb-3 transition-all duration-300 ease-out hover:bg-[#edf2f7] hover:translate-x-1">
+                <span className="text-2xl shrink-0">📱</span>
+                <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">매일 아침 푸시 알림으로 학습</span>
               </div>
             </div>
 
             <button 
-              className="onboarding-button onboarding-button-primary"
+              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-gradient-to-br from-primary to-primary-dark text-white shadow-[0_4px_15px_rgba(102,126,234,0.4)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_20px_rgba(102,126,234,0.5)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               onClick={handleNext}
             >
               시작하기 →
@@ -195,22 +194,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
         {/* Step 2: 리포지토리 선택 */}
         {step === 2 && (
-          <div className="onboarding-step onboarding-step-2">
-            <div className="onboarding-icon">⚙️</div>
-            <h1 className="onboarding-title">리포지토리 선택</h1>
-            <p className="onboarding-description">
+          <div className="text-center animate-fade-in">
+            <div className="text-6xl mb-6 max-[640px]:text-5xl max-[640px]:mb-6">⚙️</div>
+            <h1 className="text-3xl font-bold text-text-dark mb-4 m-0 max-[640px]:text-[28px]">리포지토리 선택</h1>
+            <p className="text-base text-text-light leading-relaxed mb-8 m-0 max-[640px]:text-sm">
               학습하고 싶은 GitHub 리포지토리를 선택해주세요
             </p>
 
             {/* 에러 메시지 */}
             {error && (
-              <div className="onboarding-error">
-                <span className="error-icon">⚠️</span>
-                <div className="error-content">
-                  <p className="error-message">{error.message}</p>
-                  <div className="error-actions">
+              <div className="bg-error-bg border-2 border-error-light rounded-xl p-4 mb-6 flex gap-3 items-start animate-[errorSlide_0.3s_ease-out]">
+                <span className="text-2xl shrink-0">⚠️</span>
+                <div className="flex-1">
+                  <p className="text-error-text text-sm leading-relaxed mb-4 font-medium m-0">{error.message}</p>
+                  <div className="flex gap-2 flex-wrap">
                     <button 
-                      className="error-action-button error-skip-button"
+                      className="flex-1 min-w-[150px] py-2.5 px-4 border-2 border-border rounded-lg text-[13px] font-semibold cursor-pointer transition-all duration-200 bg-white text-text-light hover:bg-surface hover:border-border-medium hover:text-text-body"
                       onClick={handleSkipOnboarding}
                     >
                       ⏭️ 나중에 설정하기
@@ -220,41 +219,41 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </div>
             )}
 
-            <div className="onboarding-form">
+            <div className="my-8 text-left">
               {/* 리포지토리 선택 */}
-              <div className="form-group">
-                <label className="form-label">
+              <div>
+                <label className="block text-sm font-semibold text-text-dark mb-2">
                   리포지토리 *
-                  {loadingRepos && <span className="form-loading"> (로딩 중...)</span>}
+                  {loadingRepos && <span className="font-normal text-primary text-xs"> (로딩 중...)</span>}
                 </label>
-                <div className="custom-dropdown">
+                <div className="relative w-full">
                   <button
-                    className="dropdown-button"
+                    className="w-full p-3 px-4 bg-white border-2 border-border rounded-xl text-sm text-left cursor-pointer transition-all duration-200 flex justify-between items-center hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     disabled={loadingRepos}
                   >
-                    <span className={settings.repositoryFullName ? "" : "placeholder"}>
+                    <span className={settings.repositoryFullName ? "" : "text-text-muted"}>
                       {settings.repositoryFullName || "리포지토리를 선택하세요"}
                     </span>
-                    <span className="dropdown-arrow">▼</span>
+                    <span className="text-xs text-text-light transition-transform duration-200">▼</span>
                   </button>
                   
                   {isDropdownOpen && (
-                    <div className="dropdown-menu">
+                    <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border-2 border-border rounded-xl max-h-[200px] overflow-y-auto shadow-[0_10px_25px_rgba(0,0,0,0.1)] z-[100] animate-[dropdownSlide_0.2s_ease-out]">
                       {repositories.length === 0 ? (
-                        <div className="dropdown-item disabled">
+                        <div className="p-3 px-4 cursor-not-allowed text-sm text-text-muted hover:bg-transparent">
                           리포지토리가 없습니다
                         </div>
                       ) : (
                         repositories.map((repo) => (
                           <div
                             key={repo.id}
-                            className="dropdown-item"
+                            className="p-3 px-4 cursor-pointer transition-colors duration-200 text-sm hover:bg-surface"
                             onClick={() => handleRepositorySelect(repo)}
                           >
-                            <div className="repo-name">{repo.full_name}</div>
+                            <div className="font-semibold text-text-dark mb-1">{repo.full_name}</div>
                             {repo.description && (
-                              <div className="repo-description">{repo.description}</div>
+                              <div className="text-xs text-text-light overflow-hidden text-ellipsis whitespace-nowrap">{repo.description}</div>
                             )}
                           </div>
                         ))
@@ -266,7 +265,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </div>
 
             <button 
-              className="onboarding-button onboarding-button-primary"
+              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-gradient-to-br from-primary to-primary-dark text-white shadow-[0_4px_15px_rgba(102,126,234,0.4)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_20px_rgba(102,126,234,0.5)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               onClick={handleNext}
               disabled={!canProceed() || saving}
             >
@@ -274,7 +273,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </button>
 
             <button 
-              className="onboarding-button onboarding-button-secondary"
+              className="w-full py-3.5 px-8 bg-white text-text-light border-2 border-border rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 hover:enabled:bg-surface hover:enabled:border-border-medium hover:enabled:text-text-body disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSkipOnboarding}
               disabled={saving}
             >
@@ -285,23 +284,23 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
         {/* Step 3: 완료 */}
         {step === 3 && (
-          <div className="onboarding-step onboarding-step-3">
-            <div className="onboarding-icon onboarding-icon-success">✨</div>
-            <h1 className="onboarding-title">준비 완료!</h1>
-            <p className="onboarding-description">
+          <div className="text-center animate-fade-in">
+            <div className="text-6xl mb-6 animate-[successPulse_0.6s_ease-out] max-[640px]:text-5xl">✨</div>
+            <h1 className="text-3xl font-bold text-text-dark mb-4 m-0 max-[640px]:text-[28px]">준비 완료!</h1>
+            <p className="text-base text-text-light leading-relaxed mb-8 m-0 max-[640px]:text-sm">
               플래시카드를 생성하고 있습니다...<br />
               잠시만 기다려주세요
             </p>
             
-            <div className="onboarding-spinner"></div>
+            <div className="w-[60px] h-[60px] border-4 border-primary/20 border-t-primary rounded-full animate-spin mt-8 mx-auto"></div>
           </div>
         )}
 
         {/* Step Indicator */}
-        <div className="onboarding-steps-indicator">
-          <div className={`step-dot ${step >= 1 ? 'active' : ''}`}></div>
-          <div className={`step-dot ${step >= 2 ? 'active' : ''}`}></div>
-          <div className={`step-dot ${step >= 3 ? 'active' : ''}`}></div>
+        <div className="flex justify-center gap-2 mt-8">
+          <div className={`h-2 rounded-full transition-all duration-300 ${step >= 1 ? 'w-6 rounded bg-gradient-to-br from-primary to-primary-dark' : 'w-2 bg-border'}`}></div>
+          <div className={`h-2 rounded-full transition-all duration-300 ${step >= 2 ? 'w-6 rounded bg-gradient-to-br from-primary to-primary-dark' : 'w-2 bg-border'}`}></div>
+          <div className={`h-2 rounded-full transition-all duration-300 ${step >= 3 ? 'w-6 rounded bg-gradient-to-br from-primary to-primary-dark' : 'w-2 bg-border'}`}></div>
         </div>
       </div>
     </div>

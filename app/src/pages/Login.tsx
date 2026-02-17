@@ -3,7 +3,6 @@ import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, store } from '../firebase';
 import TermsLinks from '../widgets/TermsLinks';
-import './Login.css';
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -51,7 +50,6 @@ const Login: React.FC = () => {
           } else {
             await deleteDoc(deletedUserDocRef);
           }
-        } else {
         }
       } catch (firestoreError) {
         console.error('❌ Firestore 탈퇴 기록 확인 실패:', firestoreError);
@@ -93,52 +91,51 @@ const Login: React.FC = () => {
     }
   };
 
-
   if (loading) {
     return (
-      <div className="login-container">
-        <div className="login-card">
-          <div className="loading-spinner"></div>
-          <p>로그인 중...</p>
+      <div className="flex justify-center items-center min-h-screen bg-linear-to-br from-primary to-primary-dark p-5 font-sans">
+        <div className="bg-white rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] p-10 max-w-[400px] w-full text-center animate-slide-up">
+          <div className="w-10 h-10 border-4 border-[#f3f3f3] border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text">로그인 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>CodeRecall</h1>
+    <div className="flex justify-center items-center min-h-screen bg-linear-to-br from-primary to-primary-dark p-5 font-sans max-[480px]:p-4">
+      <div className="bg-white rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] p-10 max-w-[400px] w-full text-center animate-slide-up max-[480px]:p-6">
+        <div className="mb-5">
+          <h1 className="text-[#333] text-[3.2rem] font-bold font-display bg-linear-to-br from-primary to-primary-dark bg-clip-text text-transparent tracking-tight max-[480px]:text-[2.6rem]">CodeRecall</h1>
         </div>
-        <div className="character-image-container">
+        <div className="mb-8 flex justify-center">
           <img 
             src="/character.png" 
             alt="친근한 캐릭터" 
-            className="character-image"
+            className="w-40 h-auto rounded-2xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.1)] transition-transform duration-300 opacity-95 hover:scale-105 hover:opacity-100 max-[480px]:w-[140px]"
           />
         </div>
-        <div className="login-description">
-          <p>이제 GitHub에 남긴 학습 기록을<br />CodeRecall를 통해 오래 기억하세요🍀</p>
+        <div className="mb-8">
+          <p className="text-secondary text-[1.1rem] leading-relaxed font-sans font-medium max-[480px]:text-base">이제 GitHub에 남긴 학습 기록을<br />CodeRecall를 통해 오래 기억하세요🍀</p>
         </div>
         
         {error && (
-          <div className="error-message">
+          <div className="bg-[#f8d7da] text-[#721c24] px-4 py-3 rounded-lg mb-6 text-[0.9rem] border border-[#f5c6cb]">
             {error}
           </div>
         )}
 
         <button 
           onClick={handleGitHubLogin}
-          className="github-login-button"
+          className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#24292e] text-white border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-300 mb-6 hover:bg-[#1a1e22] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(36,41,46,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none max-[480px]:py-3.5 max-[480px]:px-5 max-[480px]:text-[0.9rem]"
           disabled={loading}
         >
-          <img src="/github-mark-white.svg" alt="GitHub Logo" className="github-icon" />
+          <img src="/github-mark-white.svg" alt="GitHub Logo" className="w-5 h-5" />
           GitHub로 로그인
         </button>
 
-        <div className="login-footer">
-          <p>로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
+        <div className="text-center">
+          <p className="text-[#999] text-[0.8rem] m-0 leading-snug">로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
           <TermsLinks />
         </div>
       </div>

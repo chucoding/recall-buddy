@@ -5,7 +5,6 @@ import { auth, store, githubProvider } from '../firebase';
 import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
 import TermsLinks from '../widgets/TermsLinks';
-import './Settings.css';
 
 interface RepositorySettings {
   repositoryFullName: string;
@@ -345,25 +344,25 @@ const Settings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="settings-container">
-        <div className="settings-card">
-          <div className="loading-spinner"></div>
-          <p>설정을 불러오는 중...</p>
+      <div className="min-h-screen flex justify-center items-start bg-linear-to-br from-primary to-primary-dark pt-20 px-5 pb-5">
+        <div className="bg-white rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.3)] text-center">
+          <div className="w-10 h-10 border-4 border-[#f3f3f3] border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-body">설정을 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="settings-container">
-      <div className="settings-card">
+    <div className="min-h-screen flex justify-center items-start bg-linear-to-br from-primary to-primary-dark pt-20 px-5 pb-5">
+      <div className="bg-white rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.3)] max-[768px]:p-6">
         {/* 공지사항 */}
         {notices.length > 0 && (
-          <div className="notice-banner">
-            <div className="notice-icon">📢</div>
-            <div className="notice-content">
+          <div className="flex items-start gap-3 bg-[linear-gradient(135deg,#fff3e0_0%,#ffe0b2_100%)] border-2 border-[#ff9800] rounded-xl p-4 mb-8 animate-fade-in max-[768px]:p-3 max-[768px]:mb-6">
+            <div className="text-2xl shrink-0 max-[768px]:text-xl">📢</div>
+            <div className="flex-1">
               {notices.map((notice, index) => (
-                <p key={notice.id} className="notice-text" style={{ marginBottom: index < notices.length - 1 ? '8px' : '0' }}>
+                <p key={notice.id} className={`m-0 text-[#e65100] text-[0.9rem] leading-relaxed font-medium max-[768px]:text-[0.85rem] ${index < notices.length - 1 ? 'mb-2' : ''}`}>
                   {notice.message}
                 </p>
               ))}
@@ -371,74 +370,75 @@ const Settings: React.FC = () => {
           </div>
         )}
 
-        <div className="settings-form">
-          <div className="form-group">
-            <label htmlFor="repository">
-              GitHub 리포지토리
-              <span className="required">*</span>
-            </label>
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center gap-3">
+              <label htmlFor="repository" className="font-semibold text-[#333] text-[0.95rem] block m-0 uppercase-none">
+                GitHub 리포지토리
+                <span className="text-error ml-1">*</span>
+              </label>
+            </div>
             
-            <p className="form-hint">
+            <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
               {repositories.length > 0 
                 ? `총 ${repositories.length}개의 리포지토리를 찾았습니다`
                 : '접근 가능한 리포지토리가 없습니다'}
             </p>
             
             {loadingRepos ? (
-              <div className="loading-repos">
-                <div className="loading-spinner-small"></div>
+              <div className="flex items-center gap-3 p-4 bg-surface border-2 border-border rounded-lg text-text-body text-[0.95rem]">
+                <div className="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
                 <span>리포지토리 목록을 불러오는 중...</span>
               </div>
             ) : reposFetchError ? (
-              <div className="loading-repos">
+              <div className="flex items-center gap-3 p-4 bg-surface border-2 border-border rounded-lg text-text-body text-[0.95rem]">
                 <span>리포지토리를 불러오지 못했습니다.</span>
                 <button
                   type="button"
-                  className="refresh-button"
+                  className="ml-2 px-3 py-1.5 bg-transparent text-primary border border-primary rounded-md text-[1.1rem] cursor-pointer transition-all duration-200 flex items-center justify-center min-w-[40px] h-8 hover:bg-primary hover:text-white hover:rotate-180 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => fetchRepositories()}
-                  style={{ marginLeft: '8px' }}
                 >
                   🔄 다시 시도
                 </button>
               </div>
             ) : (
-              <div className="custom-select-container" ref={dropdownRef}>
+              <div className="relative w-full" ref={dropdownRef}>
                 <button
                   type="button"
-                  className={`custom-select-trigger ${isDropdownOpen ? 'open' : ''} ${saving ? 'saving' : ''}`}
+                  className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-white cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(102,126,234,0.1)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
                   onClick={() => !saving && setIsDropdownOpen(!isDropdownOpen)}
                   disabled={repositories.length === 0 || saving}
                 >
                   {saving ? (
-                    <div className="selected-repo">
-                      <div className="loading-spinner-small"></div>
-                      <span className="repo-name">저장 중...</span>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
+                      <span className="font-mono font-medium text-text-dark">저장 중...</span>
                     </div>
                   ) : selectedRepo ? (
-                    <div className="selected-repo">
-                      <span className="repo-name">{selectedRepo.full_name}</span>
-                      <span className="repo-badge">{selectedRepo.private ? '🔒 Private' : '🌐 Public'}</span>
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="font-mono font-medium text-text-dark">{selectedRepo.full_name}</span>
+                      <span className="text-[0.75rem] px-2 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{selectedRepo.private ? '🔒 Private' : '🌐 Public'}</span>
                     </div>
                   ) : (
-                    <span className="placeholder">리포지토리를 선택하세요</span>
+                    <span className="text-text-muted">리포지토리를 선택하세요</span>
                   )}
-                  <span className="dropdown-arrow">{isDropdownOpen ? '▲' : '▼'}</span>
+                  <span className="text-text-light text-[0.75rem]">{isDropdownOpen ? '▲' : '▼'}</span>
                 </button>
 
                 {isDropdownOpen && !saving && (
-                  <div className="custom-select-dropdown">
+                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 max-h-[300px] overflow-y-auto bg-white border-2 border-primary rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.15)] z-[1000] animate-fade-in">
                     {repositories.map((repo) => (
                       <div
                         key={repo.id}
-                        className={`custom-select-option ${settings.repositoryFullName === repo.full_name ? 'selected' : ''}`}
+                        className={`px-4 py-3 cursor-pointer transition-colors duration-150 border-b border-surface last:border-b-0 hover:bg-surface ${settings.repositoryFullName === repo.full_name ? 'bg-[#edf2f7]' : ''}`}
                         onClick={() => handleRepositorySelect(repo)}
                       >
-                        <div className="option-header">
-                          <span className="option-name">{repo.full_name}</span>
-                          <span className="option-badge">{repo.private ? '🔒' : '🌐'}</span>
+                        <div className="flex items-center justify-between gap-3 mb-1">
+                          <span className="font-mono font-semibold text-text-dark text-[0.95rem]">{repo.full_name}</span>
+                          <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{repo.private ? '🔒' : '🌐'}</span>
                         </div>
                         {repo.description && (
-                          <div className="option-description">{repo.description}</div>
+                          <div className="text-[0.85rem] text-text-light leading-snug mt-1 pl-0.5">{repo.description}</div>
                         )}
                       </div>
                     ))}
@@ -449,14 +449,14 @@ const Settings: React.FC = () => {
           </div>
 
           {settings.repositoryFullName && (
-            <div className="form-preview">
-              <p className="preview-label">📂 선택된 리포지토리:</p>
-              <code className="preview-path">
+            <div className="bg-surface border border-border rounded-lg p-4 mt-2">
+              <p className="m-0 mb-2 text-[0.9rem] font-semibold text-text-body">📂 선택된 리포지토리:</p>
+              <code className="block px-3 py-2 bg-white border border-border-medium rounded-md font-mono text-[0.9rem] text-text-dark break-all">
                 <a 
                   href={settings.repositoryUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="repo-link"
+                  className="text-primary no-underline transition-colors duration-200 hover:text-primary-dark hover:underline"
                 >
                   {settings.repositoryUrl}
                 </a>
@@ -465,7 +465,7 @@ const Settings: React.FC = () => {
           )}
 
           {message && (
-            <div className={`message ${message.type}`}>
+            <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-[#9ae6b4] shadow-[0_2px_8px_rgba(72,187,120,0.2)]' : 'bg-[#fed7d7] text-[#742a2a] border border-error-light shadow-[0_2px_8px_rgba(252,129,129,0.2)]'}`}>
               {message.text}
             </div>
           )}
@@ -473,7 +473,7 @@ const Settings: React.FC = () => {
           {settings.repositoryFullName && (
             <button
               type="button"
-              className="save-settings-button"
+              className="w-full py-3 px-6 text-base font-bold text-white bg-linear-to-br from-primary to-primary-dark border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(102,126,234,0.4)] disabled:bg-[#ccc] disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               onClick={handleSaveSettings}
               disabled={saving || !settings.repositoryFullName}
             >
@@ -481,46 +481,46 @@ const Settings: React.FC = () => {
             </button>
           )}
         </div>
-        <p className="info-text">
+        <p className="m-0 mb-2 text-[0.85rem] text-text-light text-left leading-relaxed">
           ℹ️ GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
         </p>
-        <p className="info-text">
+        <p className="m-0 text-[0.85rem] text-text-light text-left leading-relaxed">
           🔒 = Private 리포지토리, 🌐 = Public 리포지토리
         </p>
 
         {/* 릴리즈 노트 */}
-        <div className="release-note-zone">
-          <h2 className="release-note-title">📝 릴리즈 노트</h2>
-          <p className="release-note-description">
+        <div className="border-t border-border text-left mt-8 pt-5 max-[768px]:pt-4">
+          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">📝 릴리즈 노트</h2>
+          <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
             새로운 기능과 개선사항을 확인하세요
           </p>
           <a
             href="https://www.notion.so/chucoding/RELEASE_NOTE-287fd64d44a080cd9564d2492b7de718"
             target="_blank"
             rel="noopener noreferrer"
-            className="release-note-button"
+            className="inline-block px-6 py-3 bg-linear-to-br from-primary to-primary-dark text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(102,126,234,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
           >
             📋 릴리즈 노트 보기
           </a>
         </div>
 
         {/* 계정 관리 */}
-        <div className="account-zone">
-          <h2 className="account-zone-title">👤 계정 관리</h2>
-          <p className="account-description">
+        <div className="border-t border-border text-left mt-4 pt-5 max-[768px]:pt-4">
+          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">👤 계정 관리</h2>
+          <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
             계정 로그아웃 또는 서비스 탈퇴를 진행할 수 있습니다.
           </p>
-          <div className="account-buttons">
+          <div className="flex gap-3 mt-4 max-[768px]:flex-col">
             <button
               type="button"
-              className="logout-button"
+              className="flex-1 py-3 px-6 bg-linear-to-br from-primary to-primary-dark text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(102,126,234,0.4)] max-[768px]:w-full"
               onClick={handleLogout}
             >
               🚪 로그아웃
             </button>
             <button
               type="button"
-              className="delete-account-button"
+              className="flex-1 py-3 px-6 bg-transparent text-text-muted border border-border rounded-lg text-[0.95rem] font-medium cursor-pointer transition-all duration-200 hover:text-text-light hover:border-border-medium hover:bg-surface max-[768px]:w-full"
               onClick={() => setShowDeleteDialog(true)}
             >
               서비스 탈퇴
@@ -529,30 +529,30 @@ const Settings: React.FC = () => {
         </div>
 
         {/* 이용약관 링크 */}
-        <div className="settings-footer">
+        <div className="border-t border-[#e0e0e0] text-center mt-4 pt-4">
           <TermsLinks />
         </div>
       </div>
 
       {/* 서비스 탈퇴 확인 다이얼로그 */}
       {showDeleteDialog && (
-        <div className="modal-overlay" onClick={() => !deleting && setShowDeleteDialog(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">👋 서비스 탈퇴</h2>
-            <p className="modal-description">
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[9999] animate-fade-in p-5" onClick={() => !deleting && setShowDeleteDialog(false)}>
+          <div className="bg-white rounded-2xl p-8 max-w-[500px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.4)] animate-slide-up max-h-[90vh] overflow-y-auto max-[768px]:p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="m-0 mb-4 text-text-body text-2xl font-bold max-[768px]:text-xl">👋 서비스 탈퇴</h2>
+            <p className="m-0 mb-5 text-text-body text-base leading-relaxed">
               정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
             </p>
-            <div className="modal-info-box">
-              <p className="info-box-title">✨ 탈퇴 시 안내사항</p>
-              <ul className="modal-info-list">
-                <li>저장된 모든 데이터가 삭제됩니다</li>
-                <li>탈퇴 시 다음날부터 재가입할 수 있습니다</li>
-                <li className="info-reauth">💡 보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
+            <div className="m-0 mb-6 p-4 bg-surface border border-border rounded-lg">
+              <p className="m-0 mb-3 text-text-body text-[0.95rem] font-semibold">✨ 탈퇴 시 안내사항</p>
+              <ul className="m-0 pl-5 text-text-light">
+                <li className="my-2 leading-relaxed text-[0.9rem]">저장된 모든 데이터가 삭제됩니다</li>
+                <li className="my-2 leading-relaxed text-[0.9rem]">탈퇴 시 다음날부터 재가입할 수 있습니다</li>
+                <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border">💡 보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
               </ul>
             </div>
             
-            <div className="form-group">
-              <label htmlFor="confirmText">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="confirmText" className="font-semibold text-[#333] text-[0.95rem] block m-0">
                 확인을 위해 <strong>"회원탈퇴"</strong>를 입력해주세요:
               </label>
               <input
@@ -562,20 +562,20 @@ const Settings: React.FC = () => {
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="회원탈퇴"
                 disabled={deleting}
-                className="confirm-input"
+                className="px-4 py-3 border-2 border-border rounded-lg text-base transition-all duration-200 w-full font-inherit focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,126,234,0.1)] disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface"
               />
             </div>
 
             {message && message.type === 'error' && (
-              <div className="message error">
+              <div className="px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up bg-[#fed7d7] text-[#742a2a] border border-error-light shadow-[0_2px_8px_rgba(252,129,129,0.2)]">
                 {message.text}
               </div>
             )}
 
-            <div className="modal-actions">
+            <div className="flex gap-3 mt-6 justify-end max-[768px]:flex-col">
               <button
                 type="button"
-                className="modal-button cancel"
+                className="px-6 py-3 border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-200 min-w-[100px] bg-border text-text-body hover:bg-border-medium disabled:opacity-60 disabled:cursor-not-allowed max-[768px]:w-full"
                 onClick={() => {
                   setShowDeleteDialog(false);
                   setDeleteConfirmText('');
@@ -587,7 +587,7 @@ const Settings: React.FC = () => {
               </button>
               <button
                 type="button"
-                className="modal-button danger"
+                className="px-6 py-3 border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-200 min-w-[100px] bg-text-muted text-white hover:bg-text-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(113,128,150,0.3)] disabled:opacity-60 disabled:cursor-not-allowed max-[768px]:w-full"
                 onClick={handleDeleteAccount}
                 disabled={deleting || deleteConfirmText !== '회원탈퇴'}
               >
@@ -602,4 +602,3 @@ const Settings: React.FC = () => {
 };
 
 export default Settings;
-

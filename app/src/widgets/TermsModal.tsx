@@ -1,5 +1,4 @@
 import React from 'react';
-import './TermsModal.css';
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -11,18 +10,24 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, termsType, onClose }) =
   if (!isOpen) return null;
 
   return (
-    <div className="terms-modal-overlay" onClick={onClose}>
-      <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="terms-modal-header">
-          <h2>{termsType === 'terms' ? '이용약관' : '개인정보처리방침'}</h2>
-          <button 
-            className="terms-modal-close"
+    <div
+      className="fixed inset-0 bg-black/60 flex justify-center items-center z-[1000] p-5 animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl max-w-[600px] w-full max-h-[80vh] flex flex-col shadow-[0_25px_50px_rgba(0,0,0,0.3)] animate-slide-up max-[480px]:max-h-[90vh] max-[480px]:mx-2.5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center px-7 py-6 border-b border-[#e0e0e0] max-[480px]:p-5">
+          <h2 className="m-0 text-2xl text-[#333] font-bold max-[480px]:text-xl">{termsType === 'terms' ? '이용약관' : '개인정보처리방침'}</h2>
+          <button
+            className="bg-transparent border-none text-[2rem] text-[#999] cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 leading-none p-0 hover:bg-[#f0f0f0] hover:text-[#333]"
             onClick={onClose}
           >
             ×
           </button>
         </div>
-        <div className="terms-modal-content">
+        <div className="flex-1 overflow-y-auto p-7 text-[#333] leading-[1.8] max-[480px]:p-5 [&_h3]:text-[#333] [&_h3]:text-[1.1rem] [&_h3]:font-bold [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:pt-2 [&_h3:first-child]:mt-0 [&_p]:my-2 [&_p]:text-[0.95rem] [&_p]:text-[#555] [&_p]:leading-[1.7] max-[480px]:[&_h3]:text-base max-[480px]:[&_p]:text-[0.9rem]">
           {termsType === 'terms' ? (
             <>
               <h3>제1조 (목적)</h3>
@@ -111,9 +116,9 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, termsType, onClose }) =
             </>
           )}
         </div>
-        <div className="terms-modal-footer">
-          <button 
-            className="terms-modal-close-btn"
+        <div className="px-7 py-5 border-t border-[#e0e0e0] flex justify-end max-[480px]:px-5 max-[480px]:py-4">
+          <button
+            className="bg-primary text-white border-none rounded-lg px-7 py-3 text-base font-semibold cursor-pointer transition-all duration-300 hover:bg-[#5568d3] hover:-translate-y-px hover:shadow-[0_4px_15px_rgba(102,126,234,0.3)]"
             onClick={onClose}
           >
             닫기
@@ -125,4 +130,3 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, termsType, onClose }) =
 };
 
 export default TermsModal;
-

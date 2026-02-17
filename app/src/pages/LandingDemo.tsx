@@ -172,22 +172,33 @@ const LandingDemo: React.FC = () => {
   return (
     <>
       {/* GitHub URL 입력 폼 */}
-      <form className="landing-form" onSubmit={handleSubmit}>
-        <div className="landing-input-wrapper">
-          <svg className="landing-input-icon" viewBox="0 0 16 16" fill="currentColor">
+      <form
+        className="animate-fade-up [animation-delay:0.3s] [animation-fill-mode:both]"
+        onSubmit={handleSubmit}
+      >
+        <div className="flex items-center bg-white rounded-[14px] shadow-[0_16px_48px_rgba(0,0,0,0.18)] overflow-hidden p-1.5 max-[768px]:flex-col max-[768px]:p-3 max-[768px]:gap-2">
+          <svg
+            className="w-[22px] h-[22px] ml-3.5 shrink-0 text-[#888] max-[768px]:hidden"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+          >
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
           </svg>
           <input
             type="text"
-            className="landing-input"
+            className="flex-1 border-0 outline-none text-base py-3.5 px-3 bg-transparent text-[#333] min-w-0 placeholder:text-[#aaa] max-[768px]:w-full max-[768px]:text-center max-[768px]:py-3 max-[768px]:px-3"
             placeholder="GitHub 리포지토리 URL을 입력하세요 (예: https://github.com/owner/repo)"
             value={repoUrl}
             onChange={(e) => setRepoUrl(e.target.value)}
             disabled={loading}
           />
-          <button type="submit" className="landing-submit-btn" disabled={loading || !repoUrl.trim()}>
+          <button
+            type="submit"
+            className="shrink-0 py-3.5 px-7 bg-gradient-to-br from-primary to-primary-dark text-white border-0 rounded-[10px] text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 whitespace-nowrap min-w-[100px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:-translate-y-px hover:enabled:shadow-[0_6px_20px_rgba(102,126,234,0.5)] max-[768px]:w-full max-[768px]:py-3.5 max-[768px]:px-3.5"
+            disabled={loading || !repoUrl.trim()}
+          >
             {loading ? (
-              <span className="landing-spinner" />
+              <span className="inline-block w-5 h-5 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               '카드 생성'
             )}
@@ -195,26 +206,36 @@ const LandingDemo: React.FC = () => {
         </div>
       </form>
 
-      {error && <p className="landing-error">{error}</p>}
+      {error && (
+        <p className="mt-4 py-3 px-5 bg-white/15 border border-red-300/40 rounded-[10px] text-[#ffd4d4] text-[0.9rem] animate-fade-up">
+          {error}
+        </p>
+      )}
 
       {/* 플래시카드 결과 섹션 */}
       {cards.length > 0 && (
-        <section className="landing-cards-section" ref={cardSectionRef}>
+        <section
+          className="bg-gradient-to-br from-primary to-primary-dark py-[60px] px-6 pb-20 relative"
+          ref={cardSectionRef}
+        >
           <FlashCardPlayer
             cards={cards}
             renderHeader={() => (
-              <div className="landing-cards-header">
-                <h2>AI가 생성한 플래시카드</h2>
-                <p>카드를 클릭하면 답변을 확인할 수 있습니다</p>
+              <div className="text-center mb-10 animate-fade-up">
+                <h2 className="text-3xl font-bold text-white mb-2 max-[480px]:text-2xl">AI가 생성한 플래시카드</h2>
+                <p className="text-white/75 text-base">카드를 클릭하면 답변을 확인할 수 있습니다</p>
               </div>
             )}
             renderFooter={() => (
-              <div className="landing-cta">
-                <p className="landing-cta-text">
+              <div className="text-center mt-[60px] animate-fade-up">
+                <p className="text-white/88 text-[1.15rem] mb-5">
                   매일 자동으로 플래시카드를 받아보고 싶다면?
                 </p>
-                <a href="/app" className="landing-cta-btn">
-                  <img src="/github-mark-white.svg" alt="GitHub" className="landing-login-icon" />
+                <a
+                  href="/app"
+                  className="inline-flex items-center gap-2.5 py-4 px-9 bg-white text-[#333] border-0 rounded-xl text-[1.1rem] font-bold cursor-pointer transition-all duration-300 shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 hover:shadow-[0_12px_36px_rgba(0,0,0,0.2)]"
+                >
+                  <img src="/github-mark-white.svg" alt="GitHub" className="w-[18px] h-[18px]" />
                   무료로 시작하기
                 </a>
               </div>
