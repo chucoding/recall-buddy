@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -17,7 +18,7 @@ export default defineConfig(({ mode }) => {
           name: 'RecallBuddy',
           short_name: 'TIL Alarm',
           description: '매일 학습한 내용을 정리하고 알림을 받는 앱',
-          start_url: '/',
+          start_url: '/app',
           display: 'standalone',
           background_color: '#ffffff',
           theme_color: '#121212',
@@ -30,10 +31,19 @@ export default defineConfig(({ mode }) => {
           ]
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,gif}']
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,gif}'],
+          navigateFallback: '/app.html'
         }
       })
     ],
+    build: {
+      rollupOptions: {
+        input: {
+          landing: resolve(__dirname, 'index.html'),
+          app: resolve(__dirname, 'app.html'),
+        },
+      },
+    },
     server: {
       open: true,
       proxy: {
