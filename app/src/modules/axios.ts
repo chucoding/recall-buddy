@@ -6,10 +6,10 @@ const FUNCTIONS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_FUNCTIONS_URL_PROD
   : '/api'; // Vite 프록시 사용
 
-// 기본 axios 인스턴스 생성
+// 기본 axios 인스턴스 생성 (GitHub API proxy 전용)
 export const apiClient = axios.create({
   baseURL: FUNCTIONS_URL,
-  timeout: 60000, // 60초 (HCX API 응답 대기)
+  timeout: 15_000,
   headers: {
     'Content-Type': 'application/json',
   },
