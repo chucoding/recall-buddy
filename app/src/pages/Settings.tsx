@@ -387,7 +387,7 @@ const Settings: React.FC = () => {
             
             {loadingRepos ? (
               <div className="flex items-center gap-3 p-4 bg-surface border-2 border-border rounded-lg text-text-body text-[0.95rem]">
-                <div className="w-5 h-5 border-3 border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
+                <div className="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
                 <span>리포지토리 목록을 불러오는 중...</span>
               </div>
             ) : reposFetchError ? (
@@ -411,7 +411,7 @@ const Settings: React.FC = () => {
                 >
                   {saving ? (
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-5 h-5 border-3 border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
+                      <div className="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
                       <span className="font-mono font-medium text-text-dark">저장 중...</span>
                     </div>
                   ) : selectedRepo ? (

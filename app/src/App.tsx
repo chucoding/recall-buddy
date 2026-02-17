@@ -92,7 +92,7 @@ const App: React.FC = () => {
   if (authLoading || !onboardingChecked || loading) {
     return (
       <Card>
-        <div className="w-[50px] h-[50px] border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
+        <div className="w-[50px] h-[50px] border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
         <h2 className="mb-2.5 text-xl">📚 플래시카드 준비 중</h2>
         <p className="text-base">GitHub에서 최근 커밋을 분석하고 있습니다...</p>
         <p className="mt-2.5 text-[0.9rem] opacity-80">⏱️ 데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
