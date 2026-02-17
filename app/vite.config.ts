@@ -15,9 +15,9 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico'],
         manifest: {
-          name: 'RecallBuddy',
-          short_name: 'TIL Alarm',
-          description: '매일 학습한 내용을 정리하고 알림을 받는 앱',
+          name: 'CodeRecall',
+          short_name: 'CodeRecall',
+          description: 'GitHub 커밋을 플래시카드로 복습하세요',
           start_url: '/app',
           display: 'standalone',
           background_color: '#ffffff',

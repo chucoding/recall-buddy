@@ -159,13 +159,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div className="onboarding-character">
               <img 
                 src="/onboarding.png" 
-                alt="RecallBuddy 캐릭터" 
+                alt="CodeRecall 캐릭터" 
                 className="character-image"
               />
             </div>
             <h1 className="onboarding-title">환영합니다!</h1>
             <p className="onboarding-description">
-              <strong>RecallBuddy</strong>가 여러분의 학습을<br />
+              <strong>CodeRecall</strong>가 여러분의 학습을<br />
               소중한 장기 기억으로 만들어드립니다
             </p>
             
