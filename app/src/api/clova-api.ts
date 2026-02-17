@@ -16,11 +16,25 @@ export async function chatCompletions(
       ? '마크다운 파일을 읽고 질문을 만들어주세요. 질문은 다음과 같은 형식으로 출력해주세요. ["첫 번째 질문", "두 번째 질문", ...]'
       : '코드 변경 내용(diff)을 보고 질문을 만들어주세요. 변경된 코드의 목적, 동작, 영향 등에 대해 물어보세요. 질문은 다음과 같은 형식으로 출력해주세요. ["첫 번째 질문", "두 번째 질문", ...]';
 
-  const response = await fetch(`${FUNCTIONS_URL}/chatCompletions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, text }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${FUNCTIONS_URL}/chatCompletions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, text }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('AI API 호출 시간 초과 (30초)');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
