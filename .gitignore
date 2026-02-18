@@ -33,3 +33,10 @@ npm-debug.log*
 .firebase/
 .firebaserc
 firebase-debug.log*
+
+# cursor skills (third-party tool packages)
+.cursor/skills/
+
+# python
+__pycache__/
+*.pyc

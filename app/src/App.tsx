@@ -125,7 +125,7 @@ const App: React.FC = () => {
           {currentPage === 'settings' && (
             <button
               onClick={navigateToFlashcard}
-              className="py-2 px-4 bg-white/95 text-[#333] border border-black/10 rounded-lg cursor-pointer font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center gap-1.5 backdrop-blur-sm hover:bg-white hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+              className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex items-center gap-1.5 backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             >
               ← 뒤로가기
             </button>
@@ -135,7 +135,7 @@ const App: React.FC = () => {
         {currentPage === 'flashcard' && (
           <button
             onClick={navigateToSettings}
-            className="py-2 px-4 bg-white/95 text-[#333] border border-black/10 rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-sm hover:bg-white hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+            className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             title="설정"
           >
             ⚙️

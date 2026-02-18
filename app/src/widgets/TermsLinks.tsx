@@ -14,7 +14,7 @@ const TermsLinks: React.FC = () => {
     <>
       <button 
         type="button"
-        className="bg-transparent border-none text-[#999] no-underline cursor-pointer text-[0.8rem] p-0 font-inherit transition-colors duration-200 hover:text-primary hover:underline"
+        className="bg-transparent border-none text-text-muted no-underline cursor-pointer text-[0.8rem] p-0 font-inherit transition-colors duration-200 hover:text-primary hover:underline"
         onClick={() => openTermsModal('terms')}
       >
         이용약관
@@ -22,7 +22,7 @@ const TermsLinks: React.FC = () => {
       {' · '}
       <button 
         type="button"
-        className="bg-transparent border-none text-[#999] no-underline cursor-pointer text-[0.8rem] p-0 font-inherit transition-colors duration-200 hover:text-primary hover:underline"
+        className="bg-transparent border-none text-text-muted no-underline cursor-pointer text-[0.8rem] p-0 font-inherit transition-colors duration-200 hover:text-primary hover:underline"
         onClick={() => openTermsModal('privacy')}
       >
         개인정보처리방침

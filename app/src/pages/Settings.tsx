@@ -344,9 +344,9 @@ const Settings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-start bg-linear-to-br from-primary to-primary-dark pt-20 px-5 pb-5">
-        <div className="bg-white rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.3)] text-center">
-          <div className="w-10 h-10 border-4 border-[#f3f3f3] border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+      <div className="min-h-screen flex justify-center items-start bg-bg pt-20 px-5 pb-5">
+        <div className="bg-surface rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-center">
+          <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-text-body">설정을 불러오는 중...</p>
         </div>
       </div>
@@ -354,15 +354,15 @@ const Settings: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start bg-linear-to-br from-primary to-primary-dark pt-20 px-5 pb-5">
-      <div className="bg-white rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.3)] max-[768px]:p-6">
+    <div className="min-h-screen flex justify-center items-start bg-bg pt-20 px-5 pb-5">
+      <div className="bg-surface rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.4)] max-[768px]:p-6">
         {/* 공지사항 */}
         {notices.length > 0 && (
-          <div className="flex items-start gap-3 bg-[linear-gradient(135deg,#fff3e0_0%,#ffe0b2_100%)] border-2 border-[#ff9800] rounded-xl p-4 mb-8 animate-fade-in max-[768px]:p-3 max-[768px]:mb-6">
+          <div className="flex items-start gap-3 bg-[#f59e0b]/10 border-2 border-[#f59e0b]/40 rounded-xl p-4 mb-8 animate-fade-in max-[768px]:p-3 max-[768px]:mb-6">
             <div className="text-2xl shrink-0 max-[768px]:text-xl">📢</div>
             <div className="flex-1">
               {notices.map((notice, index) => (
-                <p key={notice.id} className={`m-0 text-[#e65100] text-[0.9rem] leading-relaxed font-medium max-[768px]:text-[0.85rem] ${index < notices.length - 1 ? 'mb-2' : ''}`}>
+                <p key={notice.id} className={`m-0 text-[#fbbf24] text-[0.9rem] leading-relaxed font-medium max-[768px]:text-[0.85rem] ${index < notices.length - 1 ? 'mb-2' : ''}`}>
                   {notice.message}
                 </p>
               ))}
@@ -373,7 +373,7 @@ const Settings: React.FC = () => {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center gap-3">
-              <label htmlFor="repository" className="font-semibold text-[#333] text-[0.95rem] block m-0 uppercase-none">
+              <label htmlFor="repository" className="font-semibold text-text text-[0.95rem] block m-0 uppercase-none">
                 GitHub 리포지토리
                 <span className="text-error ml-1">*</span>
               </label>
@@ -386,12 +386,12 @@ const Settings: React.FC = () => {
             </p>
             
             {loadingRepos ? (
-              <div className="flex items-center gap-3 p-4 bg-surface border-2 border-border rounded-lg text-text-body text-[0.95rem]">
-                <div className="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
+              <div className="flex items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg text-text-body text-[0.95rem]">
+                <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
                 <span>리포지토리 목록을 불러오는 중...</span>
               </div>
             ) : reposFetchError ? (
-              <div className="flex items-center gap-3 p-4 bg-surface border-2 border-border rounded-lg text-text-body text-[0.95rem]">
+              <div className="flex items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg text-text-body text-[0.95rem]">
                 <span>리포지토리를 불러오지 못했습니다.</span>
                 <button
                   type="button"
@@ -405,18 +405,18 @@ const Settings: React.FC = () => {
               <div className="relative w-full" ref={dropdownRef}>
                 <button
                   type="button"
-                  className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-white cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(102,126,234,0.1)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
+                  className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-surface-light cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(34,197,94,0.15)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
                   onClick={() => !saving && setIsDropdownOpen(!isDropdownOpen)}
                   disabled={repositories.length === 0 || saving}
                 >
                   {saving ? (
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-5 h-5 border-[3px] border-[#f3f3f3] border-t-primary rounded-full animate-spin shrink-0"></div>
-                      <span className="font-mono font-medium text-text-dark">저장 중...</span>
+                      <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
+                      <span className="font-mono font-medium text-text">저장 중...</span>
                     </div>
                   ) : selectedRepo ? (
                     <div className="flex items-center gap-3 flex-1">
-                      <span className="font-mono font-medium text-text-dark">{selectedRepo.full_name}</span>
+                      <span className="font-mono font-medium text-text">{selectedRepo.full_name}</span>
                       <span className="text-[0.75rem] px-2 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{selectedRepo.private ? '🔒 Private' : '🌐 Public'}</span>
                     </div>
                   ) : (
@@ -426,15 +426,15 @@ const Settings: React.FC = () => {
                 </button>
 
                 {isDropdownOpen && !saving && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 max-h-[300px] overflow-y-auto bg-white border-2 border-primary rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.15)] z-[1000] animate-fade-in">
+                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 max-h-[300px] overflow-y-auto bg-surface border-2 border-primary rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.4)] z-[1000] animate-fade-in">
                     {repositories.map((repo) => (
                       <div
                         key={repo.id}
-                        className={`px-4 py-3 cursor-pointer transition-colors duration-150 border-b border-surface last:border-b-0 hover:bg-surface ${settings.repositoryFullName === repo.full_name ? 'bg-[#edf2f7]' : ''}`}
+                        className={`px-4 py-3 cursor-pointer transition-colors duration-150 border-b border-border last:border-b-0 hover:bg-surface-light ${settings.repositoryFullName === repo.full_name ? 'bg-surface-light' : ''}`}
                         onClick={() => handleRepositorySelect(repo)}
                       >
                         <div className="flex items-center justify-between gap-3 mb-1">
-                          <span className="font-mono font-semibold text-text-dark text-[0.95rem]">{repo.full_name}</span>
+                          <span className="font-mono font-semibold text-text text-[0.95rem]">{repo.full_name}</span>
                           <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{repo.private ? '🔒' : '🌐'}</span>
                         </div>
                         {repo.description && (
@@ -451,7 +451,7 @@ const Settings: React.FC = () => {
           {settings.repositoryFullName && (
             <div className="bg-surface border border-border rounded-lg p-4 mt-2">
               <p className="m-0 mb-2 text-[0.9rem] font-semibold text-text-body">📂 선택된 리포지토리:</p>
-              <code className="block px-3 py-2 bg-white border border-border-medium rounded-md font-mono text-[0.9rem] text-text-dark break-all">
+              <code className="block px-3 py-2 bg-surface-light border border-border-medium rounded-md font-mono text-[0.9rem] text-text break-all">
                 <a 
                   href={settings.repositoryUrl} 
                   target="_blank" 
@@ -465,7 +465,7 @@ const Settings: React.FC = () => {
           )}
 
           {message && (
-            <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-[#9ae6b4] shadow-[0_2px_8px_rgba(72,187,120,0.2)]' : 'bg-[#fed7d7] text-[#742a2a] border border-error-light shadow-[0_2px_8px_rgba(252,129,129,0.2)]'}`}>
+            <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-primary/30 shadow-[0_2px_8px_rgba(34,197,94,0.15)]' : 'bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]'}`}>
               {message.text}
             </div>
           )}
@@ -473,7 +473,7 @@ const Settings: React.FC = () => {
           {settings.repositoryFullName && (
             <button
               type="button"
-              className="w-full py-3 px-6 text-base font-bold text-white bg-linear-to-br from-primary to-primary-dark border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(102,126,234,0.4)] disabled:bg-[#ccc] disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+              className="w-full py-3 px-6 text-base font-bold text-bg bg-primary border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(34,197,94,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(34,197,94,0.4)] disabled:bg-surface-light disabled:text-text-muted disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               onClick={handleSaveSettings}
               disabled={saving || !settings.repositoryFullName}
             >
@@ -498,7 +498,7 @@ const Settings: React.FC = () => {
             href="https://www.notion.so/chucoding/RELEASE_NOTE-287fd64d44a080cd9564d2492b7de718"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-6 py-3 bg-linear-to-br from-primary to-primary-dark text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(102,126,234,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
+            className="inline-block px-6 py-3 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(34,197,94,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(34,197,94,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
           >
             📋 릴리즈 노트 보기
           </a>
@@ -513,7 +513,7 @@ const Settings: React.FC = () => {
           <div className="flex gap-3 mt-4 max-[768px]:flex-col">
             <button
               type="button"
-              className="flex-1 py-3 px-6 bg-linear-to-br from-primary to-primary-dark text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(102,126,234,0.4)] max-[768px]:w-full"
+              className="flex-1 py-3 px-6 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(34,197,94,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(34,197,94,0.4)] max-[768px]:w-full"
               onClick={handleLogout}
             >
               🚪 로그아웃
@@ -529,7 +529,7 @@ const Settings: React.FC = () => {
         </div>
 
         {/* 이용약관 링크 */}
-        <div className="border-t border-[#e0e0e0] text-center mt-4 pt-4">
+        <div className="border-t border-border text-center mt-4 pt-4">
           <TermsLinks />
         </div>
       </div>
@@ -537,13 +537,13 @@ const Settings: React.FC = () => {
       {/* 서비스 탈퇴 확인 다이얼로그 */}
       {showDeleteDialog && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[9999] animate-fade-in p-5" onClick={() => !deleting && setShowDeleteDialog(false)}>
-          <div className="bg-white rounded-2xl p-8 max-w-[500px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.4)] animate-slide-up max-h-[90vh] overflow-y-auto max-[768px]:p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="m-0 mb-4 text-text-body text-2xl font-bold max-[768px]:text-xl">👋 서비스 탈퇴</h2>
+          <div className="bg-surface rounded-2xl p-8 max-w-[500px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-slide-up max-h-[90vh] overflow-y-auto max-[768px]:p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="m-0 mb-4 text-text text-2xl font-bold max-[768px]:text-xl">👋 서비스 탈퇴</h2>
             <p className="m-0 mb-5 text-text-body text-base leading-relaxed">
               정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
             </p>
-            <div className="m-0 mb-6 p-4 bg-surface border border-border rounded-lg">
-              <p className="m-0 mb-3 text-text-body text-[0.95rem] font-semibold">✨ 탈퇴 시 안내사항</p>
+            <div className="m-0 mb-6 p-4 bg-surface-light border border-border rounded-lg">
+              <p className="m-0 mb-3 text-text text-[0.95rem] font-semibold">✨ 탈퇴 시 안내사항</p>
               <ul className="m-0 pl-5 text-text-light">
                 <li className="my-2 leading-relaxed text-[0.9rem]">저장된 모든 데이터가 삭제됩니다</li>
                 <li className="my-2 leading-relaxed text-[0.9rem]">탈퇴 시 다음날부터 재가입할 수 있습니다</li>
@@ -552,7 +552,7 @@ const Settings: React.FC = () => {
             </div>
             
             <div className="flex flex-col gap-2">
-              <label htmlFor="confirmText" className="font-semibold text-[#333] text-[0.95rem] block m-0">
+              <label htmlFor="confirmText" className="font-semibold text-text text-[0.95rem] block m-0">
                 확인을 위해 <strong>"회원탈퇴"</strong>를 입력해주세요:
               </label>
               <input
@@ -562,12 +562,12 @@ const Settings: React.FC = () => {
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="회원탈퇴"
                 disabled={deleting}
-                className="px-4 py-3 border-2 border-border rounded-lg text-base transition-all duration-200 w-full font-inherit focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,126,234,0.1)] disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface"
+                className="px-4 py-3 border-2 border-border rounded-lg text-base transition-all duration-200 w-full font-inherit bg-surface-light text-text focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(34,197,94,0.15)] disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface"
               />
             </div>
 
             {message && message.type === 'error' && (
-              <div className="px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up bg-[#fed7d7] text-[#742a2a] border border-error-light shadow-[0_2px_8px_rgba(252,129,129,0.2)]">
+              <div className="px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]">
                 {message.text}
               </div>
             )}
