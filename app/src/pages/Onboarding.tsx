@@ -184,7 +184,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </div>
 
             <button 
-              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(34,197,94,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(34,197,94,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(7,166,107,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(7,166,107,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               onClick={handleNext}
             >
               시작하기 →
@@ -265,7 +265,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </div>
 
             <button 
-              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(34,197,94,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(34,197,94,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(7,166,107,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(7,166,107,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               onClick={handleNext}
               disabled={!canProceed() || saving}
             >

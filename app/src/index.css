@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #22C55E;
-  --color-primary: #22C55E;
-  --color-primary-dark: #16A34A;
-  --color-secondary: #94A3B8;
-  --color-text: #F8FAFC;
-  --color-text-dark: #F1F5F9;
-  --color-text-body: #CBD5E1;
-  --color-text-light: #94A3B8;
-  --color-text-muted: #64748B;
-  --color-bg: #0F172A;
-  --color-panel: #1E293B;
-  --color-surface: #1E293B;
-  --color-surface-light: #334155;
-  --color-border: #334155;
-  --color-border-medium: #475569;
+  --color-brand: #07A66B;
+  --color-primary: #07A66B;
+  --color-primary-light: #33B77D;
+  --color-primary-dark: #237656;
+  --color-secondary: #8F9295;
+  --color-text: #FDFDFC;
+  --color-text-dark: #FDFDFC;
+  --color-text-body: #C2C3C4;
+  --color-text-light: #C2C3C4;
+  --color-text-muted: #8F9295;
+  --color-bg: #1D232B;
+  --color-panel: #293C3B;
+  --color-surface: #293C3B;
+  --color-surface-light: #334A49;
+  --color-border: #334A49;
+  --color-border-medium: #3D5554;
   --color-border-dark: #475569;
   --color-error: #F87171;
   --color-error-light: #FCA5A5;
   --color-error-bg: rgba(127, 29, 29, 0.25);
   --color-error-text: #FCA5A5;
-  --color-success: #4ADE80;
-  --color-success-bg: rgba(22, 163, 74, 0.2);
+  --color-success: #33B77D;
+  --color-success-bg: rgba(7, 166, 107, 0.2);
 
   --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --font-display: 'Fredoka One', cursive, sans-serif;
@@ -58,10 +59,10 @@
 /* Onboarding custom keyframes (migrated from Onboarding.css) */
 @keyframes gradientShift {
   0%, 100% {
-    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+    background: linear-gradient(135deg, #07A66B 0%, #33B77D 50%, #237656 100%);
   }
   50% {
-    background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%);
+    background: linear-gradient(135deg, #237656 0%, #33B77D 50%, #07A66B 100%);
   }
 }
 

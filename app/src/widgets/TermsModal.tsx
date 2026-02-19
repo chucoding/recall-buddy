@@ -118,7 +118,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, termsType, onClose }) =
         </div>
         <div className="px-7 py-5 border-t border-border flex justify-end max-[480px]:px-5 max-[480px]:py-4">
           <button
-            className="bg-primary text-bg border-none rounded-lg px-7 py-3 text-base font-semibold cursor-pointer transition-all duration-300 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_4px_15px_rgba(34,197,94,0.3)]"
+            className="bg-primary text-bg border-none rounded-lg px-7 py-3 text-base font-semibold cursor-pointer transition-all duration-300 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_4px_15px_rgba(7,166,107,0.3)]"
             onClick={onClose}
           >
             닫기

@@ -175,7 +175,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
               return (
                 <div
                   key={i}
-                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[380px] max-h-[600px] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-[0.6s] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(51,65,85,0.3)] relative antialiased max-[768px]:min-h-[300px] max-[768px]:max-h-[500px] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[260px] max-[480px]:max-h-[420px] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)] ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,197,94,0.2)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
+                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[380px] max-h-[600px] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-[0.6s] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(51,74,73,0.3)] relative antialiased max-[768px]:min-h-[300px] max-[768px]:max-h-[500px] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[260px] max-[480px]:max-h-[420px] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)] ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(7,166,107,0.2)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
                   onClick={flipCard}
                 >
                   {isFlipped ? (
@@ -185,7 +185,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       <MarkdownBlock markdown={card.answer} />
                     )
                   ) : (
-                    <p className="text-[1.6rem] font-semibold text-[#1E293B] leading-[1.7] p-4 break-words [word-break:keep-all] whitespace-pre-line text-center max-[768px]:text-[1.3rem] max-[768px]:p-[10px] max-[480px]:text-[1.15rem]">
+                    <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] p-4 break-words [word-break:keep-all] whitespace-pre-line text-center max-[768px]:text-[1.3rem] max-[768px]:p-[10px] max-[480px]:text-[1.15rem]">
                       {card.question}
                     </p>
                   )}
@@ -197,7 +197,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
 
         <div className="mt-[52px] flex justify-center items-center gap-[14px] px-5 max-[768px]:mt-10 max-[768px]:gap-3 max-[768px]:px-[10px] max-[480px]:gap-2.5">
           <button
-            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center w-16 h-16 rounded-full text-2xl shrink-0 hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(34,197,94,0.3),0_0_0_1px_rgba(34,197,94,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:transform-none disabled:hover:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] max-[768px]:w-[52px] max-[768px]:h-[52px] max-[768px]:text-[1.3rem] max-[480px]:w-12 max-[480px]:h-12 max-[480px]:text-xl [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
+            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center w-16 h-16 rounded-full text-2xl shrink-0 hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(7,166,107,0.3),0_0_0_1px_rgba(7,166,107,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:transform-none disabled:hover:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] max-[768px]:w-[52px] max-[768px]:h-[52px] max-[768px]:text-[1.3rem] max-[480px]:w-12 max-[480px]:h-12 max-[480px]:text-xl [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
             onClick={previous}
             disabled={currentSlide === 0}
             aria-label="이전 카드"
@@ -205,14 +205,14 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
             &#8592;
           </button>
           <button
-            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center min-w-[168px] h-16 rounded-[32px] px-7 flex-grow max-w-[300px] text-xl hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(34,197,94,0.3),0_0_0_1px_rgba(34,197,94,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] max-[768px]:min-w-[140px] max-[768px]:h-[52px] max-[768px]:text-base max-[768px]:px-[22px] max-[480px]:min-w-[120px] max-[480px]:h-12 max-[480px]:text-[0.95rem] max-[480px]:px-[18px] [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
+            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center min-w-[168px] h-16 rounded-[32px] px-7 flex-grow max-w-[300px] text-xl hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(7,166,107,0.3),0_0_0_1px_rgba(7,166,107,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] max-[768px]:min-w-[140px] max-[768px]:h-[52px] max-[768px]:text-base max-[768px]:px-[22px] max-[480px]:min-w-[120px] max-[480px]:h-12 max-[480px]:text-[0.95rem] max-[480px]:px-[18px] [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
             onClick={flipCard}
             aria-label="카드 뒤집기"
           >
             {flipped ? '질문 보기' : '카드 뒤집기'}
           </button>
           <button
-            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center w-16 h-16 rounded-full text-2xl shrink-0 hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(34,197,94,0.3),0_0_0_1px_rgba(34,197,94,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:transform-none disabled:hover:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] max-[768px]:w-[52px] max-[768px]:h-[52px] max-[768px]:text-[1.3rem] max-[480px]:w-12 max-[480px]:h-12 max-[480px]:text-xl [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
+            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center w-16 h-16 rounded-full text-2xl shrink-0 hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(7,166,107,0.3),0_0_0_1px_rgba(7,166,107,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:transform-none disabled:hover:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] max-[768px]:w-[52px] max-[768px]:h-[52px] max-[768px]:text-[1.3rem] max-[480px]:w-12 max-[480px]:h-12 max-[480px]:text-xl [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
             onClick={next}
             disabled={currentSlide === cards.length - 1}
             aria-label="다음 카드"
