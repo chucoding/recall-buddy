@@ -404,7 +404,7 @@ const Settings: React.FC = () => {
               <div className="relative w-full" ref={dropdownRef}>
                 <button
                   type="button"
-                  className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-surface-light cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(34,197,94,0.15)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
+                  className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-surface-light cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(7,166,107,0.15)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
                   onClick={() => !saving && setIsDropdownOpen(!isDropdownOpen)}
                   disabled={repositories.length === 0 || saving}
                 >
@@ -464,7 +464,7 @@ const Settings: React.FC = () => {
           )}
 
           {message && (
-            <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-primary/30 shadow-[0_2px_8px_rgba(34,197,94,0.15)]' : 'bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]'}`}>
+            <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-primary/30 shadow-[0_2px_8px_rgba(7,166,107,0.15)]' : 'bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]'}`}>
               {message.text}
             </div>
           )}
@@ -472,7 +472,7 @@ const Settings: React.FC = () => {
           {settings.repositoryFullName && (
             <button
               type="button"
-              className="w-full py-3 px-6 text-base font-bold text-bg bg-primary border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(34,197,94,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(34,197,94,0.4)] disabled:bg-surface-light disabled:text-text-muted disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+              className="w-full py-3 px-6 text-base font-bold text-bg bg-primary border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] disabled:bg-surface-light disabled:text-text-muted disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               onClick={handleSaveSettings}
               disabled={saving || !settings.repositoryFullName}
             >
@@ -497,7 +497,7 @@ const Settings: React.FC = () => {
             href="https://www.notion.so/chucoding/RELEASE_NOTE-287fd64d44a080cd9564d2492b7de718"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-6 py-3 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(34,197,94,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(34,197,94,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
+            className="inline-block px-6 py-3 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
           >
             📋 릴리즈 노트 보기
           </a>
@@ -512,7 +512,7 @@ const Settings: React.FC = () => {
           <div className="flex gap-3 mt-4 max-[768px]:flex-col">
             <button
               type="button"
-              className="flex-1 py-3 px-6 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(34,197,94,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(34,197,94,0.4)] max-[768px]:w-full"
+              className="flex-1 py-3 px-6 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] max-[768px]:w-full"
               onClick={handleLogout}
             >
               🚪 로그아웃
@@ -563,7 +563,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="회원탈퇴"
                 disabled={deleting}
-                className="px-4 py-3 border-2 border-border rounded-lg text-base transition-all duration-200 w-full font-inherit bg-surface-light text-text focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(34,197,94,0.15)] disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface"
+                className="px-4 py-3 border-2 border-border rounded-lg text-base transition-all duration-200 w-full font-inherit bg-surface-light text-text focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(7,166,107,0.15)] disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface"
               />
             </div>
 

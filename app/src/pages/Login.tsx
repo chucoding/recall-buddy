@@ -126,7 +126,7 @@ const Login: React.FC = () => {
 
         <button 
           onClick={handleGitHubLogin}
-          className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-primary text-bg border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-300 mb-6 hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(34,197,94,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none max-[480px]:py-3.5 max-[480px]:px-5 max-[480px]:text-[0.9rem]"
+          className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-primary text-bg border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-300 mb-6 hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(7,166,107,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none max-[480px]:py-3.5 max-[480px]:px-5 max-[480px]:text-[0.9rem]"
           disabled={loading}
         >
           GitHub로 로그인
