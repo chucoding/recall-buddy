@@ -56,6 +56,38 @@
   100% { transform: translate(50px, 50px); }
 }
 
+/* Hero 인터랙티브 배경: 마우스 위치에 따른 부드러운 그라데이션 오브 */
+.hero-bg-interactive {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at var(--hero-mouse-x, 50%) var(--hero-mouse-y, 50%),
+      rgba(7, 166, 107, 0.12) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at calc(100% - var(--hero-mouse-x, 50%)) calc(var(--hero-mouse-y, 50%)),
+      rgba(7, 166, 107, 0.06) 0%,
+      transparent 50%
+    );
+  transition: background 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-interactive {
+    background:
+      radial-gradient(
+        ellipse 80% 60% at 50% 50%,
+        rgba(7, 166, 107, 0.1) 0%,
+        transparent 55%
+      );
+    transition: none;
+  }
+}
+
 /* Onboarding custom keyframes (migrated from Onboarding.css) */
 @keyframes gradientShift {
   0%, 100% {

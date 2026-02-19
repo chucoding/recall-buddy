@@ -106,8 +106,10 @@
     </nav>
 
     <!-- ========== 2. Hero Section ========== -->
-    <section class="relative min-h-screen flex items-center justify-center pt-[80px] px-6 pb-24 overflow-hidden max-[768px]:min-h-0 max-[768px]:pt-[80px] max-[768px]:pb-16">
+    <section id="hero-section" class="relative min-h-screen flex items-center justify-center pt-[80px] px-6 pb-24 overflow-hidden max-[768px]:min-h-0 max-[768px]:pt-[80px] max-[768px]:pb-16">
       <div class="absolute inset-0 bg-bg z-0 before:content-[''] before:absolute before:-top-1/2 before:-left-1/2 before:w-[200%] before:h-[200%] before:bg-[radial-gradient(circle,rgba(7,166,107,0.06)_1px,transparent_1px)] before:bg-[length:50px_50px] before:animate-float-bg before:pointer-events-none"></div>
+      <!-- 마우스 반응 그라데이션 오브 (접근성: prefers-reduced-motion 시 정적 유지) -->
+      <div class="hero-bg-interactive" aria-hidden="true"></div>
 
       <div class="relative z-10 text-center max-w-[800px] w-full">
         <div class="inline-block mb-6 py-1.5 px-4 bg-primary/10 rounded-full text-primary text-sm font-medium border border-primary/20 animate-fade-up">
@@ -279,5 +281,24 @@
     </footer>
 
     <script type="module" src="/src/landing-main.tsx"></script>
+    <script>
+      (function () {
+        var hero = document.getElementById('hero-section');
+        if (!hero) return;
+        var raf = null;
+        function setMousePos(e) {
+          if (raf) return;
+          raf = requestAnimationFrame(function () {
+            raf = null;
+            var rect = hero.getBoundingClientRect();
+            var x = rect.width > 0 ? ((e.clientX - rect.left) / rect.width) * 100 : 50;
+            var y = rect.height > 0 ? ((e.clientY - rect.top) / rect.height) * 100 : 50;
+            hero.style.setProperty('--hero-mouse-x', x + '%');
+            hero.style.setProperty('--hero-mouse-y', y + '%');
+          });
+        }
+        hero.addEventListener('mousemove', setMousePos, { passive: true });
+      })();
+    </script>
   </body>
 </html>
