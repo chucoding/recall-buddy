@@ -171,14 +171,10 @@ const LandingDemo: React.FC = () => {
 
   return (
     <>
-      {/* GitHub URL 입력 폼 */}
-      <form
-        className="animate-fade-up [animation-delay:0.3s] [animation-fill-mode:both]"
-        onSubmit={handleSubmit}
-      >
-        <div className="flex items-center bg-white rounded-[14px] shadow-[0_16px_48px_rgba(0,0,0,0.18)] overflow-hidden p-1.5 max-[768px]:flex-col max-[768px]:p-3 max-[768px]:gap-2">
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center bg-surface-light/60 backdrop-blur-md rounded-2xl border border-border shadow-[0_16px_48px_rgba(0,0,0,0.3)] overflow-hidden p-1.5 max-[768px]:flex-col max-[768px]:p-3 max-[768px]:gap-2">
           <svg
-            className="w-[22px] h-[22px] ml-3.5 shrink-0 text-[#888] max-[768px]:hidden"
+            className="w-5 h-5 ml-4 shrink-0 text-text-muted max-[768px]:hidden"
             viewBox="0 0 16 16"
             fill="currentColor"
           >
@@ -186,62 +182,57 @@ const LandingDemo: React.FC = () => {
           </svg>
           <input
             type="text"
-            className="flex-1 border-0 outline-none text-base py-3.5 px-3 bg-transparent text-[#333] min-w-0 placeholder:text-[#aaa] max-[768px]:w-full max-[768px]:text-center max-[768px]:py-3 max-[768px]:px-3"
-            placeholder="GitHub 리포지토리 URL을 입력하세요 (예: https://github.com/owner/repo)"
+            className="flex-1 border-0 outline-none text-base py-3.5 px-3 bg-transparent text-text min-w-0 placeholder:text-text-muted max-[768px]:w-full max-[768px]:text-center max-[768px]:py-3"
+            placeholder="https://github.com/owner/repo"
             value={repoUrl}
             onChange={(e) => setRepoUrl(e.target.value)}
             disabled={loading}
           />
           <button
             type="submit"
-            className="shrink-0 py-3.5 px-7 bg-gradient-to-br from-primary to-primary-dark text-white border-0 rounded-[10px] text-[0.95rem] font-semibold cursor-pointer transition-all duration-300 whitespace-nowrap min-w-[100px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:-translate-y-px hover:enabled:shadow-[0_6px_20px_rgba(102,126,234,0.5)] max-[768px]:w-full max-[768px]:py-3.5 max-[768px]:px-3.5"
+            className="shrink-0 py-3.5 px-7 bg-primary text-bg rounded-xl text-[0.95rem] font-bold cursor-pointer transition-all duration-300 whitespace-nowrap min-w-[120px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-primary-dark hover:enabled:-translate-y-px hover:enabled:shadow-[0_6px_20px_rgba(34,197,94,0.3)] max-[768px]:w-full max-[768px]:py-3.5"
             disabled={loading || !repoUrl.trim()}
           >
             {loading ? (
-              <span className="inline-block w-5 h-5 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="inline-block w-5 h-5 border-[3px] border-bg/30 border-t-bg rounded-full animate-spin" />
             ) : (
-              '카드 생성'
+              'Generate Cards'
             )}
           </button>
         </div>
       </form>
 
       {error && (
-        <p className="mt-4 py-3 px-5 bg-white/15 border border-red-300/40 rounded-[10px] text-[#ffd4d4] text-[0.9rem] animate-fade-up">
+        <p className="mt-4 py-3 px-5 bg-error-bg border border-error/30 rounded-xl text-error-light text-sm animate-fade-in">
           {error}
         </p>
       )}
 
-      {/* 플래시카드 결과 섹션 */}
       {cards.length > 0 && (
-        <section
-          className="bg-gradient-to-br from-primary to-primary-dark py-[60px] px-6 pb-20 relative"
-          ref={cardSectionRef}
-        >
+        <div className="mt-12" ref={cardSectionRef}>
           <FlashCardPlayer
             cards={cards}
             renderHeader={() => (
               <div className="text-center mb-10 animate-fade-up">
-                <h2 className="text-3xl font-bold text-white mb-2 max-[480px]:text-2xl">AI가 생성한 플래시카드</h2>
-                <p className="text-white/75 text-base">카드를 클릭하면 답변을 확인할 수 있습니다</p>
+                <h3 className="text-2xl font-bold text-text mb-2 max-[480px]:text-xl">AI-Generated Flashcards</h3>
+                <p className="text-text-light text-sm">카드를 클릭하면 답변을 확인할 수 있습니다</p>
               </div>
             )}
             renderFooter={() => (
-              <div className="text-center mt-[60px] animate-fade-up">
-                <p className="text-white/88 text-[1.15rem] mb-5">
+              <div className="text-center mt-14 animate-fade-up">
+                <p className="text-text-body text-lg mb-5">
                   매일 자동으로 플래시카드를 받아보고 싶다면?
                 </p>
                 <a
                   href="/app"
-                  className="inline-flex items-center gap-2.5 py-4 px-9 bg-white text-[#333] border-0 rounded-xl text-[1.1rem] font-bold cursor-pointer transition-all duration-300 shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 hover:shadow-[0_12px_36px_rgba(0,0,0,0.2)]"
+                  className="inline-flex items-center gap-2.5 py-3.5 px-8 bg-primary text-bg rounded-xl text-base font-bold no-underline transition-all duration-300 shadow-[0_8px_24px_rgba(34,197,94,0.2)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_12px_36px_rgba(34,197,94,0.3)]"
                 >
-                  <img src="/github-mark-white.svg" alt="GitHub" className="w-[18px] h-[18px]" />
-                  무료로 시작하기
+                  Get Started Free
                 </a>
               </div>
             )}
           />
-        </section>
+        </div>
       )}
     </>
   );

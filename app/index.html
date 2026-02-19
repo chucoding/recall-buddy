@@ -59,66 +59,218 @@
     </script>
 
     <!-- Theme Color -->
-    <meta name="theme-color" content="#667eea" />
+    <meta name="theme-color" content="#0F172A" />
   </head>
-  <body>
-    <div class="min-h-screen font-sans text-[#1a1a2e] overflow-x-hidden">
-      <!-- 네비게이션 (정적 HTML - Google 즉시 읽음) -->
-      <nav class="fixed top-0 left-0 right-0 z-[1000] bg-white/85 backdrop-blur-[12px] border-b border-black/[0.06]">
-        <div class="max-w-[1200px] mx-auto py-3.5 px-6 flex justify-between items-center max-[480px]:py-3 max-[480px]:px-4">
-          <div class="font-display text-[1.6rem] bg-gradient-to-br from-primary to-primary-dark bg-clip-text text-transparent tracking-[-0.5px] max-[480px]:text-[1.3rem]">CodeRecall</div>
-          <a href="/app" class="flex items-center gap-2 py-2.5 px-5 bg-[#24292e] text-white border-0 rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-all duration-250 no-underline hover:bg-[#1a1e22] hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(36,41,46,0.3)] max-[480px]:py-2 max-[480px]:px-3.5 max-[480px]:text-[0.8rem]">
-            <img src="/github-mark-white.svg" alt="GitHub" class="w-[18px] h-[18px]" />
-            GitHub 로그인
+  <body class="min-h-screen font-sans text-text bg-bg overflow-x-hidden">
+
+    <!-- ========== 1. Navigation ========== -->
+    <nav class="fixed top-0 left-0 right-0 z-[1000] bg-bg/80 backdrop-blur-xl border-b border-border">
+      <input type="checkbox" id="nav-toggle" class="hidden peer" />
+
+      <div class="max-w-[1200px] mx-auto py-3 px-6 flex justify-between items-center max-[480px]:px-4">
+        <a href="/" class="font-display text-[1.6rem] text-primary tracking-[-0.5px] no-underline max-[480px]:text-[1.3rem]">CodeRecall</a>
+
+        <!-- Desktop links -->
+        <div class="hidden items-center gap-8 md:flex">
+          <a href="#how-it-works" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">How it Works</a>
+          <a href="#features" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">Features</a>
+          <a href="#demo" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">Demo</a>
+          <a href="/app" class="flex items-center gap-2 py-2.5 px-5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline transition-all duration-200 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(34,197,94,0.3)]">
+            Get Started
           </a>
         </div>
-      </nav>
 
-      <!-- 히어로 섹션 (정적 HTML - SEO 핵심 콘텐츠) -->
-      <section class="relative min-h-[90vh] flex items-center justify-center pt-[120px] px-6 pb-20 overflow-hidden max-[768px]:min-h-0 max-[768px]:pt-[100px] max-[768px]:px-5 max-[768px]:pb-[60px]">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary to-primary-dark z-0 before:content-[''] before:absolute before:-top-1/2 before:-left-1/2 before:w-[200%] before:h-[200%] before:bg-[radial-gradient(circle,rgba(255,255,255,0.08)_1px,transparent_1px)] before:bg-[length:50px_50px] before:animate-float-bg before:pointer-events-none"></div>
-        <div class="relative z-10 text-center max-w-[720px] w-full">
-          <h1 class="text-5xl font-bold text-white leading-tight mb-5 tracking-tight animate-fade-up max-[768px]:text-[2.2rem] max-[480px]:text-[1.8rem]">
-            GitHub 커밋을<br />
-            <span class="relative inline-block text-[#ffd700] after:content-[''] after:absolute after:-left-1 after:-right-1 after:bottom-[2px] after:h-3 after:bg-[#ffd700]/30 after:rounded after:-z-10">플래시카드</span>로 복습하세요
-          </h1>
-          <p class="text-xl text-white/88 leading-relaxed mb-10 animate-fade-up [animation-delay:0.15s] [animation-fill-mode:both] max-[768px]:text-base max-[480px]:text-[0.9rem]">
-            리포지토리 링크만 넣으면, AI가 커밋 기록을 분석해<br />
-            학습용 플래시카드를 자동으로 만들어드립니다.
-          </p>
+        <!-- Mobile hamburger -->
+        <label for="nav-toggle" class="flex flex-col gap-[5px] cursor-pointer p-2 md:hidden" aria-label="Toggle menu">
+          <span class="block w-5 h-0.5 bg-text-body rounded"></span>
+          <span class="block w-5 h-0.5 bg-text-body rounded"></span>
+          <span class="block w-5 h-0.5 bg-text-body rounded"></span>
+        </label>
+      </div>
 
-          <!-- React 데모 마운트 포인트 -->
-          <div id="demo-root"></div>
+      <!-- Mobile dropdown -->
+      <div class="hidden peer-checked:flex flex-col gap-1 px-6 pb-4 bg-surface/95 backdrop-blur-xl md:!hidden animate-fade-in">
+        <a href="#how-it-works" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">How it Works</a>
+        <a href="#features" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">Features</a>
+        <a href="#demo" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">Demo</a>
+        <a href="/app" class="mt-1 flex items-center justify-center gap-2 py-2.5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline">
+          Get Started
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========== 2. Hero Section ========== -->
+    <section class="relative min-h-screen flex items-center justify-center pt-[80px] px-6 pb-24 overflow-hidden max-[768px]:min-h-0 max-[768px]:pt-[80px] max-[768px]:pb-16">
+      <div class="absolute inset-0 bg-bg z-0 before:content-[''] before:absolute before:-top-1/2 before:-left-1/2 before:w-[200%] before:h-[200%] before:bg-[radial-gradient(circle,rgba(34,197,94,0.06)_1px,transparent_1px)] before:bg-[length:50px_50px] before:animate-float-bg before:pointer-events-none"></div>
+
+      <div class="relative z-10 text-center max-w-[800px] w-full">
+        <div class="inline-block mb-6 py-1.5 px-4 bg-primary/10 rounded-full text-primary text-sm font-medium border border-primary/20 animate-fade-up">
+          Free &amp; Open Source
         </div>
-      </section>
 
-      <!-- 기능 소개 (정적 HTML - SEO 핵심 콘텐츠) -->
-      <section class="py-20 px-6 bg-[#f8f9ff] max-[480px]:py-[60px] max-[480px]:px-4">
-        <h2 class="text-center text-3xl font-bold text-[#1a1a2e] mb-12 max-[480px]:text-2xl">왜 CodeRecall인가요?</h2>
-        <div class="grid grid-cols-3 gap-7 max-w-[1000px] mx-auto max-[768px]:grid-cols-1 max-[768px]:gap-5">
-          <div class="bg-white rounded-2xl p-9 pt-9 pb-9 text-center shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(102,126,234,0.12)]">
-            <div class="text-[2.8rem] mb-4">&#128218;</div>
-            <h3 class="text-[1.15rem] font-bold text-[#333] mb-2.5">자동 플래시카드 생성</h3>
-            <p class="text-[0.95rem] text-[#666] leading-relaxed">GitHub 커밋 기록을 AI가 분석하여 학습 카드로 변환합니다. 수동 정리 없이 자동으로!</p>
+        <h1 class="text-[3.5rem] font-bold text-text leading-[1.15] mb-6 tracking-tight animate-fade-up [animation-delay:0.1s] [animation-fill-mode:both] max-[768px]:text-[2.5rem] max-[480px]:text-[2rem]">
+          Turn Your Git Commits<br />
+          into <span class="relative inline-block text-primary after:content-[''] after:absolute after:-left-1 after:-right-1 after:bottom-[4px] after:h-3 after:bg-primary/20 after:rounded after:-z-10">Flashcards</span>
+        </h1>
+
+        <p class="text-xl text-text-body leading-relaxed mb-10 animate-fade-up [animation-delay:0.2s] [animation-fill-mode:both] max-w-[600px] mx-auto max-[768px]:text-base max-[480px]:text-[0.95rem]">
+          커밋 기록을 AI가 분석해 자동으로 학습 카드를 만들어드립니다.<br class="max-[480px]:hidden" />
+          매일 복습하며 더 나은 개발자로 성장하세요.
+        </p>
+
+        <div class="flex items-center justify-center gap-4 animate-fade-up [animation-delay:0.3s] [animation-fill-mode:both] max-[480px]:flex-col max-[480px]:gap-3">
+          <a href="/app" class="inline-flex items-center gap-2.5 py-4 px-8 bg-primary text-bg rounded-xl text-[1.05rem] font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(34,197,94,0.25)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_12px_40px_rgba(34,197,94,0.35)] max-[480px]:w-full max-[480px]:justify-center">
+            Try it Free
+          </a>
+          <a href="#demo" class="inline-flex items-center gap-2 py-4 px-8 bg-transparent text-text-body border border-border rounded-xl text-[1.05rem] font-semibold no-underline transition-all duration-300 hover:bg-surface hover:border-border-medium hover:text-text max-[480px]:w-full max-[480px]:justify-center">
+            See Demo
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 3. Social Proof Bar ========== -->
+    <section class="py-8 px-6 bg-surface border-b border-border">
+      <div class="max-w-[900px] mx-auto flex items-center justify-center gap-8 flex-wrap max-[480px]:gap-4">
+        <div class="flex items-center gap-2 text-text-light text-sm font-medium">
+          <svg class="w-5 h-5 text-text-body" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          Open Source
+        </div>
+        <span class="w-px h-5 bg-border max-[480px]:hidden"></span>
+        <div class="flex items-center gap-2 text-text-light text-sm font-medium">
+          <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Free to Use
+        </div>
+        <span class="w-px h-5 bg-border max-[480px]:hidden"></span>
+        <div class="flex items-center gap-2 text-text-light text-sm font-medium">
+          <svg class="w-5 h-5 text-[#f59e0b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          AI-Powered
+        </div>
+        <span class="w-px h-5 bg-border max-[480px]:hidden"></span>
+        <div class="flex items-center gap-2 text-text-light text-sm font-medium">
+          <svg class="w-5 h-5 text-text-body" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          PWA Ready
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 4. How it Works ========== -->
+    <section id="how-it-works" class="py-24 px-6 bg-bg max-[480px]:py-16 max-[480px]:px-4">
+      <div class="max-w-[1000px] mx-auto">
+        <div class="text-center mb-16 max-[480px]:mb-10">
+          <h2 class="text-[2.5rem] font-bold text-text mb-4 max-[480px]:text-[1.8rem]">How it Works</h2>
+          <p class="text-lg text-text-light max-[480px]:text-base">3단계로 시작하는 커밋 복습 루틴</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-12 max-[768px]:grid-cols-1 max-[768px]:gap-10">
+          <!-- Step 1 -->
+          <div class="relative text-center">
+            <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.507a4.5 4.5 0 00-6.364-6.364L4.5 8.257" /></svg>
+            </div>
+            <div class="inline-block mb-3 py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-full tracking-wide uppercase">Step 1</div>
+            <h3 class="text-xl font-bold text-text mb-2">Connect</h3>
+            <p class="text-text-light leading-relaxed">GitHub 계정으로 로그인하고<br />복습할 리포지토리를 선택하세요.</p>
           </div>
-          <div class="bg-white rounded-2xl p-9 pt-9 pb-9 text-center shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(102,126,234,0.12)]">
-            <div class="text-[2.8rem] mb-4">&#128276;</div>
-            <h3 class="text-[1.15rem] font-bold text-[#333] mb-2.5">매일 알림</h3>
-            <p class="text-[0.95rem] text-[#666] leading-relaxed">에빙하우스 망각곡선 기반으로 적절한 시점에 복습 알림을 보내드립니다.</p>
+
+          <!-- Step 2 -->
+          <div class="relative text-center">
+            <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" /></svg>
+            </div>
+            <div class="inline-block mb-3 py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-full tracking-wide uppercase">Step 2</div>
+            <h3 class="text-xl font-bold text-text mb-2">Generate</h3>
+            <p class="text-text-light leading-relaxed">AI가 커밋 히스토리를 분석해<br />핵심 내용을 플래시카드로 변환합니다.</p>
           </div>
-          <div class="bg-white rounded-2xl p-9 pt-9 pb-9 text-center shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(102,126,234,0.12)]">
-            <div class="text-[2.8rem] mb-4">&#128187;</div>
-            <h3 class="text-[1.15rem] font-bold text-[#333] mb-2.5">코드 Diff 지원</h3>
-            <p class="text-[0.95rem] text-[#666] leading-relaxed">코드 변경 사항을 GitHub 스타일의 diff로 보여드려 실제 코드 리뷰처럼 복습할 수 있습니다.</p>
+
+          <!-- Step 3 -->
+          <div class="relative text-center">
+            <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+            </div>
+            <div class="inline-block mb-3 py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-full tracking-wide uppercase">Step 3</div>
+            <h3 class="text-xl font-bold text-text mb-2">Recall</h3>
+            <p class="text-text-light leading-relaxed">매일 알림을 받고 카드를 넘기며<br />어제 배운 것을 오늘 복습하세요.</p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- 푸터 (정적 HTML) -->
-      <footer class="text-center py-8 px-6 bg-[#1a1a2e]">
-        <p class="text-white/50 text-[0.85rem]">&copy; 2026 CodeRecall. GitHub 커밋으로 더 나은 개발자가 되세요.</p>
-      </footer>
-    </div>
+    <!-- ========== 5. Features Grid ========== -->
+    <section id="features" class="py-24 px-6 bg-surface max-[480px]:py-16 max-[480px]:px-4">
+      <div class="max-w-[1000px] mx-auto">
+        <div class="text-center mb-16 max-[480px]:mb-10">
+          <h2 class="text-[2.5rem] font-bold text-text mb-4 max-[480px]:text-[1.8rem]">Features</h2>
+          <p class="text-lg text-text-light max-[480px]:text-base">개발자를 위해 설계된 학습 도구</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-7 max-[768px]:grid-cols-1 max-[768px]:gap-5">
+          <div class="bg-surface-light/50 rounded-2xl p-8 border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(34,197,94,0.08)] hover:border-primary/30">
+            <div class="w-12 h-12 mb-5 rounded-xl bg-primary/15 flex items-center justify-center">
+              <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-text mb-2">AI-Powered Cards</h3>
+            <p class="text-[0.95rem] text-text-light leading-relaxed">GitHub 커밋을 AI가 분석하여 핵심 개념을 추출하고 학습 카드로 자동 변환합니다.</p>
+          </div>
+
+          <div class="bg-surface-light/50 rounded-2xl p-8 border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(34,197,94,0.08)] hover:border-primary/30">
+            <div class="w-12 h-12 mb-5 rounded-xl bg-[#f59e0b]/15 flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#f59e0b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-text mb-2">Spaced Repetition</h3>
+            <p class="text-[0.95rem] text-text-light leading-relaxed">에빙하우스 망각곡선 기반으로 최적의 복습 시점에 알림을 보내드립니다.</p>
+          </div>
+
+          <div class="bg-surface-light/50 rounded-2xl p-8 border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(34,197,94,0.08)] hover:border-primary/30">
+            <div class="w-12 h-12 mb-5 rounded-xl bg-[#3b82f6]/15 flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#3b82f6]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-text mb-2">Code Diff Review</h3>
+            <p class="text-[0.95rem] text-text-light leading-relaxed">코드 변경 사항을 GitHub 스타일 diff로 보여드려, 실제 코드 리뷰처럼 복습합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 6. Interactive Demo (React mount) ========== -->
+    <section id="demo" class="relative py-24 px-6 overflow-hidden max-[480px]:py-16 max-[480px]:px-4">
+      <div class="absolute inset-0 bg-surface z-0"></div>
+      <div class="relative z-10 max-w-[800px] mx-auto">
+        <div class="text-center mb-12 max-[480px]:mb-8">
+          <h2 class="text-[2.5rem] font-bold text-text mb-4 max-[480px]:text-[1.8rem]">See it in Action</h2>
+          <p class="text-lg text-text-light max-[480px]:text-base">Public 리포지토리 URL을 입력하고 체험해 보세요</p>
+        </div>
+        <div id="demo-root"></div>
+      </div>
+    </section>
+
+    <!-- ========== 7. Final CTA ========== -->
+    <section class="py-24 px-6 bg-bg max-[480px]:py-16 max-[480px]:px-4">
+      <div class="max-w-[640px] mx-auto text-center">
+        <h2 class="text-[2.5rem] font-bold text-text mb-5 leading-tight max-[480px]:text-[1.8rem]">Start Recalling Today</h2>
+        <p class="text-lg text-text-light mb-10 leading-relaxed max-[480px]:text-base">
+          무료로 시작하세요 &mdash; GitHub 계정만 있으면 됩니다.<br />
+          오늘의 커밋이 내일의 실력이 됩니다.
+        </p>
+        <a href="/app" class="inline-flex items-center gap-3 py-4 px-10 bg-primary text-bg rounded-xl text-lg font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(34,197,94,0.25)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(34,197,94,0.35)] max-[480px]:w-full max-[480px]:justify-center">
+          Get Started with GitHub
+        </a>
+      </div>
+    </section>
+
+    <!-- ========== 8. Footer ========== -->
+    <footer class="py-10 px-6 bg-surface border-t border-border">
+      <div class="max-w-[1000px] mx-auto flex items-center justify-between flex-wrap gap-4 max-[768px]:flex-col max-[768px]:text-center max-[768px]:gap-3">
+        <div class="font-display text-xl text-primary/70">CodeRecall</div>
+        <div class="flex items-center gap-6 text-text-muted text-sm max-[480px]:gap-4">
+          <a href="https://github.com/chucoding" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">GitHub</a>
+          <a href="/terms" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Terms</a>
+          <a href="/privacy" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Privacy</a>
+        </div>
+        <p class="text-text-muted/50 text-sm">&copy; 2026 CodeRecall</p>
+      </div>
+    </footer>
 
     <script type="module" src="/src/landing-main.tsx"></script>
   </body>
