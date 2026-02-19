@@ -43,6 +43,8 @@ export default defineConfig(({ mode }) => {
         input: {
           landing: resolve(__dirname, 'index.html'),
           app: resolve(__dirname, 'app.html'),
+          terms: resolve(__dirname, 'terms.html'),
+          privacy: resolve(__dirname, 'privacy.html'),
         },
       },
     },

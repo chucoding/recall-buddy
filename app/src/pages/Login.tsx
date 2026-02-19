@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, store } from '../firebase';
-import TermsLinks from '../widgets/TermsLinks';
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -135,7 +134,9 @@ const Login: React.FC = () => {
 
         <div className="text-center">
           <p className="text-text-muted text-[0.8rem] m-0 leading-snug">로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
-          <TermsLinks />
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">이용약관</a>
+          {' · '}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">개인정보처리방침</a>
         </div>
       </div>
     </div>

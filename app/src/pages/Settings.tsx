@@ -4,7 +4,6 @@ import { reauthenticateWithPopup } from 'firebase/auth';
 import { auth, store, githubProvider } from '../firebase';
 import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
-import TermsLinks from '../widgets/TermsLinks';
 
 interface RepositorySettings {
   repositoryFullName: string;
@@ -530,7 +529,9 @@ const Settings: React.FC = () => {
 
         {/* 이용약관 링크 */}
         <div className="border-t border-border text-center mt-4 pt-4">
-          <TermsLinks />
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">이용약관</a>
+          {' · '}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">개인정보처리방침</a>
         </div>
       </div>
 
