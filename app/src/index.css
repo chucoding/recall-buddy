@@ -56,6 +56,39 @@
   100% { transform: translate(50px, 50px); }
 }
 
+/* Hero 비디오 배경 (발광 펄스 전용, muted/playsinline으로 자동재생·모바일 대응) */
+.hero {
+  background-color: var(--color-bg);
+  isolation: isolate;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  z-index: 0;
+  /* 펄스가 더 잘 보이도록 밝은 구간 강조 (비디오 재제작 없이 CSS로 보정) */
+  filter: brightness(1.08) contrast(1.12);
+}
+
+/* 텍스트 가독성용 오버레이 (영상 위 어두운 막, 0.5로 낮춰 펄스가 더 비치도록) */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 12, 16, 0.5);
+  z-index: 1;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg {
+    display: none;
+  }
+}
+
 /* Hero 인터랙티브 배경: 마우스 위치에 따른 부드러운 그라데이션 오브 */
 .hero-bg-interactive {
   position: absolute;
