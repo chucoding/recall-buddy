@@ -14,13 +14,13 @@ type BackViewMode = 'diff' | 'file';
 function AIAnswerFloatingBlock({ answer }: { answer: string }) {
   return (
     <div
-      className="fc-answer-floating shrink-0 border-t border-slate-200/90 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
+      className="fc-answer-floating shrink-0 border-t border-slate-200 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
       onClick={(e) => e.stopPropagation()}
       role="region"
       aria-label="AI 생성 면접 예상 답변"
     >
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200/80">
-        <span className="flex items-center justify-center w-6 h-6 rounded-md bg-primary/10 text-primary" aria-hidden>
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200">
+        <span className="flex items-center justify-center w-6 h-6 rounded-xl bg-primary/10 text-primary" aria-hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
             <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a2.25 2.25 0 001.576 1.576l2.846.813a.75.75 0 010 1.442l-2.846.813a2.25 2.25 0 00-1.576 1.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a2.25 2.25 0 00-1.576-1.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A2.25 2.25 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.25 2.25 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.25 2.25 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.25 2.25 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clipRule="evenodd" />
           </svg>
@@ -191,9 +191,9 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
           content: '';
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
-          border-radius: 24px;
+          border-radius: inherit;
           padding: 2px;
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(51, 65, 85, 0.3));
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(51, 65, 85, 0.2));
           mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           mask-composite: exclude;
@@ -210,8 +210,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
           background: white; text-align: left;
         }
         .fc-card .github-diff-container {
-          margin: 12px 0; border: 1px solid #d0d7de;
-          border-radius: 6px; overflow: hidden;
+          margin: 12px 0; border: 1px solid rgb(226 232 240);
+          border-radius: 12px; overflow: hidden;
         }
         .fc-card .github-diff-container pre { margin: 0 !important; }
         @media (max-width: 768px) {
@@ -270,7 +270,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   role="button"
                   tabIndex={0}
                   aria-label={isFlipped ? '카드 앞면 보기 (클릭 또는 Space)' : '카드 뒷면 보기 (클릭 또는 Space)'}
-                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(51,74,73,0.3)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(7,166,107,0.2)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
+                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(34,197,94,0.25)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,197,94,0.3)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
                   onClick={flipCard}
                   onKeyDown={(e) => {
                     if (e.key === ' ' || e.key === 'Enter') {
@@ -283,7 +283,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   {isFlipped ? (
                     <div className="fc-card-back w-full h-full flex flex-col min-h-0">
                       <div
-                        className="fc-back-header flex items-center gap-1 p-2 border-b border-[#d0d7de] bg-[#f6f8fa] shrink-0 rounded-t-3xl"
+                        className="fc-back-header flex items-center gap-1 p-2 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-3xl"
                         onClick={(e) => e.stopPropagation()}
                         role="tablist"
                         aria-label="뒷면 보기 모드"
@@ -292,7 +292,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           type="button"
                           role="tab"
                           aria-selected={backViewMode === 'diff'}
-                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-[#24292f] hover:bg-[#eaeef2]'}`}
+                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'}`}
                           onClick={() => setBackViewMode('diff')}
                         >
                           Diff 보기
@@ -302,14 +302,14 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           role="tab"
                           aria-selected={backViewMode === 'file'}
                           disabled={!hasFileView}
-                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-[#24292f] hover:bg-[#eaeef2]'} ${hasFileView ? 'cursor-pointer' : ''}`}
+                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'} ${hasFileView ? 'cursor-pointer' : ''}`}
                           onClick={() => hasFileView && setBackViewMode('file')}
                         >
                           파일 보기
                         </button>
                         {backViewMode === 'file' && hasFilesArray && effectiveFiles.length > 1 && (
                           <select
-                            className="ml-2 text-xs rounded-md border border-[#d0d7de] bg-white text-[#24292f] py-1.5 px-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 max-w-[200px] truncate"
+                            className="ml-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 py-1.5 px-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 max-w-[200px] truncate"
                             value={safeFileIndex}
                             onChange={(e) => {
                               setSelectedFileIndex(Number(e.target.value));
@@ -326,7 +326,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           </select>
                         )}
                         {backViewMode === 'file' && hasFileView && effectiveFiles.length === 1 && (
-                          <span className="ml-2 text-xs text-[#57606a] truncate max-w-[180px]" title={currentFilename}>
+                          <span className="ml-2 text-xs text-slate-500 truncate max-w-[180px]" title={currentFilename}>
                             {currentFilename}
                           </span>
                         )}
@@ -339,13 +339,13 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             <div className="p-6 text-slate-500 text-sm">코드 변경 내용이 없습니다. 파일 보기에서 확인하세요.</div>
                           )
                         ) : fileLoading ? (
-                          <div className="p-6 text-[#57606a] text-sm">파일 내용을 불러오는 중...</div>
+                          <div className="p-6 text-slate-500 text-sm">파일 내용을 불러오는 중...</div>
                         ) : fileError ? (
                           <div className="p-6 text-[#cf222e] text-sm">{fileError}</div>
                         ) : fileContent !== null ? (
                           <FileContentBlock content={fileContent} filename={currentFilename} />
                         ) : (
-                          <div className="p-6 text-[#57606a] text-sm">파일 정보가 없습니다.</div>
+                          <div className="p-6 text-slate-500 text-sm">파일 정보가 없습니다.</div>
                         )}
                       </div>
                       {/* 하단 플로팅: Diff/파일 보기 토글과 무관하게 항상 노출 */}
