@@ -15,6 +15,7 @@ export interface FlashCardData {
   answer: string;
   metadata?: {
     commitMessage?: string;
+    rawDiff?: string;
     files?: FileChange[];
   };
 }
@@ -92,38 +93,20 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
 
       const { content, metadata } = githubData;
 
-      // AI를 통해 질문·답변 쌍 생성 (OpenAI: FlashcardStructuredOutput.items / Clova·레거시: 배열)
+      // AI를 통해 질문·답변 쌍 생성 (OpenAI Structured Output: items 배열)
       const result = await chatCompletions(content);
-      const parsed = JSON.parse(result.result.message.content) as
-        | FlashcardStructuredOutput
-        | Array<unknown>;
-      const pairs: { question: string; answer: string }[] = (() => {
-        if (parsed && typeof parsed === "object" && "items" in parsed && Array.isArray(parsed.items)) {
-          return (parsed as FlashcardStructuredOutput).items.filter(
-            (x): x is { question: string; answer: string } =>
-              x != null && typeof x.question === "string" && typeof x.answer === "string"
-          );
-        }
-        if (Array.isArray(parsed)) {
-          return parsed
-            .map((item: unknown) => {
-              if (typeof item === "string") return { question: item, answer: content };
-              if (item && typeof item === "object" && "question" in item && "answer" in item) {
-                const o = item as { question: string; answer: string };
-                return o.question && o.answer ? o : null;
-              }
-              return null;
-            })
-            .filter((x): x is { question: string; answer: string } => x != null);
-        }
-        return [];
-      })();
+      const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
+      const pairs: { question: string; answer: string }[] =
+        parsed?.items?.filter(
+          (x): x is { question: string; answer: string } =>
+            x != null && typeof x.question === "string" && typeof x.answer === "string"
+        ) ?? [];
 
       for (const { question, answer } of pairs) {
         list.push({
           question,
           answer,
-          metadata: metadata
+          metadata: { ...metadata, rawDiff: content }
         });
       }
     } catch (error) {

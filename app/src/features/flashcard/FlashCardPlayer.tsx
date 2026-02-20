@@ -10,6 +10,30 @@ import 'slick-carousel/slick/slick-theme.css';
 
 type BackViewMode = 'diff' | 'file';
 
+/** AI 답변 플로팅 블록: 하단 고정, 코드/파일 토글과 무관하게 항상 노출 */
+function AIAnswerFloatingBlock({ answer }: { answer: string }) {
+  return (
+    <div
+      className="fc-answer-floating shrink-0 border-t border-slate-200/90 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
+      onClick={(e) => e.stopPropagation()}
+      role="region"
+      aria-label="AI 생성 면접 예상 답변"
+    >
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200/80">
+        <span className="flex items-center justify-center w-6 h-6 rounded-md bg-primary/10 text-primary" aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a2.25 2.25 0 001.576 1.576l2.846.813a.75.75 0 010 1.442l-2.846.813a2.25 2.25 0 00-1.576 1.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a2.25 2.25 0 00-1.576-1.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A2.25 2.25 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.25 2.25 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.25 2.25 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.25 2.25 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clipRule="evenodd" />
+          </svg>
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">AI 예상 답변</span>
+      </div>
+      <div className="fc-answer-body px-4 py-3 text-sm text-slate-700 leading-relaxed whitespace-pre-line max-h-[140px] overflow-y-auto">
+        {answer}
+      </div>
+    </div>
+  );
+}
+
 export interface FlashCardPlayerProps {
   cards: FlashCard[];
   keyboardShortcuts?: boolean;
@@ -196,6 +220,9 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
         @media (max-width: 480px) {
           .fc-card.flipped .markdown-body { padding: 1rem; font-size: 0.9rem; }
         }
+        .fc-answer-floating .fc-answer-body::-webkit-scrollbar { width: 5px; }
+        .fc-answer-floating .fc-answer-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); border-radius: 10px; }
+        .fc-answer-floating .fc-answer-body::-webkit-scrollbar-thumb { background: rgba(34, 197, 94, 0.25); border-radius: 10px; }
         @media (prefers-reduced-motion: reduce) {
           .fc-card { transition: none; }
           .fc-card.flipped { animation: none; }
@@ -306,7 +333,11 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       </div>
                       <div className="fc-back-content flex-1 min-h-0 overflow-auto">
                         {backViewMode === 'diff' ? (
-                          <CodeDiffBlock diffContent={card.answer} />
+                          card.metadata?.rawDiff ? (
+                            <CodeDiffBlock diffContent={card.metadata.rawDiff} />
+                          ) : (
+                            <div className="p-6 text-slate-500 text-sm">코드 변경 내용이 없습니다. 파일 보기에서 확인하세요.</div>
+                          )
                         ) : fileLoading ? (
                           <div className="p-6 text-[#57606a] text-sm">파일 내용을 불러오는 중...</div>
                         ) : fileError ? (
@@ -317,11 +348,18 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           <div className="p-6 text-[#57606a] text-sm">파일 정보가 없습니다.</div>
                         )}
                       </div>
+                      {/* 하단 플로팅: Diff/파일 보기 토글과 무관하게 항상 노출 */}
+                      <AIAnswerFloatingBlock answer={card.answer} />
                     </div>
                   ) : (
-                    <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] p-4 break-words [word-break:keep-all] whitespace-pre-line text-center max-[768px]:text-[1.3rem] max-[768px]:p-[10px] max-[480px]:text-[1.15rem]">
-                      {card.question}
-                    </p>
+                    <div className="flex flex-col items-center justify-center w-full p-4 text-center">
+                      <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        질문
+                      </span>
+                      <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] break-words [word-break:keep-all] whitespace-pre-line max-[768px]:text-[1.3rem] max-[480px]:text-[1.15rem]">
+                        {card.question}
+                      </p>
+                    </div>
                   )}
                 </div>
               );

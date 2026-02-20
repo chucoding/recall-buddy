@@ -5,9 +5,10 @@ export interface FlashCard {
   answer: string;
   metadata?: {
     commitMessage?: string;
-    /** 새 스키마: 전체 파일 목록 (raw_url 등) */
+    /** Diff 보기용 원본 코드 변경 내용 */
+    rawDiff?: string;
+    /** 전체 파일 목록 (raw_url 등) */
     files?: FileChange[];
-    /** 하위 호환: 파일 하나만 있을 때 */
     filename?: string;
   };
 }
