@@ -263,9 +263,15 @@
           무료로 시작하세요 &mdash; GitHub 계정만 있으면 됩니다.<br />
           오늘의 커밋이 내일의 실력이 됩니다.
         </p>
-        <a href="/app" class="inline-flex items-center gap-3 py-4 px-10 bg-primary text-bg rounded-xl text-lg font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(7,166,107,0.25)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(7,166,107,0.35)] max-[480px]:w-full max-[480px]:justify-center">
-          Get Started with GitHub
-        </a>
+        <div class="flex flex-wrap items-center justify-center gap-3 max-[480px]:flex-col">
+          <a href="/app" class="inline-flex items-center gap-3 py-4 px-10 bg-primary text-bg rounded-xl text-lg font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(7,166,107,0.25)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(7,166,107,0.35)] max-[480px]:w-full max-[480px]:justify-center cursor-pointer">
+            Get Started with GitHub
+          </a>
+          <button type="button" id="pwa-install-btn" class="pwa-install-btn hidden inline-flex items-center gap-2.5 py-4 px-8 bg-transparent text-text-body border border-border rounded-xl text-base font-semibold transition-all duration-300 hover:bg-surface hover:border-border-medium hover:text-text max-[480px]:w-full max-[480px]:justify-center cursor-pointer" aria-label="앱 설치">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            앱으로 설치
+          </button>
+        </div>
       </div>
     </section>
 
@@ -297,6 +303,43 @@
         }
         mq.addEventListener("change", handleReduceMotion);
         handleReduceMotion(mq);
+      })();
+    </script>
+    <!-- PWA Install: beforeinstallprompt 지원 시 버튼 표시, 클릭 시 네이티브 설치 플로우 -->
+    <script>
+      (function () {
+        var installBtn = document.getElementById("pwa-install-btn");
+        if (!installBtn) return;
+
+        function isStandalone() {
+          return window.matchMedia("(display-mode: standalone)").matches
+            || window.navigator.standalone === true
+            || document.referrer.includes("android-app://");
+        }
+
+        var deferredPrompt;
+        window.addEventListener("beforeinstallprompt", function (e) {
+          e.preventDefault();
+          if (isStandalone()) return;
+          deferredPrompt = e;
+          installBtn.classList.remove("hidden");
+        });
+
+        installBtn.addEventListener("click", function () {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function (choice) {
+              if (choice.outcome === "accepted") deferredPrompt = null;
+            });
+          }
+        });
+
+        window.addEventListener("appinstalled", function () {
+          deferredPrompt = null;
+          installBtn.classList.add("hidden");
+        });
+
+        if (isStandalone()) installBtn.classList.add("hidden");
       })();
     </script>
   </body>
