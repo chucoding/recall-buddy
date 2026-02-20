@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Slider from 'react-slick';
-import MarkdownBlock from '../../templates/MarkdownBlock';
 import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import type { FlashCard } from './types';
 
@@ -169,7 +168,6 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
             )}
           >
             {cards.map((card, i) => {
-              const contentType = card.contentType || 'markdown';
               const isFlipped = flipped && currentSlide === i;
 
               return (
@@ -179,11 +177,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   onClick={flipCard}
                 >
                   {isFlipped ? (
-                    contentType === 'code-diff' ? (
-                      <CodeDiffBlock diffContent={card.answer} />
-                    ) : (
-                      <MarkdownBlock markdown={card.answer} />
-                    )
+                    <CodeDiffBlock diffContent={card.answer} />
                   ) : (
                     <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] p-4 break-words [word-break:keep-all] whitespace-pre-line text-center max-[768px]:text-[1.3rem] max-[768px]:p-[10px] max-[480px]:text-[1.15rem]">
                       {card.question}

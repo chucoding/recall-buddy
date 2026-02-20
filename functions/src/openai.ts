@@ -1,5 +1,5 @@
 import {onRequest} from "firebase-functions/v2/https";
-import {getFlashcardPrompt, type ContentType} from "./prompts.js";
+import {getFlashcardPrompt} from "./prompts.js";
 
 /**
  * Clova와 동일한 형태로 앱에서 사용하는 정규화 응답 타입
@@ -28,7 +28,7 @@ interface NormalizedChatCompletionResponse {
 const OPENAI_MODEL = "gpt-4o-mini";
 
 /**
- * OpenAI Chat Completions - 요청은 { contentType, text }, 프롬프트는 서버에서 조회
+ * OpenAI Chat Completions - 요청은 { text }, 프롬프트는 서버에서 조회
  * 응답은 Clova와 동일한 형태로 정규화해 반환
  */
 export const openaiChatCompletions = onRequest(
@@ -45,18 +45,14 @@ export const openaiChatCompletions = onRequest(
         return;
       }
 
-      const {contentType, text} = req.body;
+      const {text} = req.body;
 
-      if (!text || !contentType) {
-        res.status(400).json({error: "contentType and text are required"});
-        return;
-      }
-      if (contentType !== "markdown" && contentType !== "code-diff") {
-        res.status(400).json({error: "contentType must be 'markdown' or 'code-diff'"});
+      if (!text) {
+        res.status(400).json({error: "text is required"});
         return;
       }
 
-      const prompt = getFlashcardPrompt(contentType as ContentType);
+      const prompt = getFlashcardPrompt();
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
