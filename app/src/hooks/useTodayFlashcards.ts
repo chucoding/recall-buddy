@@ -13,6 +13,7 @@ const DATES_AGO = [1, 7, 30]; // days ago list
 export interface FlashCardData {
   question: string;
   answer: string;
+  highlights?: string[];
   metadata?: {
     commitMessage?: string;
     rawDiff?: string;
@@ -96,16 +97,17 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
       // AI를 통해 질문·답변 쌍 생성 (OpenAI Structured Output: items 배열)
       const result = await chatCompletions(content);
       const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
-      const pairs: { question: string; answer: string }[] =
+      const pairs =
         parsed?.items?.filter(
-          (x): x is { question: string; answer: string } =>
+          (x): x is { question: string; answer: string; highlights?: string[] } =>
             x != null && typeof x.question === "string" && typeof x.answer === "string"
         ) ?? [];
 
-      for (const { question, answer } of pairs) {
+      for (const { question, answer, highlights } of pairs) {
         list.push({
           question,
           answer,
+          highlights: highlights?.filter((h): h is string => typeof h === "string" && h.length > 0),
           metadata: { ...metadata, rawDiff: content }
         });
       }

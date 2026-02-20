@@ -3,13 +3,37 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { highlightText } from '../modules/highlightText';
 import 'github-markdown-css/github-markdown.css';
+
+const MONO_STYLE: React.CSSProperties = {
+  fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+  fontSize: '13px',
+  lineHeight: '1.45',
+};
+
+function getDiffLineStyle(lineContent: string): React.CSSProperties {
+  const style: React.CSSProperties = { display: 'block' };
+  if (lineContent.startsWith('+') && !lineContent.startsWith('+++')) {
+    style.backgroundColor = 'rgba(46, 160, 67, 0.15)';
+    style.borderLeft = '3px solid #2ea043';
+  } else if (lineContent.startsWith('-') && !lineContent.startsWith('---')) {
+    style.backgroundColor = 'rgba(248, 81, 73, 0.15)';
+    style.borderLeft = '3px solid #f85149';
+  } else if (lineContent.startsWith('@@')) {
+    style.backgroundColor = 'rgba(84, 174, 255, 0.12)';
+    style.fontWeight = 600;
+  }
+  return style;
+}
 
 interface CodeDiffBlockProps {
   diffContent: string;
+  /** AI가 추출한 질문 연결 문장/코드 (배경색 하이라이트) */
+  highlightStrings?: string[];
 }
 
-const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
+const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent, highlightStrings }) => {
   return (
     <div className="markdown-body code-diff-content">
       <ReactMarkdown
@@ -21,44 +45,26 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
             
             if (!inline && match) {
               if (isDiff) {
-                // diff 코드용 커스텀 렌더링
+                const raw = String(children).replace(/\n$/, '');
+                const lines = raw.split('\n');
+                const hasHighlights = highlightStrings && highlightStrings.length > 0;
                 return (
-                  <div className="my-3 border border-[#d0d7de] rounded-md overflow-hidden">
-                    <SyntaxHighlighter
-                      style={github}
-                      language="diff"
-                      PreTag="div"
-                      customStyle={{
-                        margin: 0,
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        lineHeight: '1.45',
-                      }}
-                      codeTagProps={{
-                        style: {
-                          fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
-                        }
-                      }}
-                      lineProps={(lineNumber) => {
-                        const lineContent = String(children).split('\n')[lineNumber - 1] || '';
-                        const style: React.CSSProperties = { display: 'block' };
-                        // AI 하이라이팅: 추가/삭제/헤더 라인 구분 (대비 4.5:1 이상 유지)
-                        if (lineContent.startsWith('+') && !lineContent.startsWith('+++')) {
-                          style.backgroundColor = 'rgba(46, 160, 67, 0.15)';
-                          style.borderLeft = '3px solid #2ea043';
-                        } else if (lineContent.startsWith('-') && !lineContent.startsWith('---')) {
-                          style.backgroundColor = 'rgba(248, 81, 73, 0.15)';
-                          style.borderLeft = '3px solid #f85149';
-                        } else if (lineContent.startsWith('@@')) {
-                          style.backgroundColor = 'rgba(84, 174, 255, 0.12)';
-                          style.fontWeight = '600';
-                        }
-                        return { style };
-                      }}
-                      {...props}
-                    >
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
+                  <div className="my-3 border border-slate-200 rounded-xl overflow-hidden">
+                    <pre className="m-0 p-3 overflow-x-auto" style={MONO_STYLE}>
+                      <code style={MONO_STYLE}>
+                        {hasHighlights
+                          ? lines.map((line, i) => (
+                              <div key={i} style={getDiffLineStyle(line)}>
+                                {highlightText(line, highlightStrings!)}
+                              </div>
+                            ))
+                          : lines.map((line, i) => (
+                              <div key={i} style={getDiffLineStyle(line)}>
+                                {line}
+                              </div>
+                            ))}
+                      </code>
+                    </pre>
                   </div>
                 );
               }

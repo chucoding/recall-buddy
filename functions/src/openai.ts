@@ -48,8 +48,13 @@ const FLASHCARD_RESPONSE_SCHEMA = {
             properties: {
               question: { type: "string", description: "면접 질문" },
               answer: { type: "string", description: "기대 답변 (2~4문장)" },
+              highlights: {
+                type: "array",
+                description: "원문에서 이 질문과 연결되는 문장/코드 라인 (정확히 일치하는 문자열 1~3개)",
+                items: { type: "string" },
+              },
             },
-            required: ["question", "answer"],
+            required: ["question", "answer", "highlights"],
             additionalProperties: false,
           },
         },

@@ -331,10 +331,18 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           </span>
                         )}
                       </div>
+                      <div
+                        className="fc-highlight-guide flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 bg-amber-50/60 text-slate-600 text-[11px] shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-hidden
+                      >
+                        <span className="inline-block w-3 h-3 rounded-sm bg-amber-100/90 border border-amber-200/80" />
+                        <span>밝은 배경은 이 질문과 연결된 부분이에요. 카드에 따라 표시가 없을 수도 있어요.</span>
+                      </div>
                       <div className="fc-back-content flex-1 min-h-0 overflow-auto">
                         {backViewMode === 'diff' ? (
                           card.metadata?.rawDiff ? (
-                            <CodeDiffBlock diffContent={card.metadata.rawDiff} />
+                            <CodeDiffBlock diffContent={card.metadata.rawDiff} highlightStrings={card.highlights} />
                           ) : (
                             <div className="p-6 text-slate-500 text-sm">코드 변경 내용이 없습니다. 파일 보기에서 확인하세요.</div>
                           )
@@ -343,7 +351,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         ) : fileError ? (
                           <div className="p-6 text-[#cf222e] text-sm">{fileError}</div>
                         ) : fileContent !== null ? (
-                          <FileContentBlock content={fileContent} filename={currentFilename} />
+                          <FileContentBlock content={fileContent} filename={currentFilename} highlightStrings={card.highlights} />
                         ) : (
                           <div className="p-6 text-slate-500 text-sm">파일 정보가 없습니다.</div>
                         )}
