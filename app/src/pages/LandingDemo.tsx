@@ -216,8 +216,8 @@ const LandingDemo: React.FC = () => {
         </div>
       </form>
 
-      <div className="relative left-1/2 -translate-x-1/2 w-screen mt-6 overflow-x-hidden" role="group" aria-label="예시 리포지토리">
-        <div className="flex flex-nowrap items-center justify-center gap-3">
+      <div className="mt-6 w-full max-w-[100vw] md:max-w-none md:relative md:left-1/2 md:-translate-x-1/2 md:w-screen md:overflow-x-hidden" role="group" aria-label="예시 리포지토리">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:flex-nowrap md:justify-center">
         {EXAMPLE_REPOS.map(({ label, url, bg, text, badge }) => (
           <button
             key={url}
@@ -227,7 +227,7 @@ const LandingDemo: React.FC = () => {
               runSubmit(url);
             }}
             disabled={loading}
-            className={`inline-flex items-center justify-center h-11 min-h-[44px] rounded-full text-[0.85rem] font-semibold border-0 transition-[opacity,filter] duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:opacity-90 focus:outline focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg ${badge ? 'pl-4 pr-6' : 'px-4'}`}
+            className={`inline-flex items-center justify-center h-11 min-h-[44px] w-[max-content] shrink-0 rounded-full text-[0.85rem] font-semibold border-0 transition-[opacity,filter] duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:opacity-90 focus:outline focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg ${badge ? 'pl-4 pr-6' : 'px-4'}`}
             style={{ backgroundColor: bg, color: text }}
           >
             {badge && <img src={badge} alt="" className="h-7 w-auto block shrink-0" height={28} aria-hidden />}
@@ -244,7 +244,7 @@ const LandingDemo: React.FC = () => {
       )}
 
       {cards.length > 0 && (
-        <div className="mt-14" ref={cardSectionRef}>
+        <div className="mt-14 w-full max-w-full min-w-0 overflow-x-hidden" ref={cardSectionRef}>
           <FlashCardPlayer
             cards={cards}
             renderHeader={() => (
