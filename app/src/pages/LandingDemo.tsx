@@ -1,57 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
-import { chatCompletions } from '../api/ai-api';
+import { generateDemoFlashcards } from '../lib/demoFlashcards';
 
-interface CommitData {
-  sha: string;
-  commit: {
-    message: string;
-    author: {
-      name: string;
-      date: string;
-    };
-  };
-  files?: Array<{
-    filename: string;
-    status: string;
-    additions: number;
-    deletions: number;
-    patch?: string;
-  }>;
-}
-
-/** 커밋 데이터에서 답변 콘텐츠(마크다운)를 생성 */
-function buildAnswerContent(commit: CommitData): string {
-  const message = commit.commit.message.split('\n')[0];
-
-  const filesInfo = commit.files
-    ? commit.files
-        .slice(0, 5)
-        .map((f) => `- \`${f.filename}\` (+${f.additions} -${f.deletions})`)
-        .join('\n')
-    : '_파일 정보 없음_';
-
-  const patchPreview = commit.files
-    ?.filter((f) => f.patch)
-    .slice(0, 2)
-    .map((f) => `### ${f.filename}\n\`\`\`diff\n${f.patch?.slice(0, 400)}\n\`\`\``)
-    .join('\n\n');
-
-  return `## ${message}\n\n**변경된 파일:**\n${filesInfo}${patchPreview ? `\n\n**코드 변경 미리보기:**\n\n${patchPreview}` : ''}`;
-}
-
-/** 템플릿 기반 폴백 질문 */
-function buildFallbackQuestion(commit: CommitData): string {
-  const message = commit.commit.message.split('\n')[0];
-  const date = new Date(commit.commit.author.date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  return `${date}\n\n"${message}"\n\n이 커밋에서 어떤 변경이 있었나요?`;
-}
-
+/**
+ * 랜딩 데모 페이지
+ * 플래시카드 데이터 소스: AI에서 바로 생성 (generateDemoFlashcards).
+ * Firebase/Firestore 미사용. 로그인 후 앱 플래시카드는 Firestore에서 로드.
+ */
 const LandingDemo: React.FC = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [cards, setCards] = useState<FlashCard[]>([]);
@@ -59,108 +15,20 @@ const LandingDemo: React.FC = () => {
   const [error, setError] = useState('');
   const cardSectionRef = useRef<HTMLDivElement>(null);
 
-  const parseGitHubUrl = (url: string): { owner: string; repo: string } | null => {
-    const cleaned = url.trim().replace(/\/+$/, '');
-
-    const simpleMatch = cleaned.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)$/);
-    if (simpleMatch) {
-      return { owner: simpleMatch[1], repo: simpleMatch[2] };
-    }
-
-    const urlMatch = cleaned.match(/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)/);
-    if (urlMatch) {
-      return { owner: urlMatch[1], repo: urlMatch[2] };
-    }
-
-    return null;
-  };
-
-  /** AI로 질문 생성, 실패 시 템플릿 폴백 */
-  const generateAIQuestion = async (answerContent: string): Promise<string[]> => {
-    const result = await chatCompletions(answerContent);
-    return JSON.parse(result.result.message.content);
-  };
-
-  /** URL로 데모 제출 (폼/예시 버튼 공용) */
   const runSubmit = async (url: string) => {
     setError('');
     setCards([]);
-
-    const parsed = parseGitHubUrl(url);
-    if (!parsed) {
-      setError('올바른 GitHub 리포지토리 URL을 입력해주세요. (예: https://github.com/owner/repo)');
-      return;
-    }
-
     setLoading(true);
-
     try {
-      const commitsRes = await fetch(
-        `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=3`,
-        {
-          headers: { Accept: 'application/vnd.github.v3+json' },
-        }
-      );
-
-      if (!commitsRes.ok) {
-        if (commitsRes.status === 404) {
-          throw new Error('리포지토리를 찾을 수 없습니다. Public 리포지토리인지 확인해주세요.');
-        }
-        throw new Error('GitHub API 호출에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      const result = await generateDemoFlashcards(url);
+      if (result.ok) {
+        setCards(result.cards);
+        setTimeout(() => {
+          cardSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      } else {
+        setError(result.error);
       }
-
-      const commits: CommitData[] = await commitsRes.json();
-
-      if (commits.length === 0) {
-        throw new Error('커밋이 없는 리포지토리입니다.');
-      }
-
-      // 커밋 상세 정보 병렬 fetch
-      const detailedCommits = await Promise.all(
-        commits.slice(0, 3).map(async (commit) => {
-          try {
-            const detailRes = await fetch(
-              `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits/${commit.sha}`,
-              {
-                headers: { Accept: 'application/vnd.github.v3+json' },
-              }
-            );
-            if (detailRes.ok) {
-              return (await detailRes.json()) as CommitData;
-            }
-          } catch {
-            // fallback to basic commit data
-          }
-          return commit;
-        })
-      );
-
-      // 각 커밋의 답변 콘텐츠 구성
-      const answerContents = detailedCommits.map(buildAnswerContent);
-
-      // AI 질문 생성 병렬 호출 (커밋별 1개 질문)
-      const aiResults = await Promise.all(
-        answerContents.map(async (content, i) => {
-          try {
-            const questions = await generateAIQuestion(content);
-            return questions[0] || buildFallbackQuestion(detailedCommits[i]);
-          } catch {
-            return buildFallbackQuestion(detailedCommits[i]);
-          }
-        })
-      );
-
-      // 카드 조합
-      const generated: FlashCard[] = detailedCommits.map((_, i) => ({
-        question: aiResults[i],
-        answer: answerContents[i],
-      }));
-
-      setCards(generated);
-
-      setTimeout(() => {
-        cardSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
     } catch (err: any) {
       setError(err.message || '알 수 없는 오류가 발생했습니다.');
     } finally {
@@ -173,7 +41,6 @@ const LandingDemo: React.FC = () => {
     runSubmit(repoUrl);
   };
 
-  /** 데모 입력창 아래 예시: pill 디자인 + shields.io 로고 (아이콘 없으면 badge 생략) */
   const EXAMPLE_REPOS = [
     { label: 'Cursor', url: 'https://github.com/getcursor/cursor', bg: '#6366F1', text: 'white', badge: null },
     { label: 'OpenClaw', url: 'https://github.com/openclaw/openclaw', bg: '#EA580C', text: 'white', badge: null },

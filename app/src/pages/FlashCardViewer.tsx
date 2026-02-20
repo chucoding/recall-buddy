@@ -6,6 +6,10 @@ import type { FlashCard } from '../features/flashcard';
 import { auth, store } from '../firebase';
 import { getCurrentDate } from '../modules/utils';
 
+/**
+ * 로그인 사용자 전용 플래시카드 뷰어
+ * 데이터 소스: Firestore (users/{uid}/flashcards/{오늘날짜}). 데모는 LandingDemo + lib/demoFlashcards.
+ */
 const FlashCardViewer: React.FC = () => {
   const [cards, setCards] = useState<FlashCard[]>([]);
 

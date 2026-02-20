@@ -208,8 +208,10 @@ export const getMarkdown = onRequest(
 );
 
 /**
- * raw_url로 해당 커밋 시점 파일 원문 조회 (Authorization으로 private repo 대응)
- * raw_url은 GitHub commit files[].raw_url (github.com/.../raw/..., raw.githubusercontent.com, api.github.com)
+ * raw_url로 해당 커밋 시점 파일 원문 조회
+ * - 로그인 시: Authorization으로 private repo 대응
+ * - 데모(비로그인) 시: raw_url만 검증 후 토큰 없이 fetch (공개 repo만 가능)
+ * raw_url은 GitHub commit files[].raw_url 또는 raw.githubusercontent.com/owner/repo/ref/path
  */
 export const getFileContent = onRequest(
   {
@@ -239,15 +241,21 @@ export const getFileContent = onRequest(
         return;
       }
 
-      const userData = await getUserData(req);
+      const headers: Record<string, string> = {
+        "Accept": "application/vnd.github.raw",
+        "X-GitHub-Api-Version": "2022-11-28",
+      };
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith("Bearer ")) {
+        try {
+          const userData = await getUserData(req);
+          headers["Authorization"] = `Bearer ${userData.githubToken}`;
+        } catch {
+          // 토큰 없거나 만료: 공개 URL은 토큰 없이 시도
+        }
+      }
 
-      const response = await fetch(rawUrl, {
-        headers: {
-          "Authorization": `Bearer ${userData.githubToken}`,
-          "Accept": "application/vnd.github.raw",
-          "X-GitHub-Api-Version": "2022-11-28",
-        },
-      });
+      const response = await fetch(rawUrl, { headers });
 
       if (!response.ok) {
         const errorBody = await response.text();
