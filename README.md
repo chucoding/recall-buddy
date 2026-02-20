@@ -1,14 +1,57 @@
 # CodeRecall
+**GitHub 커밋 기록을 AI가 분석해 플래시카드로 만들어 주고, 매일 알림으로 복습을 도와주는 웹 앱입니다.**
+
 https://coderecall.app/
 
-매일 github에서 학습하거나 커밋한 내용을 정리하고 알림을 받는 앱입니다.
+<div align="center">
+  <div style="overflow:hidden; height:200px; max-width:600px; margin:0 auto; border-radius:8px;">
+    <img src="app/public/og-image.png" alt="CodeRecall OG Image" style="width:100%; height:220%; object-fit:cover; object-position:center; display:block;" />
+  </div>
+</div>
 
-<p align="center">
-  <img src="assets/onboarding1.png" width="23%" />
-  <img src="assets/onboarding2.png" width="23%" />
-  <img src="assets/onboarding3.png" width="23%" />
-  <img src="assets/onboarding4.png" width="23%" />
-</p>
+## 서비스 상세 설명
+
+### 기획 배경
+
+- GitHub에 TIL(Today I Learned), 코드 리뷰, 학습 내용을 커밋해도 시간이 지나면 잘 기억나지 않는 문제가 있음
+- 커밋·학습 기록을 **자동으로 정리하고 복습할 수 있는 도구**가 있으면 지식 유지에 도움이 됨
+- 매일 알림으로 복습 습관을 유도하고, AI로 요약·질문 형태의 플래시카드를 만들어 학습 효율을 높이기 위해 기획됨
+
+### 타겟 사용자
+
+- **TIL·학습 기록을 GitHub에 커밋하는 개발자**
+- **코드 리뷰·스터디 내용을 정리해 두고 주기적으로 복습하고 싶은 사람**
+- **커밋 기록을 기반으로 한 간편한 복습·리콜 도구**를 찾는 사람
+
+### 주요 기능
+
+- **GitHub 연동**: OAuth 로그인 후 복습할 리포지토리 선택
+- **커밋 기반 플래시카드**: 지정 기간의 커밋을 가져와 HyperCLOVA X로 질문/답 형식 플래시카드 자동 생성
+- **플래시카드 복습**: 카드 넘기기로 복습, 마크다운·코드 diff 렌더링 지원
+- **매일 알림**: 매일 오전 8시(KST) FCM 푸시로 "복습할 카드가 도착했어요" 리마인더
+- **PWA**: 설치 가능한 웹 앱으로 모바일·데스크톱에서 사용
+
+---
+
+## 기술 스택
+
+| 구분 | 기술 |
+|------|------|
+| **프론트엔드** | React 18, TypeScript, Vite, Tailwind CSS, Zustand |
+| **PWA** | vite-plugin-pwa (오프라인·설치 지원) |
+| **백엔드·인프라** | Firebase (Authentication, Firestore, Cloud Functions, FCM) |
+| **AI** | 네이버 클라우드 HyperCLOVA X (HCX-007) — 플래시카드 생성 |
+| **연동** | GitHub API (커밋·파일 조회) |
+| **기타** | Markdown 렌더링 (react-markdown, remark-gfm), 코드 하이라이트 (react-syntax-highlighter) |
+
+<div align=left>
+  <img src="https://img.shields.io/badge/react v18-61DAFB?style=for-the-badge&logo=React&logoColor=white">
+  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=PWA&logoColor=white">
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=Firebase&logoColor=black">
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white">
+  <img src="https://img.shields.io/badge/Markdown-000000?style=for-the-badge&logo=Markdown&logoColor=white">
+</div>
+<br>
 
 ## 🚀 시작하기
 
@@ -76,18 +119,6 @@ pnpm push
 이 프로젝트는 기본적으로 **Seoul (asia-northeast3)** 리전에 배포됩니다.
 
 [전체 리전 목록 보러가기](https://firebase.google.com/docs/functions/locations)
-
-
-## 기술 스택
-
-<div align=left>
-  <img src="https://img.shields.io/badge/react v18-61DAFB?style=for-the-badge&logo=React&logoColor=white">
-  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=PWA&logoColor=white">
-  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=Firebase&logoColor=black">
-  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white">
-  <img src="https://img.shields.io/badge/Markdown-000000?style=for-the-badge&logo=Markdown&logoColor=white">
-</div>
-<br>
 
 ## 기술 블로그
 |version|date|link|
