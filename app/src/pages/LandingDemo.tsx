@@ -81,12 +81,12 @@ const LandingDemo: React.FC = () => {
     return JSON.parse(result.result.message.content);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  /** URL로 데모 제출 (폼/예시 버튼 공용) */
+  const runSubmit = async (url: string) => {
     setError('');
     setCards([]);
 
-    const parsed = parseGitHubUrl(repoUrl);
+    const parsed = parseGitHubUrl(url);
     if (!parsed) {
       setError('올바른 GitHub 리포지토리 URL을 입력해주세요. (예: https://github.com/owner/repo)');
       return;
@@ -168,6 +168,21 @@ const LandingDemo: React.FC = () => {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    runSubmit(repoUrl);
+  };
+
+  /** 데모 입력창 아래 예시: pill 디자인 + shields.io 로고 (아이콘 없으면 badge 생략) */
+  const EXAMPLE_REPOS = [
+    { label: 'Cursor', url: 'https://github.com/getcursor/cursor', bg: '#6366F1', text: 'white', badge: null },
+    { label: 'OpenClaw', url: 'https://github.com/openclaw/openclaw', bg: '#EA580C', text: 'white', badge: null },
+    { label: 'Kubernetes', url: 'https://github.com/kubernetes/kubernetes', bg: '#326CE5', text: 'white', badge: 'https://img.shields.io/badge/--326CE5?style=for-the-badge&logo=kubernetes&logoColor=white' },
+    { label: 'Next.js', url: 'https://github.com/vercel/next.js', bg: '#000000', text: 'white', badge: 'https://img.shields.io/badge/--000000?style=for-the-badge&logo=nextdotjs&logoColor=white' },
+    { label: 'React', url: 'https://github.com/facebook/react', bg: '#61DAFB', text: 'black', badge: 'https://img.shields.io/badge/--61DAFB?style=for-the-badge&logo=react&logoColor=black' },
+    { label: 'Spring Boot', url: 'https://github.com/spring-projects/spring-boot', bg: '#6DB33F', text: 'white', badge: 'https://img.shields.io/badge/--6DB33F?style=for-the-badge&logo=springboot&logoColor=white' },
+  ] as const;
+
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -201,14 +216,35 @@ const LandingDemo: React.FC = () => {
         </div>
       </form>
 
+      <div className="relative left-1/2 -translate-x-1/2 w-screen mt-6 overflow-x-hidden" role="group" aria-label="예시 리포지토리">
+        <div className="flex flex-nowrap items-center justify-center gap-3">
+        {EXAMPLE_REPOS.map(({ label, url, bg, text, badge }) => (
+          <button
+            key={url}
+            type="button"
+            onClick={() => {
+              setRepoUrl(url);
+              runSubmit(url);
+            }}
+            disabled={loading}
+            className={`inline-flex items-center justify-center h-11 min-h-[44px] rounded-full text-[0.85rem] font-semibold border-0 transition-[opacity,filter] duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:opacity-90 focus:outline focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg ${badge ? 'pl-4 pr-6' : 'px-4'}`}
+            style={{ backgroundColor: bg, color: text }}
+          >
+            {badge && <img src={badge} alt="" className="h-7 w-auto block shrink-0" height={28} aria-hidden />}
+            <span>{label}</span>
+          </button>
+        ))}
+        </div>
+      </div>
+
       {error && (
-        <p className="mt-4 py-3 px-5 bg-error-bg border border-error/30 rounded-xl text-error-light text-sm animate-fade-in">
+        <p className="mt-6 py-3 px-5 bg-error-bg border border-error/30 rounded-xl text-error-light text-sm animate-fade-in">
           {error}
         </p>
       )}
 
       {cards.length > 0 && (
-        <div className="mt-12" ref={cardSectionRef}>
+        <div className="mt-14" ref={cardSectionRef}>
           <FlashCardPlayer
             cards={cards}
             renderHeader={() => (
