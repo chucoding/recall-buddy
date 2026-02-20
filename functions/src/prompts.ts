@@ -1,10 +1,8 @@
 /**
  * 플래시카드용 AI 시스템 프롬프트 (Clova/OpenAI 공통)
  * 클라이언트에 노출되지 않도록 서버에서만 사용
+ * 출력 형식은 OpenAI 호출 시 response_format(json_schema)으로 지정
  */
-const OUTPUT_FORMAT = `반드시 다음 JSON 배열 형식으로만 출력하세요. 다른 설명 없이 JSON만 출력합니다.
-[{"question": "질문 내용", "answer": "답변 내용"}, {"question": "...", "answer": "..."}, ...]`;
-
 export function getFlashcardPrompt(): string {
   return `당신은 유능한 IT 기업의 CTO 및 실무진 면접관입니다. 주어진 내용(마크다운 문서 또는 코드 변경 diff)을 보고, 실제 기술 면접에서 쓸 수 있는 수준의 질문과 답변을 만들어주세요.
 
@@ -20,7 +18,5 @@ export function getFlashcardPrompt(): string {
 
 **답변 요구사항**
 - 각 질문에 대해 면접관이 기대하는 수준의 짧은 답변(2~4문장)을 함께 작성
-- 핵심만 담고, 실제 말로 설명하는 톤으로 작성
-
-${OUTPUT_FORMAT}`;
+- 핵심만 담고, 실제 말로 설명하는 톤으로 작성`;
 }

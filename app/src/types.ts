@@ -1,4 +1,11 @@
 /**
+ * OpenAI 플래시카드 구조화 출력 스키마 (functions/openai.ts response_format과 동기화)
+ */
+export interface FlashcardStructuredOutput {
+  items: Array<{ question: string; answer: string }>;
+}
+
+/**
  * GitHub Repository
  */
 export interface Repository {

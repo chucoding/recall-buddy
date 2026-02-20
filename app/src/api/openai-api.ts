@@ -1,4 +1,4 @@
-import type { ChatCompletionResponse } from '../types';
+import type { ChatCompletionResponse, FlashcardStructuredOutput } from '../types';
 
 const FUNCTIONS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_FUNCTIONS_URL_PROD
@@ -36,3 +36,6 @@ export async function chatCompletions(text: string): Promise<ChatCompletionRespo
 
   return response.json();
 }
+
+/** OpenAI 플래시카드 구조화 출력 스키마 (함수 response_format과 동기화) */
+export type { FlashcardStructuredOutput };

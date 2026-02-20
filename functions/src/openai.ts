@@ -28,8 +28,41 @@ interface NormalizedChatCompletionResponse {
 const OPENAI_MODEL = "gpt-4o-mini";
 
 /**
+ * 플래시카드 구조화 출력 스키마 (app types와 동기화)
+ * OpenAI Structured Outputs로 응답 형식 보장
+ */
+const FLASHCARD_RESPONSE_SCHEMA = {
+  type: "json_schema" as const,
+  json_schema: {
+    name: "flashcard_items",
+    description: "기술 면접용 플래시카드 질문·답변 목록",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          description: "질문과 답변 쌍 목록",
+          items: {
+            type: "object",
+            properties: {
+              question: { type: "string", description: "면접 질문" },
+              answer: { type: "string", description: "기대 답변 (2~4문장)" },
+            },
+            required: ["question", "answer"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["items"],
+      additionalProperties: false,
+    },
+  },
+};
+
+/**
  * OpenAI Chat Completions - 요청은 { text }, 프롬프트는 서버에서 조회
- * 응답은 Clova와 동일한 형태로 정규화해 반환
+ * response_format으로 JSON 스키마 적용, 응답은 Clova와 동일한 형태로 정규화해 반환
  */
 export const openaiChatCompletions = onRequest(
   {
@@ -68,6 +101,7 @@ export const openaiChatCompletions = onRequest(
           ],
           temperature: 0.5,
           max_tokens: 4096,
+          response_format: FLASHCARD_RESPONSE_SCHEMA,
         }),
       });
 
