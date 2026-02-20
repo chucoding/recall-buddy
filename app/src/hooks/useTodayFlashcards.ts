@@ -91,15 +91,26 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
 
       const { content, metadata } = githubData;
 
-      // AI를 통해 질문 생성
+      // AI를 통해 질문·답변 쌍 생성 (형식: [{ question, answer }, ...] 또는 레거시: ["질문", ...])
       const result = await chatCompletions(content);
-      const questions = JSON.parse(result.result.message.content);
-      
-      // 질문-답변 쌍 생성
-      for (const question of questions) {
+      const parsed = JSON.parse(result.result.message.content);
+      const pairs: { question: string; answer: string }[] = Array.isArray(parsed)
+        ? parsed
+            .map((item: unknown) => {
+              if (typeof item === "string") return { question: item, answer: content };
+              if (item && typeof item === "object" && "question" in item && "answer" in item) {
+                const o = item as { question: string; answer: string };
+                return o.question && o.answer ? o : null;
+              }
+              return null;
+            })
+            .filter((x): x is { question: string; answer: string } => x != null)
+        : [];
+
+      for (const { question, answer } of pairs) {
         list.push({
-          question: question,
-          answer: content,
+          question,
+          answer,
           metadata: metadata
         });
       }
