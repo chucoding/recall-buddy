@@ -76,69 +76,47 @@
       <div class="max-w-[1200px] mx-auto py-3 px-6 flex justify-between items-center max-[480px]:px-4">
         <a href="/" class="font-display text-[1.6rem] text-primary tracking-[-0.5px] no-underline max-[480px]:text-[1.3rem]">CodeRecall</a>
 
-        <!-- Desktop links -->
-        <div class="hidden items-center gap-8 md:flex">
+        <!-- Desktop: 로고 + Get Started만 (Google/ChatGPT 스타일) -->
+        <div class="hidden md:flex items-center gap-6">
           <a href="#how-it-works" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">How it Works</a>
           <a href="#features" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">Features</a>
-          <a href="#demo" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">Demo</a>
-          <a href="/app" class="flex items-center gap-2 py-2.5 px-5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline transition-all duration-200 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(7,166,107,0.3)]">
+          <a href="/app" class="py-2.5 px-5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline transition-all duration-200 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(7,166,107,0.3)]">
             Get Started
           </a>
         </div>
 
-        <!-- Mobile hamburger -->
-        <label for="nav-toggle" class="flex flex-col gap-[5px] cursor-pointer p-2 md:hidden" aria-label="Toggle menu">
+        <!-- Mobile: 햄버거 메뉴 -->
+        <label for="nav-toggle" class="flex flex-col gap-[5px] cursor-pointer p-2 md:hidden" aria-label="메뉴 열기">
           <span class="block w-5 h-0.5 bg-text-body rounded"></span>
           <span class="block w-5 h-0.5 bg-text-body rounded"></span>
           <span class="block w-5 h-0.5 bg-text-body rounded"></span>
         </label>
       </div>
 
-      <!-- Mobile dropdown -->
       <div class="hidden peer-checked:flex flex-col gap-1 px-6 pb-4 bg-surface/95 backdrop-blur-xl md:!hidden animate-fade-in">
         <a href="#how-it-works" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">How it Works</a>
         <a href="#features" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">Features</a>
-        <a href="#demo" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">Demo</a>
         <a href="/app" class="mt-1 flex items-center justify-center gap-2 py-2.5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline">
           Get Started
         </a>
       </div>
     </nav>
 
-    <!-- ========== 2. Hero Section ========== -->
-    <section id="hero-section" class="hero relative min-h-screen flex items-center justify-center pt-[80px] px-6 pb-24 overflow-hidden max-[768px]:min-h-0 max-[768px]:pt-[80px] max-[768px]:pb-16">
-      <!-- 헤더 배경 영상 (발광 펄스 전용, WebM 우선 → MP4 폴백) -->
-      <video class="hero-bg" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
-        <source src="/video/tech_header_pulse_only_1280x720.webm" type="video/webm" />
-        <source src="/video/tech_header_pulse_only_1280x720.mp4" type="video/mp4" />
-      </video>
-
-      <div class="relative z-10 text-center max-w-[800px] w-full">
-        <div class="inline-block mb-6 py-1.5 px-4 bg-primary/10 rounded-full text-primary text-sm font-medium border border-primary/20 animate-fade-up">
-          Free &amp; Open Source
-        </div>
-
-        <h1 class="text-[3.5rem] font-bold text-text leading-[1.15] mb-6 tracking-tight animate-fade-up [animation-delay:0.1s] [animation-fill-mode:both] max-[768px]:text-[2.5rem] max-[480px]:text-[2rem]">
-          Turn Your Git Commits<br />
-          into <span class="relative inline-block text-primary after:content-[''] after:absolute after:-left-1 after:-right-1 after:bottom-[4px] after:h-3 after:bg-primary/20 after:rounded after:-z-10">Flashcards</span>
+    <!-- ========== 2. Main: 데모 중심 첫 화면 (Google/ChatGPT 스타일) ========== -->
+    <main id="demo" class="min-h-[calc(100vh-60px)] flex flex-col items-center justify-center pt-[72px] px-4 pb-16 max-[768px]:min-h-0 max-[768px]:py-16 max-[768px]:pt-[72px]">
+      <div class="w-full max-w-[640px] mx-auto text-center">
+        <h1 class="text-[1.75rem] font-bold text-text mb-1 tracking-tight max-[480px]:text-[1.4rem]">
+          GitHub 커밋을 플래시카드로 복습하세요
         </h1>
-
-        <p class="text-xl text-text-body leading-relaxed mb-10 animate-fade-up [animation-delay:0.2s] [animation-fill-mode:both] max-w-[600px] mx-auto max-[768px]:text-base max-[480px]:text-[0.95rem]">
-          커밋 기록을 AI가 분석해 자동으로 학습 카드를 만들어드립니다.<br class="max-[480px]:hidden" />
-          매일 복습하며 더 나은 개발자로 성장하세요.
+        <p class="text-[0.95rem] text-text-light mb-8 max-[480px]:text-sm max-[480px]:mb-6">
+          Public 리포지토리 URL을 입력하고 체험해 보세요
         </p>
-
-        <div class="flex items-center justify-center gap-4 animate-fade-up [animation-delay:0.3s] [animation-fill-mode:both] max-[480px]:flex-col max-[480px]:gap-3">
-          <a href="/app" class="inline-flex items-center gap-2.5 py-4 px-8 bg-primary text-bg rounded-xl text-[1.05rem] font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(7,166,107,0.25)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_12px_40px_rgba(7,166,107,0.35)] max-[480px]:w-full max-[480px]:justify-center">
-            Try it Free
-          </a>
-          <a href="#demo" class="inline-flex items-center gap-2 py-4 px-8 bg-transparent text-text-body border border-border rounded-xl text-[1.05rem] font-semibold no-underline transition-all duration-300 hover:bg-surface hover:border-border-medium hover:text-text max-[480px]:w-full max-[480px]:justify-center">
-            See Demo
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-          </a>
-        </div>
+        <div id="demo-root"></div>
+        <p class="mt-6 text-[0.8rem] text-text-muted">
+          Free &amp; Open Source · 로그인 없이 데모만 체험
+        </p>
       </div>
-    </section>
+    </main>
 
     <!-- ========== 3. Social Proof Bar ========== -->
     <section class="py-8 px-6 bg-surface border-b border-border">
@@ -243,18 +221,6 @@
       </div>
     </section>
 
-    <!-- ========== 6. Interactive Demo (React mount) ========== -->
-    <section id="demo" class="relative py-24 px-6 overflow-hidden max-[480px]:py-16 max-[480px]:px-4">
-      <div class="absolute inset-0 bg-surface z-0"></div>
-      <div class="relative z-10 max-w-[800px] mx-auto">
-        <div class="text-center mb-12 max-[480px]:mb-8">
-          <h2 class="text-[2.5rem] font-bold text-text mb-4 max-[480px]:text-[1.8rem]">See it in Action</h2>
-          <p class="text-lg text-text-light max-[480px]:text-base">Public 리포지토리 URL을 입력하고 체험해 보세요</p>
-        </div>
-        <div id="demo-root"></div>
-      </div>
-    </section>
-
     <!-- ========== 7. Final CTA ========== -->
     <section class="py-24 px-6 bg-bg max-[480px]:py-16 max-[480px]:px-4">
       <div class="max-w-[640px] mx-auto text-center">
@@ -289,22 +255,6 @@
     </footer>
 
     <script type="module" src="/src/landing-main.tsx"></script>
-    <script>
-      (function () {
-        var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        function handleReduceMotion(e) {
-          var video = document.querySelector(".hero-bg");
-          if (!video) return;
-          if (e && e.matches) {
-            video.pause();
-          } else {
-            video.play().catch(function () {});
-          }
-        }
-        mq.addEventListener("change", handleReduceMotion);
-        handleReduceMotion(mq);
-      })();
-    </script>
     <!-- PWA Install: beforeinstallprompt 지원 시 버튼 표시, 클릭 시 네이티브 설치 플로우 -->
     <script>
       (function () {
