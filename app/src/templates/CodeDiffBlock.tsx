@@ -42,7 +42,7 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
                       lineProps={(lineNumber) => {
                         const lineContent = String(children).split('\n')[lineNumber - 1] || '';
                         const style: React.CSSProperties = { display: 'block' };
-                        
+                        // AI 하이라이팅: 추가/삭제/헤더 라인 구분 (대비 4.5:1 이상 유지)
                         if (lineContent.startsWith('+') && !lineContent.startsWith('+++')) {
                           style.backgroundColor = 'rgba(46, 160, 67, 0.15)';
                           style.borderLeft = '3px solid #2ea043';
@@ -50,10 +50,9 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent }) => {
                           style.backgroundColor = 'rgba(248, 81, 73, 0.15)';
                           style.borderLeft = '3px solid #f85149';
                         } else if (lineContent.startsWith('@@')) {
-                          style.backgroundColor = 'rgba(84, 174, 255, 0.15)';
+                          style.backgroundColor = 'rgba(84, 174, 255, 0.12)';
                           style.fontWeight = '600';
                         }
-                        
                         return { style };
                       }}
                       {...props}

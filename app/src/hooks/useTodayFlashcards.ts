@@ -3,7 +3,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { store } from '../firebase';
 import { chatCompletions } from '../api/ai-api';
-import { getCommits, getFilename, type CommitDetail } from '../api/github-api';
+import { getCommits, getFilename, type CommitDetail, type FileChange } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
 
@@ -13,8 +13,8 @@ export interface FlashCardData {
   question: string;
   answer: string;
   metadata?: {
-    filename?: string;
     commitMessage?: string;
+    files?: FileChange[];
   };
 }
 
@@ -115,8 +115,8 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
 interface GithubData {
   content: string;
   metadata?: {
-    filename?: string;
     commitMessage?: string;
+    files?: FileChange[];
   };
 }
 
@@ -144,13 +144,14 @@ async function getGithubData(daysAgo: number): Promise<GithubData | null> {
   }
 
   for (const commit of commits) {
-    const commit_detail = await getFilename(commit.sha);
-    const codeDiff = formatCodeDiff(commit_detail);
+    const commitDetail = await getFilename(commit.sha);
+    const codeDiff = formatCodeDiff(commitDetail);
     if (codeDiff) {
       return {
         content: codeDiff,
         metadata: {
-          commitMessage: commit_detail.commit.message
+          commitMessage: commitDetail.commit.message,
+          files: commitDetail.files
         }
       };
     }
