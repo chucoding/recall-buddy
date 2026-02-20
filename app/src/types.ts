@@ -11,11 +11,6 @@ export interface Repository {
 }
 
 /**
- * Content Type
- */
-export type ContentType = 'markdown' | 'code-diff';
-
-/**
  * CLOVA Studio Chat Completion API Response
  */
 export interface ChatCompletionResponse {

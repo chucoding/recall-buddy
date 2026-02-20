@@ -1,4 +1,4 @@
-import type { ChatCompletionResponse, ContentType } from '../types';
+import type { ChatCompletionResponse } from '../types';
 
 const FUNCTIONS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_FUNCTIONS_URL_PROD
@@ -7,10 +7,7 @@ const FUNCTIONS_URL = import.meta.env.PROD
 /**
  * CLOVA Studio - Firebase Functions를 통해 호출
  */
-export async function chatCompletions(
-  text: string,
-  contentType: ContentType = 'markdown'
-): Promise<ChatCompletionResponse> {
+export async function chatCompletions(text: string): Promise<ChatCompletionResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
@@ -19,7 +16,7 @@ export async function chatCompletions(
     response = await fetch(`${FUNCTIONS_URL}/chatCompletions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contentType, text }),
+      body: JSON.stringify({ text }),
       signal: controller.signal,
     });
   } catch (err) {

@@ -77,7 +77,7 @@ const LandingDemo: React.FC = () => {
 
   /** AI로 질문 생성, 실패 시 템플릿 폴백 */
   const generateAIQuestion = async (answerContent: string): Promise<string[]> => {
-    const result = await chatCompletions(answerContent, 'code-diff');
+    const result = await chatCompletions(answerContent);
     return JSON.parse(result.result.message.content);
   };
 
@@ -151,10 +151,9 @@ const LandingDemo: React.FC = () => {
       );
 
       // 카드 조합
-      const generated: FlashCard[] = detailedCommits.map((commit, i) => ({
+      const generated: FlashCard[] = detailedCommits.map((_, i) => ({
         question: aiResults[i],
         answer: answerContents[i],
-        contentType: commit.files?.some((f) => f.patch) ? 'code-diff' as const : 'markdown' as const,
       }));
 
       setCards(generated);

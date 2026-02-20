@@ -3,18 +3,15 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { store } from '../firebase';
 import { chatCompletions } from '../api/ai-api';
-import { getCommits, getFilename, getMarkdown, type CommitDetail } from '../api/github-api';
+import { getCommits, getFilename, type CommitDetail } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
 
 const DATES_AGO = [1, 7, 30]; // days ago list
 
-export type ContentType = 'markdown' | 'code-diff';
-
 export interface FlashCardData {
   question: string;
   answer: string;
-  contentType: ContentType;
   metadata?: {
     filename?: string;
     commitMessage?: string;
@@ -92,10 +89,10 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
         continue;
       }
 
-      const { content, contentType, metadata } = githubData;
+      const { content, metadata } = githubData;
 
-      // AI를 통해 질문 생성 (contentType에 따라 프롬프트 변경)
-      const result = await chatCompletions(content, contentType);
+      // AI를 통해 질문 생성
+      const result = await chatCompletions(content);
       const questions = JSON.parse(result.result.message.content);
       
       // 질문-답변 쌍 생성
@@ -103,7 +100,6 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
         list.push({
           question: question,
           answer: content,
-          contentType: contentType,
           metadata: metadata
         });
       }
@@ -118,7 +114,6 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
 
 interface GithubData {
   content: string;
-  contentType: ContentType;
   metadata?: {
     filename?: string;
     commitMessage?: string;
@@ -127,8 +122,7 @@ interface GithubData {
 
 /**
  * GitHub에서 특정 날짜의 데이터 가져오기
- * 마크다운 파일이 있으면 마크다운, 없으면 코드 변경 내용(diff) 반환
- * 
+ *
  * @param daysAgo - 며칠 전 데이터를 가져올지
  * @returns GithubData 또는 null
  */
@@ -151,36 +145,17 @@ async function getGithubData(daysAgo: number): Promise<GithubData | null> {
 
   for (const commit of commits) {
     const commit_detail = await getFilename(commit.sha);
-    
-    // 1. 마크다운 파일이 있는지 확인
-    const markdownFile = commit_detail.files.find(file => file.filename.endsWith('.md'));
-    
-    if (markdownFile) {
-      // 마크다운 파일이 있으면 전체 내용 가져오기
-      const data = await getMarkdown(markdownFile.filename);
-      return {
-        content: data,
-        contentType: 'markdown',
-        metadata: {
-          filename: markdownFile.filename,
-          commitMessage: commit_detail.commit.message
-        }
-      };
-    }
-    
-    // 2. 마크다운 파일이 없으면 코드 변경 내용(diff) 사용
     const codeDiff = formatCodeDiff(commit_detail);
     if (codeDiff) {
       return {
         content: codeDiff,
-        contentType: 'code-diff',
         metadata: {
           commitMessage: commit_detail.commit.message
         }
       };
     }
   }
-  
+
   return null;
 }
 

@@ -9,6 +9,13 @@ interface MarkdownBlockProps {
   markdown: string;
 }
 
+/**
+ * MarkdownBlock
+ * @deprecated - CodeDiffBlock 사용
+ * 
+ * @param markdown - markdown 내용
+ * @returns MarkdownBlock
+ */
 const MarkdownBlock: React.FC<MarkdownBlockProps> = ({ markdown }) => {
   return (
     <div className="markdown-body">
