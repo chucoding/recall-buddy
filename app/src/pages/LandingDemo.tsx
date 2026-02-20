@@ -1,57 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
-import { chatCompletions } from '../api/ai-api';
+import { generateDemoFlashcards } from '../lib/demoFlashcards';
 
-interface CommitData {
-  sha: string;
-  commit: {
-    message: string;
-    author: {
-      name: string;
-      date: string;
-    };
-  };
-  files?: Array<{
-    filename: string;
-    status: string;
-    additions: number;
-    deletions: number;
-    patch?: string;
-  }>;
-}
-
-/** 커밋 데이터에서 답변 콘텐츠(마크다운)를 생성 */
-function buildAnswerContent(commit: CommitData): string {
-  const message = commit.commit.message.split('\n')[0];
-
-  const filesInfo = commit.files
-    ? commit.files
-        .slice(0, 5)
-        .map((f) => `- \`${f.filename}\` (+${f.additions} -${f.deletions})`)
-        .join('\n')
-    : '_파일 정보 없음_';
-
-  const patchPreview = commit.files
-    ?.filter((f) => f.patch)
-    .slice(0, 2)
-    .map((f) => `### ${f.filename}\n\`\`\`diff\n${f.patch?.slice(0, 400)}\n\`\`\``)
-    .join('\n\n');
-
-  return `## ${message}\n\n**변경된 파일:**\n${filesInfo}${patchPreview ? `\n\n**코드 변경 미리보기:**\n\n${patchPreview}` : ''}`;
-}
-
-/** 템플릿 기반 폴백 질문 */
-function buildFallbackQuestion(commit: CommitData): string {
-  const message = commit.commit.message.split('\n')[0];
-  const date = new Date(commit.commit.author.date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  return `${date}\n\n"${message}"\n\n이 커밋에서 어떤 변경이 있었나요?`;
-}
-
+/**
+ * 랜딩 데모 페이지
+ * 플래시카드 데이터 소스: AI에서 바로 생성 (generateDemoFlashcards).
+ * Firebase/Firestore 미사용. 로그인 후 앱 플래시카드는 Firestore에서 로드.
+ */
 const LandingDemo: React.FC = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [cards, setCards] = useState<FlashCard[]>([]);
@@ -59,114 +15,40 @@ const LandingDemo: React.FC = () => {
   const [error, setError] = useState('');
   const cardSectionRef = useRef<HTMLDivElement>(null);
 
-  const parseGitHubUrl = (url: string): { owner: string; repo: string } | null => {
-    const cleaned = url.trim().replace(/\/+$/, '');
-
-    const simpleMatch = cleaned.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)$/);
-    if (simpleMatch) {
-      return { owner: simpleMatch[1], repo: simpleMatch[2] };
-    }
-
-    const urlMatch = cleaned.match(/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)/);
-    if (urlMatch) {
-      return { owner: urlMatch[1], repo: urlMatch[2] };
-    }
-
-    return null;
-  };
-
-  /** AI로 질문 생성, 실패 시 템플릿 폴백 */
-  const generateAIQuestion = async (answerContent: string): Promise<string[]> => {
-    const result = await chatCompletions(answerContent);
-    return JSON.parse(result.result.message.content);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const runSubmit = async (url: string) => {
     setError('');
     setCards([]);
-
-    const parsed = parseGitHubUrl(repoUrl);
-    if (!parsed) {
-      setError('올바른 GitHub 리포지토리 URL을 입력해주세요. (예: https://github.com/owner/repo)');
-      return;
-    }
-
     setLoading(true);
-
     try {
-      const commitsRes = await fetch(
-        `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=3`,
-        {
-          headers: { Accept: 'application/vnd.github.v3+json' },
-        }
-      );
-
-      if (!commitsRes.ok) {
-        if (commitsRes.status === 404) {
-          throw new Error('리포지토리를 찾을 수 없습니다. Public 리포지토리인지 확인해주세요.');
-        }
-        throw new Error('GitHub API 호출에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      const result = await generateDemoFlashcards(url);
+      if (result.ok) {
+        setCards(result.cards);
+        setTimeout(() => {
+          cardSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      } else {
+        setError(result.error);
       }
-
-      const commits: CommitData[] = await commitsRes.json();
-
-      if (commits.length === 0) {
-        throw new Error('커밋이 없는 리포지토리입니다.');
-      }
-
-      // 커밋 상세 정보 병렬 fetch
-      const detailedCommits = await Promise.all(
-        commits.slice(0, 3).map(async (commit) => {
-          try {
-            const detailRes = await fetch(
-              `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits/${commit.sha}`,
-              {
-                headers: { Accept: 'application/vnd.github.v3+json' },
-              }
-            );
-            if (detailRes.ok) {
-              return (await detailRes.json()) as CommitData;
-            }
-          } catch {
-            // fallback to basic commit data
-          }
-          return commit;
-        })
-      );
-
-      // 각 커밋의 답변 콘텐츠 구성
-      const answerContents = detailedCommits.map(buildAnswerContent);
-
-      // AI 질문 생성 병렬 호출 (커밋별 1개 질문)
-      const aiResults = await Promise.all(
-        answerContents.map(async (content, i) => {
-          try {
-            const questions = await generateAIQuestion(content);
-            return questions[0] || buildFallbackQuestion(detailedCommits[i]);
-          } catch {
-            return buildFallbackQuestion(detailedCommits[i]);
-          }
-        })
-      );
-
-      // 카드 조합
-      const generated: FlashCard[] = detailedCommits.map((_, i) => ({
-        question: aiResults[i],
-        answer: answerContents[i],
-      }));
-
-      setCards(generated);
-
-      setTimeout(() => {
-        cardSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
     } catch (err: any) {
       setError(err.message || '알 수 없는 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    runSubmit(repoUrl);
+  };
+
+  const EXAMPLE_REPOS = [
+    { label: 'Cursor', url: 'https://github.com/getcursor/cursor', bg: '#6366F1', text: 'white', badge: null },
+    { label: 'OpenClaw', url: 'https://github.com/openclaw/openclaw', bg: '#EA580C', text: 'white', badge: null },
+    { label: 'Kubernetes', url: 'https://github.com/kubernetes/kubernetes', bg: '#326CE5', text: 'white', badge: 'https://img.shields.io/badge/--326CE5?style=for-the-badge&logo=kubernetes&logoColor=white' },
+    { label: 'Next.js', url: 'https://github.com/vercel/next.js', bg: '#000000', text: 'white', badge: 'https://img.shields.io/badge/--000000?style=for-the-badge&logo=nextdotjs&logoColor=white' },
+    { label: 'React', url: 'https://github.com/facebook/react', bg: '#61DAFB', text: 'black', badge: 'https://img.shields.io/badge/--61DAFB?style=for-the-badge&logo=react&logoColor=black' },
+    { label: 'Spring Boot', url: 'https://github.com/spring-projects/spring-boot', bg: '#6DB33F', text: 'white', badge: 'https://img.shields.io/badge/--6DB33F?style=for-the-badge&logo=springboot&logoColor=white' },
+  ] as const;
 
   return (
     <>
@@ -201,14 +83,35 @@ const LandingDemo: React.FC = () => {
         </div>
       </form>
 
+      <div className="mt-6 w-full max-w-[100vw] md:max-w-none md:relative md:left-1/2 md:-translate-x-1/2 md:w-screen md:overflow-x-hidden" role="group" aria-label="예시 리포지토리">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:flex-nowrap md:justify-center">
+        {EXAMPLE_REPOS.map(({ label, url, bg, text, badge }) => (
+          <button
+            key={url}
+            type="button"
+            onClick={() => {
+              setRepoUrl(url);
+              runSubmit(url);
+            }}
+            disabled={loading}
+            className={`inline-flex items-center justify-center h-11 min-h-[44px] w-[max-content] shrink-0 rounded-full text-[0.85rem] font-semibold border-0 transition-[opacity,filter] duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:opacity-90 focus:outline focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg ${badge ? 'pl-4 pr-6' : 'px-4'}`}
+            style={{ backgroundColor: bg, color: text }}
+          >
+            {badge && <img src={badge} alt="" className="h-7 w-auto block shrink-0" height={28} aria-hidden />}
+            <span>{label}</span>
+          </button>
+        ))}
+        </div>
+      </div>
+
       {error && (
-        <p className="mt-4 py-3 px-5 bg-error-bg border border-error/30 rounded-xl text-error-light text-sm animate-fade-in">
+        <p className="mt-6 py-3 px-5 bg-error-bg border border-error/30 rounded-xl text-error-light text-sm animate-fade-in">
           {error}
         </p>
       )}
 
       {cards.length > 0 && (
-        <div className="mt-12" ref={cardSectionRef}>
+        <div className="mt-14 w-full max-w-full min-w-0 overflow-x-hidden" ref={cardSectionRef}>
           <FlashCardPlayer
             cards={cards}
             renderHeader={() => (
@@ -219,6 +122,16 @@ const LandingDemo: React.FC = () => {
             )}
             renderFooter={() => (
               <div className="text-center mt-14 animate-fade-up">
+                <p
+                  className="mb-8 mx-auto max-w-xl text-center text-xs text-text-muted leading-relaxed flex items-center justify-center gap-1.5 flex-wrap"
+                  role="note"
+                  aria-label="데모 안내"
+                >
+                  <svg className="w-3.5 h-3.5 shrink-0 text-text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span>데모에서는 가장 최근 커밋 3개를 기반으로 플래시카드를 생성합니다</span>
+                </p>
                 <p className="text-text-body text-lg mb-5">
                   매일 자동으로 플래시카드를 받아보고 싶다면?
                 </p>

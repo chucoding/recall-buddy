@@ -22,9 +22,13 @@ export interface FlashCardData {
 }
 
 /**
- * 오늘의 플래시카드 데이터를 로드하는 커스텀 훅
- * 로그인하지 않은 유저는는 데이터를 로드하지 않음
- * Firestore 경로: users/{uid}/flashcards/{date}
+ * 로그인 사용자 전용: 오늘의 플래시카드 로드
+ *
+ * 데이터 소스: Firestore (users/{uid}/flashcards/{date})
+ * - 이미 있으면 Firestore에서만 읽어서 사용
+ * - 없으면 AI로 생성 후 Firestore에 저장
+ *
+ * 데모(랜딩) 플래시카드는 Firebase 미사용 → lib/demoFlashcards.ts 참고
  */
 export function useTodayFlashcards(user: User | null) {
   const [loading, setLoading] = useState<boolean>(true);
