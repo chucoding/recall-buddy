@@ -5,7 +5,8 @@ const FUNCTIONS_URL = import.meta.env.PROD
   : '/api';
 
 /**
- * CLOVA Studio - Firebase Functions를 통해 호출
+ * OpenAI - Firebase Functions openaiChatCompletions를 통해 호출 (프롬프트는 서버에서 처리)
+ * 요청/응답 형태는 clova-api와 동일 (백엔드에서 Clova 형식으로 정규화)
  */
 export async function chatCompletions(
   text: string,
@@ -16,7 +17,7 @@ export async function chatCompletions(
 
   let response: Response;
   try {
-    response = await fetch(`${FUNCTIONS_URL}/chatCompletions`, {
+    response = await fetch(`${FUNCTIONS_URL}/openaiChatCompletions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contentType, text }),

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
-import { chatCompletions } from '../api/clova-api';
+import { chatCompletions } from '../api/ai-api';
 
 interface CommitData {
   sha: string;

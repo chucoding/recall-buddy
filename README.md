@@ -74,7 +74,17 @@ VITE_MESSAGING_SENDER_ID=...
 VITE_APP_ID=...
 VITE_MEASUREMENT_ID=...
 ```
+- **AI Provider** (선택): 미설정 시 OpenAI 사용. Clova 사용 시:
+```bash
+VITE_AI_PROVIDER=clova
+```
+
 #### functions/.env
+- **OpenAI 사용 시** (기본): Firebase Functions 설정에 `OPENAI_API_KEY` 추가
+```bash
+OPENAI_API_KEY=your_openai_api_key
+```
+- **Clova 사용 시**: `VITE_AI_PROVIDER=clova` 설정 후
 ```bash
 CLOVA_API_KEY=your_clova_api_key
 ```

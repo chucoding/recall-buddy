@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_MEASUREMENT_ID: string
   readonly VITE_USER_ID: string
   readonly VITE_SCHEDULE_CODE: string
+  readonly VITE_AI_PROVIDER?: 'clova' | 'openai'
 }
 
 interface ImportMeta {
