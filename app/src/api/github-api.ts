@@ -18,6 +18,10 @@ export interface FileChange {
   deletions: number;
   changes: number;
   patch?: string;
+  /** GitHub commit file: raw content URL (해당 커밋 시점 파일 원문) */
+  raw_url?: string;
+  /** GitHub commit file: blob URL */
+  blob_url?: string;
 }
 
 export interface CommitDetail {
@@ -58,6 +62,16 @@ export async function getMarkdown(filename: string): Promise<string> {
   
   const data: MarkdownResponse = response.data;
   return data.content;
+}
+
+/**
+ * raw_url로 해당 커밋 시점 파일 원문 조회 (private repo 대응으로 백엔드 경유)
+ */
+export async function getFileContent(rawUrl: string): Promise<string> {
+  const response = await apiClient.get<MarkdownResponse>('/getFileContent', {
+    params: { raw_url: rawUrl }
+  });
+  return response.data.content;
 }
 
 export async function getRepositories(): Promise<Repository[]> {

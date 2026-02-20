@@ -208,6 +208,70 @@ export const getMarkdown = onRequest(
 );
 
 /**
+ * raw_url로 해당 커밋 시점 파일 원문 조회 (Authorization으로 private repo 대응)
+ * raw_url은 GitHub commit files[].raw_url (github.com/.../raw/..., raw.githubusercontent.com, api.github.com)
+ */
+export const getFileContent = onRequest(
+  {
+    cors: true,
+    region: "asia-northeast3",
+    invoker: "public",
+  },
+  async (req, res) => {
+    try {
+      const rawUrl = typeof req.query.raw_url === "string" ? req.query.raw_url : null;
+
+      if (!rawUrl) {
+        res.status(400).json({error: "raw_url parameter is required"});
+        return;
+      }
+
+      const allowedHosts = ["github.com", "raw.githubusercontent.com", "api.github.com"];
+      let parsed: URL;
+      try {
+        parsed = new URL(rawUrl);
+      } catch {
+        res.status(400).json({error: "Invalid raw_url"});
+        return;
+      }
+      if (!allowedHosts.includes(parsed.hostname)) {
+        res.status(400).json({error: "raw_url must be from GitHub"});
+        return;
+      }
+
+      const userData = await getUserData(req);
+
+      const response = await fetch(rawUrl, {
+        headers: {
+          "Authorization": `Bearer ${userData.githubToken}`,
+          "Accept": "application/vnd.github.raw",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`GitHub raw fetch error: ${response.status}`, errorBody);
+        res.status(response.status).json({
+          error: "File not found or access denied",
+          details: errorBody,
+        });
+        return;
+      }
+
+      const content = await response.text();
+      res.json({content});
+    } catch (error) {
+      console.error("Error fetching file content:", error);
+      res.status(500).json({
+        error: "Failed to fetch file content",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
+/**
  * 사용자의 GitHub 리포지토리 목록 가져오기
  * Settings 페이지에서 리포지토리 선택을 위해 사용
  */

@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Slider from 'react-slick';
 import CodeDiffBlock from '../../templates/CodeDiffBlock';
+import FileContentBlock from '../../templates/FileContentBlock';
+import { getFileContent, getMarkdown } from '../../api/github-api';
 import type { FlashCard } from './types';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+
+type BackViewMode = 'diff' | 'file';
 
 export interface FlashCardPlayerProps {
   cards: FlashCard[];
@@ -21,6 +25,12 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
 }) => {
   const [flipped, setFlipped] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [backViewMode, setBackViewMode] = useState<BackViewMode>('diff');
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const lastFetchedUrlRef = useRef<string | null>(null);
   const sliderRef = useRef<Slider>(null);
 
   const next = () => {
@@ -41,10 +51,14 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
     if (!keyboardShortcuts) return;
 
     const handleKeyPress = (e: KeyboardEvent) => {
+      const target = e.target instanceof HTMLElement ? e.target : null;
       if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement
       ) {
+        return;
+      }
+      if (target?.closest('[role="tablist"]') || target?.getAttribute('role') === 'tab') {
         return;
       }
 
@@ -67,6 +81,60 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [keyboardShortcuts, currentSlide, cards.length, flipped]);
+
+  const card = cards[currentSlide];
+  const metadata = card?.metadata;
+  const files = metadata?.files ?? [];
+  const hasFilesArray = files.length > 0;
+  const legacyFilename = metadata?.filename;
+  const hasFileView = hasFilesArray || Boolean(legacyFilename);
+  const effectiveFiles = hasFilesArray
+    ? files
+    : legacyFilename
+      ? [{ filename: legacyFilename, raw_url: undefined as string | undefined }]
+      : [];
+  const hasFiles = effectiveFiles.length > 0;
+  const safeFileIndex = hasFiles ? Math.min(selectedFileIndex, effectiveFiles.length - 1) : 0;
+  const currentFile = effectiveFiles[safeFileIndex];
+  const currentFilename = currentFile?.filename ?? legacyFilename ?? '';
+  const currentRawUrl = currentFile && 'raw_url' in currentFile ? (currentFile as { raw_url?: string }).raw_url : undefined;
+
+  useEffect(() => {
+    if (hasFiles && selectedFileIndex >= effectiveFiles.length) setSelectedFileIndex(0);
+  }, [hasFiles, effectiveFiles.length, selectedFileIndex]);
+
+  useEffect(() => {
+    if (!flipped || !card || backViewMode !== 'file' || !hasFiles || !currentFilename) return;
+    const fetchKey = currentRawUrl ?? currentFilename;
+    if (lastFetchedUrlRef.current === fetchKey && fileContent !== null) return;
+
+    let cancelled = false;
+    lastFetchedUrlRef.current = fetchKey;
+    setFileLoading(true);
+    setFileError(null);
+    const fetchPromise = currentRawUrl
+      ? getFileContent(currentRawUrl)
+      : getMarkdown(currentFilename);
+    fetchPromise
+      .then((content) => {
+        if (!cancelled) {
+          setFileContent(content);
+          setFileError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setFileError(err?.message ?? '파일을 불러올 수 없습니다.');
+          setFileContent(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFileLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [flipped, currentSlide, backViewMode, safeFileIndex, cards, hasFiles, fileContent, currentFilename, currentRawUrl]);
 
   if (cards.length === 0) return null;
 
@@ -122,22 +190,16 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
           border-radius: 6px; overflow: hidden;
         }
         .fc-card .github-diff-container pre { margin: 0 !important; }
-        .fc-btn::before {
-          content: '';
-          position: absolute;
-          top: 50%; left: 50%;
-          width: 0; height: 0;
-          border-radius: 50%;
-          background: rgba(34, 197, 94, 0.1);
-          transform: translate(-50%, -50%);
-          transition: width 0.6s, height 0.6s;
-        }
-        .fc-btn:hover:not(:disabled)::before { width: 300px; height: 300px; }
         @media (max-width: 768px) {
           .fc-card.flipped .markdown-body { padding: 1.5rem; font-size: 0.95rem; }
         }
         @media (max-width: 480px) {
           .fc-card.flipped .markdown-body { padding: 1rem; font-size: 0.9rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .fc-card { transition: none; }
+          .fc-card.flipped { animation: none; }
+          .fc-player .slick-dots li button:before { transition: none; }
         }
       `}</style>
 
@@ -149,16 +211,21 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
         </span>
       </div>
 
-      <div className="fc-player flex-1 flex flex-col justify-center max-w-[1200px] mx-auto w-full relative z-10">
-        <div>
+      <div className="fc-player flex-1 flex flex-col min-h-0 max-w-[1200px] mx-auto w-full relative z-10">
+        <div className="flex-1 min-h-0 flex flex-col">
           <Slider
             ref={sliderRef}
             dots
             arrows={false}
-            swipe={false}
+            swipe
             infinite={false}
             beforeChange={(_, next) => {
               setFlipped(false);
+              setBackViewMode('diff');
+              setSelectedFileIndex(0);
+              setFileContent(null);
+              setFileError(null);
+              lastFetchedUrlRef.current = null;
               setCurrentSlide(next);
             }}
             appendDots={(dots) => (
@@ -173,11 +240,84 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
               return (
                 <div
                   key={i}
-                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[380px] max-h-[600px] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-[0.6s] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(51,74,73,0.3)] relative antialiased max-[768px]:min-h-[300px] max-[768px]:max-h-[500px] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[260px] max-[480px]:max-h-[420px] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)] ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(7,166,107,0.2)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isFlipped ? '카드 앞면 보기 (클릭 또는 Space)' : '카드 뒷면 보기 (클릭 또는 Space)'}
+                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(51,74,73,0.3)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(7,166,107,0.2)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
                   onClick={flipCard}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      flipCard();
+                    }
+                  }}
                 >
                   {isFlipped ? (
-                    <CodeDiffBlock diffContent={card.answer} />
+                    <div className="fc-card-back w-full h-full flex flex-col min-h-0">
+                      <div
+                        className="fc-back-header flex items-center gap-1 p-2 border-b border-[#d0d7de] bg-[#f6f8fa] shrink-0 rounded-t-3xl"
+                        onClick={(e) => e.stopPropagation()}
+                        role="tablist"
+                        aria-label="뒷면 보기 모드"
+                      >
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={backViewMode === 'diff'}
+                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-[#24292f] hover:bg-[#eaeef2]'}`}
+                          onClick={() => setBackViewMode('diff')}
+                        >
+                          Diff 보기
+                        </button>
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={backViewMode === 'file'}
+                          disabled={!hasFileView}
+                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-[#24292f] hover:bg-[#eaeef2]'} ${hasFileView ? 'cursor-pointer' : ''}`}
+                          onClick={() => hasFileView && setBackViewMode('file')}
+                        >
+                          파일 보기
+                        </button>
+                        {backViewMode === 'file' && hasFilesArray && effectiveFiles.length > 1 && (
+                          <select
+                            className="ml-2 text-xs rounded-md border border-[#d0d7de] bg-white text-[#24292f] py-1.5 px-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 max-w-[200px] truncate"
+                            value={safeFileIndex}
+                            onChange={(e) => {
+                              setSelectedFileIndex(Number(e.target.value));
+                              lastFetchedUrlRef.current = null;
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label="파일 선택"
+                          >
+                            {effectiveFiles.map((f, i) => (
+                              <option key={i} value={i} title={f.filename}>
+                                {f.filename}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {backViewMode === 'file' && hasFileView && effectiveFiles.length === 1 && (
+                          <span className="ml-2 text-xs text-[#57606a] truncate max-w-[180px]" title={currentFilename}>
+                            {currentFilename}
+                          </span>
+                        )}
+                      </div>
+                      <div className="fc-back-content flex-1 min-h-0 overflow-auto">
+                        {backViewMode === 'diff' ? (
+                          <CodeDiffBlock diffContent={card.answer} />
+                        ) : fileLoading ? (
+                          <div className="p-6 text-[#57606a] text-sm">파일 내용을 불러오는 중...</div>
+                        ) : fileError ? (
+                          <div className="p-6 text-[#cf222e] text-sm">{fileError}</div>
+                        ) : fileContent !== null ? (
+                          <FileContentBlock content={fileContent} filename={currentFilename} />
+                        ) : (
+                          <div className="p-6 text-[#57606a] text-sm">파일 정보가 없습니다.</div>
+                        )}
+                      </div>
+                    </div>
                   ) : (
                     <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] p-4 break-words [word-break:keep-all] whitespace-pre-line text-center max-[768px]:text-[1.3rem] max-[768px]:p-[10px] max-[480px]:text-[1.15rem]">
                       {card.question}
@@ -187,32 +327,6 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
               );
             })}
           </Slider>
-        </div>
-
-        <div className="mt-[52px] flex justify-center items-center gap-[14px] px-5 max-[768px]:mt-10 max-[768px]:gap-3 max-[768px]:px-[10px] max-[480px]:gap-2.5">
-          <button
-            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center w-16 h-16 rounded-full text-2xl shrink-0 hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(7,166,107,0.3),0_0_0_1px_rgba(7,166,107,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:transform-none disabled:hover:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] max-[768px]:w-[52px] max-[768px]:h-[52px] max-[768px]:text-[1.3rem] max-[480px]:w-12 max-[480px]:h-12 max-[480px]:text-xl [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
-            onClick={previous}
-            disabled={currentSlide === 0}
-            aria-label="이전 카드"
-          >
-            &#8592;
-          </button>
-          <button
-            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center min-w-[168px] h-16 rounded-[32px] px-7 flex-grow max-w-[300px] text-xl hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(7,166,107,0.3),0_0_0_1px_rgba(7,166,107,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] max-[768px]:min-w-[140px] max-[768px]:h-[52px] max-[768px]:text-base max-[768px]:px-[22px] max-[480px]:min-w-[120px] max-[480px]:h-12 max-[480px]:text-[0.95rem] max-[480px]:px-[18px] [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
-            onClick={flipCard}
-            aria-label="카드 뒤집기"
-          >
-            {flipped ? '질문 보기' : '카드 뒤집기'}
-          </button>
-          <button
-            className="fc-btn bg-surface text-primary border border-border font-semibold cursor-pointer transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.3)] relative overflow-hidden flex items-center justify-center w-16 h-16 rounded-full text-2xl shrink-0 hover:enabled:-translate-y-0.5 hover:enabled:scale-[1.05] hover:enabled:shadow-[0_12px_30px_rgba(7,166,107,0.3),0_0_0_1px_rgba(7,166,107,0.2)] active:enabled:-translate-y-px active:enabled:scale-[1.02] disabled:opacity-[0.35] disabled:cursor-not-allowed disabled:transform-none disabled:hover:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] max-[768px]:w-[52px] max-[768px]:h-[52px] max-[768px]:text-[1.3rem] max-[480px]:w-12 max-[480px]:h-12 max-[480px]:text-xl [transition-timing-function:cubic-bezier(0.68,-0.55,0.265,1.55)]"
-            onClick={next}
-            disabled={currentSlide === cards.length - 1}
-            aria-label="다음 카드"
-          >
-            &#8594;
-          </button>
         </div>
       </div>
 
