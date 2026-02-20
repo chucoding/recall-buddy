@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { store } from '../firebase';
 import { chatCompletions } from '../api/ai-api';
+import type { FlashcardStructuredOutput } from '../types';
 import { getCommits, getFilename, type CommitDetail, type FileChange } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
@@ -12,8 +13,10 @@ const DATES_AGO = [1, 7, 30]; // days ago list
 export interface FlashCardData {
   question: string;
   answer: string;
+  highlights?: string[];
   metadata?: {
     commitMessage?: string;
+    rawDiff?: string;
     files?: FileChange[];
   };
 }
@@ -91,16 +94,21 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
 
       const { content, metadata } = githubData;
 
-      // AI를 통해 질문 생성
+      // AI를 통해 질문·답변 쌍 생성 (OpenAI Structured Output: items 배열)
       const result = await chatCompletions(content);
-      const questions = JSON.parse(result.result.message.content);
-      
-      // 질문-답변 쌍 생성
-      for (const question of questions) {
+      const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
+      const pairs =
+        parsed?.items?.filter(
+          (x): x is { question: string; answer: string; highlights?: string[] } =>
+            x != null && typeof x.question === "string" && typeof x.answer === "string"
+        ) ?? [];
+
+      for (const { question, answer, highlights } of pairs) {
         list.push({
-          question: question,
-          answer: content,
-          metadata: metadata
+          question,
+          answer,
+          highlights: highlights?.filter((h): h is string => typeof h === "string" && h.length > 0),
+          metadata: { ...metadata, rawDiff: content }
         });
       }
     } catch (error) {

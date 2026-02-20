@@ -3,11 +3,14 @@ import type { FileChange } from '../../api/github-api';
 export interface FlashCard {
   question: string;
   answer: string;
+  /** 원문에서 이 질문과 연결되는 문장/코드 (Diff·파일 보기에서 하이라이트) */
+  highlights?: string[];
   metadata?: {
     commitMessage?: string;
-    /** 새 스키마: 전체 파일 목록 (raw_url 등) */
+    /** Diff 보기용 원본 코드 변경 내용 */
+    rawDiff?: string;
+    /** 전체 파일 목록 (raw_url 등) */
     files?: FileChange[];
-    /** 하위 호환: 파일 하나만 있을 때 */
     filename?: string;
   };
 }

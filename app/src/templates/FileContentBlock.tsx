@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { highlightText, injectHighlightMarkup, HIGHLIGHT_CLASS } from '../modules/highlightText';
 import 'github-markdown-css/github-markdown.css';
 
 const EXT_TO_LANG: Record<string, string> = {
@@ -42,21 +44,34 @@ function isMarkdownFile(filename: string): boolean {
   return lower.endsWith('.md') || lower.endsWith('.markdown');
 }
 
+const MONO_STYLE: React.CSSProperties = {
+  fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+  fontSize: '13px',
+  lineHeight: '1.45',
+};
+
 interface FileContentBlockProps {
   content: string;
   filename?: string;
+  /** AI가 추출한 질문 연결 문장/코드 (배경색 하이라이트) */
+  highlightStrings?: string[];
 }
 
 /**
  * 파일 원문을 마크다운 또는 코드 하이라이트로 렌더링
  * .md/.markdown → ReactMarkdown, 그 외 확장자 → SyntaxHighlighter
  */
-const FileContentBlock: React.FC<FileContentBlockProps> = ({ content, filename = '' }) => {
+const FileContentBlock: React.FC<FileContentBlockProps> = ({ content, filename = '', highlightStrings }) => {
   if (isMarkdownFile(filename)) {
+    const contentToRender =
+      highlightStrings && highlightStrings.length > 0
+        ? injectHighlightMarkup(content, highlightStrings, HIGHLIGHT_CLASS)
+        : content;
     return (
       <div className="markdown-body w-full h-full overflow-y-auto p-6 box-border text-left bg-white">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw]}
           components={{
             code({ node, inline, className, children, ...props }: any) {
               const match = /language-(\w+)/.exec(className || '');
@@ -86,15 +101,34 @@ const FileContentBlock: React.FC<FileContentBlockProps> = ({ content, filename =
             },
           }}
         >
-          {content}
+          {contentToRender}
         </ReactMarkdown>
       </div>
     );
   }
 
   const language = getLanguageFromFilename(filename) || 'text';
+  const lines = content.split('\n');
+  const hasHighlights = highlightStrings && highlightStrings.length > 0;
+
+  if (hasHighlights) {
+    return (
+      <div className="w-full h-full overflow-auto p-4 bg-slate-50 rounded-b-3xl border border-slate-200 border-t-0 box-border">
+        <pre className="m-0 overflow-x-auto" style={MONO_STYLE}>
+          <code style={MONO_STYLE}>
+            {lines.map((line, i) => (
+              <div key={i} className="block">
+                {highlightText(line, highlightStrings!)}
+              </div>
+            ))}
+          </code>
+        </pre>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full overflow-auto p-4 bg-[#f6f8fa] rounded-b-3xl border border-[#d0d7de] border-t-0 box-border">
+    <div className="w-full h-full overflow-auto p-4 bg-slate-50 rounded-b-3xl border border-slate-200 border-t-0 box-border">
       <SyntaxHighlighter
         style={github}
         language={language}
@@ -107,11 +141,9 @@ const FileContentBlock: React.FC<FileContentBlockProps> = ({ content, filename =
           lineHeight: '1.45',
         }}
         codeTagProps={{
-          style: {
-            fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
-          },
+          style: MONO_STYLE,
         }}
-        showLineNumbers={content.split('\n').length > 5}
+        showLineNumbers={lines.length > 5}
       >
         {content}
       </SyntaxHighlighter>
