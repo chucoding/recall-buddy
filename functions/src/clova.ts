@@ -1,4 +1,5 @@
 import {onRequest} from "firebase-functions/v2/https";
+import {getFlashcardPrompt, type ContentType} from "./prompts.js";
 
 /**
  * CLOVA Studio Chat Completion API Response
@@ -43,12 +44,18 @@ export const chatCompletions = onRequest(
   },
   async (req, res) => {
     try {
-      const {prompt, text} = req.body;
+      const {contentType, text} = req.body;
 
-      if (!prompt || !text) {
-        res.status(400).json({error: "prompt and text are required"});
+      if (!text || !contentType) {
+        res.status(400).json({error: "contentType and text are required"});
         return;
       }
+      if (contentType !== "markdown" && contentType !== "code-diff") {
+        res.status(400).json({error: "contentType must be 'markdown' or 'code-diff'"});
+        return;
+      }
+
+      const prompt = getFlashcardPrompt(contentType as ContentType);
 
       // 고유한 요청 ID 생성
       const requestId = crypto.randomUUID().replace(/-/g, "");

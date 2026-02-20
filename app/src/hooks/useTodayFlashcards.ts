@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { store } from '../firebase';
-import { chatCompletions } from '../api/clova-api';
+import { chatCompletions } from '../api/ai-api';
 import { getCommits, getFilename, getMarkdown, type CommitDetail } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
