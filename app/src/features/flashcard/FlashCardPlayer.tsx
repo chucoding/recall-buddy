@@ -17,7 +17,7 @@ function AIAnswerFloatingBlock({ answer }: { answer: string }) {
       className="fc-answer-floating shrink-0 border-t border-slate-200 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
       onClick={(e) => e.stopPropagation()}
       role="region"
-      aria-label="AI 생성 면접 예상 답변"
+      aria-label="예시 답변"
     >
       <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200">
         <span className="flex items-center justify-center w-6 h-6 rounded-xl bg-primary/10 text-primary" aria-hidden>
@@ -25,7 +25,7 @@ function AIAnswerFloatingBlock({ answer }: { answer: string }) {
             <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a2.25 2.25 0 001.576 1.576l2.846.813a.75.75 0 010 1.442l-2.846.813a2.25 2.25 0 00-1.576 1.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a2.25 2.25 0 00-1.576-1.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A2.25 2.25 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.25 2.25 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.25 2.25 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.25 2.25 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clipRule="evenodd" />
           </svg>
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">AI 예상 답변</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">예시 답변</span>
       </div>
       <div className="fc-answer-body px-4 py-3 text-sm text-slate-700 leading-relaxed whitespace-pre-line max-h-[140px] overflow-y-auto">
         {answer}
