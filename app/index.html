@@ -74,7 +74,7 @@
       <input type="checkbox" id="nav-toggle" class="hidden peer" />
 
       <div class="py-3 px-6 flex justify-between items-center max-[480px]:px-4">
-        <a href="/" class="font-display text-[1.6rem] text-primary tracking-[-0.5px] no-underline max-[480px]:text-[1.3rem]">CodeRecall</a>
+        <a href="/" class="no-underline flex items-center" aria-label="CodeRecall 홈"><img src="/logo.png" alt="CodeRecall" class="h-10 max-[480px]:h-8" /></a>
 
         <!-- Desktop: 로고 + Get Started만 (Google/ChatGPT 스타일) -->
         <div class="hidden md:flex items-center gap-6">
@@ -119,7 +119,8 @@
     <section class="py-8 px-6 bg-surface border-b border-border">
       <div class="max-w-6xl mx-auto flex items-center justify-center gap-8 flex-wrap max-[480px]:gap-4">
         <div class="flex items-center gap-2 text-text-light text-sm font-medium">
-          <svg class="w-5 h-5 text-text-body" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <!-- GitHub Invertocat mark: 허용 용도(프로젝트 연동 표시, 자사 브랜딩보다 작게)에 따라 사용. https://github.com/logos -->
+          <svg class="w-5 h-5 text-text-body shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           Open Source
         </div>
         <span class="w-px h-5 bg-border max-[480px]:hidden"></span>
@@ -152,7 +153,7 @@
           <!-- Step 1 -->
           <div class="relative text-center">
             <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.507a4.5 4.5 0 00-6.364-6.364L4.5 8.257" /></svg>
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             </div>
             <div class="inline-block mb-3 py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-full tracking-wide uppercase">Step 1</div>
             <h3 class="text-xl font-bold text-text mb-2">Connect</h3>
@@ -162,7 +163,7 @@
           <!-- Step 2 -->
           <div class="relative text-center">
             <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" /></svg>
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
             </div>
             <div class="inline-block mb-3 py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-full tracking-wide uppercase">Step 2</div>
             <h3 class="text-xl font-bold text-text mb-2">Generate</h3>
@@ -172,7 +173,7 @@
           <!-- Step 3 -->
           <div class="relative text-center">
             <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+              <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
             </div>
             <div class="inline-block mb-3 py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-full tracking-wide uppercase">Step 3</div>
             <h3 class="text-xl font-bold text-text mb-2">Recall</h3>
@@ -240,8 +241,8 @@
 
     <!-- ========== 8. Footer ========== -->
     <footer class="py-10 px-6 bg-surface border-t border-border">
-      <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4 max-[768px]:flex-col max-[768px]:text-center max-[768px]:gap-3">
-        <div class="font-display text-xl text-primary/70">CodeRecall</div>
+      <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4 max-[768px]:flex-col max-[768px]:items-center max-[768px]:text-center max-[768px]:gap-3">
+        <a href="/" class="no-underline flex items-center" aria-label="CodeRecall 홈"><img src="/logo.png" alt="CodeRecall" class="h-8 opacity-90 max-[480px]:h-6" /></a>
         <div class="flex items-center gap-6 text-text-muted text-sm max-[480px]:gap-4">
           <a href="https://github.com/chucoding" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">GitHub</a>
           <a href="/terms" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Terms</a>
