@@ -74,7 +74,7 @@
       <input type="checkbox" id="nav-toggle" class="hidden peer" />
 
       <div class="py-3 px-6 flex justify-between items-center max-[480px]:px-4">
-        <a href="/" class="font-display text-[1.6rem] text-primary tracking-[-0.5px] no-underline max-[480px]:text-[1.3rem]">CodeRecall</a>
+        <a href="/" class="no-underline flex items-center" aria-label="CodeRecall 홈"><img src="/logo.png" alt="CodeRecall" class="h-10 max-[480px]:h-8" /></a>
 
         <!-- Desktop: 로고 + Get Started만 (Google/ChatGPT 스타일) -->
         <div class="hidden md:flex items-center gap-6">
@@ -241,8 +241,8 @@
 
     <!-- ========== 8. Footer ========== -->
     <footer class="py-10 px-6 bg-surface border-t border-border">
-      <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4 max-[768px]:flex-col max-[768px]:text-center max-[768px]:gap-3">
-        <div class="font-display text-xl text-primary/70">CodeRecall</div>
+      <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4 max-[768px]:flex-col max-[768px]:items-center max-[768px]:text-center max-[768px]:gap-3">
+        <a href="/" class="no-underline flex items-center" aria-label="CodeRecall 홈"><img src="/logo.png" alt="CodeRecall" class="h-8 opacity-90 max-[480px]:h-6" /></a>
         <div class="flex items-center gap-6 text-text-muted text-sm max-[480px]:gap-4">
           <a href="https://github.com/chucoding" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">GitHub</a>
           <a href="/terms" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Terms</a>
