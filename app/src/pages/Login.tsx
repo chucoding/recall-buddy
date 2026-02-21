@@ -104,18 +104,13 @@ const Login: React.FC = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-bg p-5 font-sans max-[480px]:p-4">
       <div className="bg-surface rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-10 max-w-[400px] w-full text-center animate-slide-up border border-border max-[480px]:p-6">
-        <div className="mb-5">
-          <h1 className="text-[3.2rem] font-bold font-display text-primary tracking-tight max-[480px]:text-[2.6rem]">CodeRecall</h1>
-        </div>
-        <div className="mb-8 flex justify-center">
-          <img 
-            src="/character.png" 
-            alt="친근한 캐릭터" 
-            className="w-40 h-auto rounded-2xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.1)] transition-transform duration-300 opacity-95 hover:scale-105 hover:opacity-100 max-[480px]:w-[140px]"
-          />
+        <div className="mb-6 flex justify-center">
+          <a href="/" className="inline-block" aria-label="CodeRecall 홈">
+            <img src="/logo.png" alt="CodeRecall" className="h-14 w-auto max-[480px]:h-11 transition-opacity duration-200 hover:opacity-90" />
+          </a>
         </div>
         <div className="mb-8">
-          <p className="text-text-body text-[1.1rem] leading-relaxed font-sans font-medium max-[480px]:text-base">이제 GitHub에 남긴 학습 기록을<br />CodeRecall를 통해 오래 기억하세요🍀</p>
+          <p className="text-text-body text-[1.1rem] leading-relaxed font-sans font-medium max-[480px]:text-base">GitHub에 남긴 학습 기록을<br />플래시카드로 복습하세요</p>
         </div>
         
         {error && (

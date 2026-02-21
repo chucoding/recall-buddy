@@ -155,31 +155,24 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {/* Step 1: 환영 */}
         {step === 1 && (
           <div className="text-center animate-fade-in">
-            <div className="flex justify-center">
-              <img 
-                src="/onboarding.png" 
-                alt="CodeRecall 캐릭터" 
-                className="w-40 max-w-full h-auto object-contain max-[640px]:w-[140px]"
-              />
-            </div>
-            <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">환영합니다!</h1>
+            <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">환영합니다</h1>
             <p className="text-base text-text-light leading-relaxed mb-8 m-0 [&_strong]:text-primary [&_strong]:font-semibold max-[640px]:text-sm">
-              <strong>CodeRecall</strong>가 여러분의 학습을<br />
-              소중한 장기 기억으로 만들어드립니다
+              <strong>CodeRecall</strong>이 GitHub 학습 기록을<br />
+              플래시카드로 복습할 수 있게 도와드립니다
             </p>
             
-            <div className="my-8 text-left">
-              <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl mb-3 transition-all duration-300 ease-out hover:bg-border hover:translate-x-1">
-                <span className="text-2xl shrink-0">🔄</span>
+            <div className="my-8 text-left space-y-3">
+              <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl transition-colors duration-200 hover:bg-border cursor-default border border-transparent hover:border-border-medium">
+                <span className="text-2xl shrink-0" aria-hidden>🔄</span>
                 <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">1일, 7일, 30일 전 커밋 자동 분석</span>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl mb-3 transition-all duration-300 ease-out hover:bg-border hover:translate-x-1">
-                <span className="text-2xl shrink-0">💡</span>
+              <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl transition-colors duration-200 hover:bg-border cursor-default border border-transparent hover:border-border-medium">
+                <span className="text-2xl shrink-0" aria-hidden>💡</span>
                 <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">AI가 핵심 내용을 질문으로 변환</span>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl mb-3 transition-all duration-300 ease-out hover:bg-border hover:translate-x-1">
-                <span className="text-2xl shrink-0">📱</span>
-                <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">매일 아침 푸시 알림으로 학습</span>
+              <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl transition-colors duration-200 hover:bg-border cursor-default border border-transparent hover:border-border-medium">
+                <span className="text-2xl shrink-0" aria-hidden>📱</span>
+                <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">매일 아침 푸시 알림으로 복습</span>
               </div>
             </div>
 
@@ -195,7 +188,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {/* Step 2: 리포지토리 선택 */}
         {step === 2 && (
           <div className="text-center animate-fade-in">
-            <div className="text-6xl mb-6 max-[640px]:text-5xl max-[640px]:mb-6">⚙️</div>
+            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center" aria-hidden>
+              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
+            </div>
             <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">리포지토리 선택</h1>
             <p className="text-base text-text-light leading-relaxed mb-8 m-0 max-[640px]:text-sm">
               학습하고 싶은 GitHub 리포지토리를 선택해주세요
@@ -204,7 +199,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             {/* 에러 메시지 */}
             {error && (
               <div className="bg-error-bg border-2 border-error-light rounded-xl p-4 mb-6 flex gap-3 items-start animate-[errorSlide_0.3s_ease-out]">
-                <span className="text-2xl shrink-0">⚠️</span>
+                <span className="shrink-0 w-8 h-8 text-error flex items-center justify-center" aria-hidden>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                </span>
                 <div className="flex-1">
                   <p className="text-error-text text-sm leading-relaxed mb-4 font-medium m-0">{error.message}</p>
                   <div className="flex gap-2 flex-wrap">
@@ -212,7 +209,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                       className="flex-1 min-w-[150px] py-2.5 px-4 border-2 border-border rounded-lg text-[13px] font-semibold cursor-pointer transition-all duration-200 bg-surface-light text-text-light hover:bg-border hover:border-border-medium hover:text-text-body"
                       onClick={handleSkipOnboarding}
                     >
-                      ⏭️ 나중에 설정하기
+                      나중에 설정하기
                     </button>
                   </div>
                 </div>
@@ -285,8 +282,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {/* Step 3: 완료 */}
         {step === 3 && (
           <div className="text-center animate-fade-in">
-            <div className="text-6xl mb-6 animate-[successPulse_0.6s_ease-out] max-[640px]:text-5xl">✨</div>
-            <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">준비 완료!</h1>
+            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center animate-[successPulse_0.6s_ease-out]" aria-hidden>
+              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">준비 완료</h1>
             <p className="text-base text-text-light leading-relaxed mb-8 m-0 max-[640px]:text-sm">
               플래시카드를 생성하고 있습니다...<br />
               잠시만 기다려주세요
