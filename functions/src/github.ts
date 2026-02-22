@@ -14,12 +14,19 @@ interface Repository {
   private: boolean;
 }
 
+/** Firestore users.repositories 항목 */
+interface UserRepository {
+  fullName: string;
+  url: string;
+}
+
 /**
- * Firebase ID Token 검증 및 사용자 정보 조회
+ * Firebase ID Token 검증 및 사용자 정보 조회.
+ * repositories 배열만 사용 (기존 repositoryFullName/repositoryUrl 제거).
  */
 async function getUserData(req: any): Promise<{
   githubToken: string;
-  repositoryFullName: string;
+  repositories: UserRepository[];
 }> {
   const authHeader = req.headers.authorization;
 
@@ -30,11 +37,9 @@ async function getUserData(req: any): Promise<{
   const idToken = authHeader.split("Bearer ")[1];
 
   try {
-    // Firebase ID Token 검증
     const decodedToken = await getAuth().verifyIdToken(idToken);
     const userId = decodedToken.uid;
 
-    // Firestore에서 사용자 정보 조회
     const userDoc = await getFirestore().collection("users").doc(userId).get();
 
     if (!userDoc.exists) {
@@ -43,23 +48,48 @@ async function getUserData(req: any): Promise<{
 
     const userData = userDoc.data();
     const githubToken = userData?.githubToken;
-    const repositoryFullName = userData?.repositoryFullName;
+    const repositories = userData?.repositories as UserRepository[] | undefined;
 
     if (!githubToken) {
       throw new Error("GitHub token not found. Please login with GitHub again.");
     }
 
-    if (!repositoryFullName) {
+    if (!Array.isArray(repositories) || repositories.length === 0) {
       throw new Error("Repository settings not found. Please configure in Settings page.");
     }
 
     return {
       githubToken,
-      repositoryFullName,
+      repositories,
     };
   } catch (error) {
     console.error("Authentication error:", error);
     throw error;
+  }
+}
+
+/** 쿼리 repositoryFullName이 유저 목록에 있으면 사용, 없으면 첫 번째 레포 */
+function resolveRepoFullName(
+  repositories: UserRepository[],
+  queryRepo?: string | null
+): string {
+  if (queryRepo && repositories.some((r) => r.fullName === queryRepo)) {
+    return queryRepo;
+  }
+  return repositories[0].fullName;
+}
+
+/** getFileContent용: repositories 없이 토큰만 조회 (raw_url은 레포 불필요) */
+async function getOptionalToken(req: any): Promise<{ githubToken: string } | null> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  try {
+    const decodedToken = await getAuth().verifyIdToken(authHeader.split("Bearer ")[1]);
+    const userDoc = await getFirestore().collection("users").doc(decodedToken.uid).get();
+    const githubToken = userDoc.exists ? (userDoc.data()?.githubToken as string | undefined) : undefined;
+    return githubToken ? { githubToken } : null;
+  } catch {
+    return null;
   }
 }
 
@@ -72,7 +102,7 @@ export const getCommits = onRequest(
   },
   async (req, res) => {
     try {
-      const {since, until} = req.query;
+      const {since, until, repositoryFullName} = req.query;
 
       if (!since || !until) {
         res.status(400).json({error: "since and until parameters are required"});
@@ -80,9 +110,12 @@ export const getCommits = onRequest(
       }
 
       const userData = await getUserData(req);
+      const repoFullName = resolveRepoFullName(
+        userData.repositories,
+        typeof repositoryFullName === "string" ? repositoryFullName : undefined
+      );
 
-      // 리포지토리 기본 브랜치의 커밋 가져오기 (브랜치 사용시 sha 파라미터 추가)
-      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/commits?since=${since}&until=${until}`, {
+      const response = await fetch(`https://api.github.com/repos/${repoFullName}/commits?since=${since}&until=${until}`, {
         headers: {
           "Authorization": `Bearer ${userData.githubToken}`,
           "Accept": "application/vnd.github.v3+json",
@@ -120,7 +153,7 @@ export const getFilename = onRequest(
   },
   async (req, res) => {
     try {
-      const {commit_sha} = req.query;
+      const {commit_sha, repositoryFullName} = req.query;
 
       if (!commit_sha) {
         res.status(400).json({error: "commit_sha parameter is required"});
@@ -128,8 +161,12 @@ export const getFilename = onRequest(
       }
 
       const userData = await getUserData(req);
+      const repoFullName = resolveRepoFullName(
+        userData.repositories,
+        typeof repositoryFullName === "string" ? repositoryFullName : undefined
+      );
 
-      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/commits/${commit_sha}`, {
+      const response = await fetch(`https://api.github.com/repos/${repoFullName}/commits/${commit_sha}`, {
         headers: {
           "Authorization": `Bearer ${userData.githubToken}`,
           "Accept": "application/vnd.github.v3+json",
@@ -167,7 +204,7 @@ export const getMarkdown = onRequest(
   },
   async (req, res) => {
     try {
-      const {filename} = req.query;
+      const {filename, repositoryFullName} = req.query;
 
       if (!filename) {
         res.status(400).json({error: "filename parameter is required"});
@@ -175,9 +212,12 @@ export const getMarkdown = onRequest(
       }
 
       const userData = await getUserData(req);
+      const repoFullName = resolveRepoFullName(
+        userData.repositories,
+        typeof repositoryFullName === "string" ? repositoryFullName : undefined
+      );
 
-      // 리포지토리 기본 브랜치에서 파일 가져오기 (브랜치 사용시 ref 파라미터 추가)
-      const response = await fetch(`https://api.github.com/repos/${userData.repositoryFullName}/contents/${filename}`, {
+      const response = await fetch(`https://api.github.com/repos/${repoFullName}/contents/${filename}`, {
         headers: {
           "Accept": "application/vnd.github.raw",
           "Authorization": `Bearer ${userData.githubToken}`,
@@ -245,14 +285,9 @@ export const getFileContent = onRequest(
         "Accept": "application/vnd.github.raw",
         "X-GitHub-Api-Version": "2022-11-28",
       };
-      const authHeader = req.headers.authorization;
-      if (authHeader?.startsWith("Bearer ")) {
-        try {
-          const userData = await getUserData(req);
-          headers["Authorization"] = `Bearer ${userData.githubToken}`;
-        } catch {
-          // 토큰 없거나 만료: 공개 URL은 토큰 없이 시도
-        }
+      const auth = await getOptionalToken(req);
+      if (auth) {
+        headers["Authorization"] = `Bearer ${auth.githubToken}`;
       }
 
       const response = await fetch(rawUrl, { headers });

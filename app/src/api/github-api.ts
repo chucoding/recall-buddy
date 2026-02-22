@@ -36,30 +36,40 @@ interface MarkdownResponse {
   content: string;
 }
 
-export async function getCommits(since: Date, until: Date): Promise<Commit[]> {
-  const sinceISO = since.toISOString();
-  const untilISO = until.toISOString();
-  
-  const response = await apiClient.get('/getCommits', {
-    params: { since: sinceISO, until: untilISO }
-  });
-  
+export async function getCommits(
+  since: Date,
+  until: Date,
+  repositoryFullName?: string
+): Promise<Commit[]> {
+  const params: Record<string, string> = {
+    since: since.toISOString(),
+    until: until.toISOString(),
+  };
+  if (repositoryFullName) params.repositoryFullName = repositoryFullName;
+
+  const response = await apiClient.get('/getCommits', { params });
   return response.data;
 }
 
-export async function getFilename(sha: string): Promise<CommitDetail> {
-  const response = await apiClient.get('/getFilename', {
-    params: { commit_sha: sha }
-  });
-  
+export async function getFilename(
+  sha: string,
+  repositoryFullName?: string
+): Promise<CommitDetail> {
+  const params: Record<string, string> = { commit_sha: sha };
+  if (repositoryFullName) params.repositoryFullName = repositoryFullName;
+
+  const response = await apiClient.get('/getFilename', { params });
   return response.data;
 }
 
-export async function getMarkdown(filename: string): Promise<string> {
-  const response = await apiClient.get('/getMarkdown', {
-    params: { filename }
-  });
-  
+export async function getMarkdown(
+  filename: string,
+  repositoryFullName?: string
+): Promise<string> {
+  const params: Record<string, string> = { filename };
+  if (repositoryFullName) params.repositoryFullName = repositoryFullName;
+
+  const response = await apiClient.get('/getMarkdown', { params });
   const data: MarkdownResponse = response.data;
   return data.content;
 }

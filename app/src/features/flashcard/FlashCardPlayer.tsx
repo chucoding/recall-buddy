@@ -40,6 +40,10 @@ export interface FlashCardPlayerProps {
   keyboardShortcuts?: boolean;
   renderHeader?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
+  /** 슬라이드 변경 시 호출 (모바일에서 상단 인디케이터 연동용) */
+  onSlideChange?: (index: number) => void;
+  /** 제공 시 기본 인디케이터 대신 사용 (모바일에서 뷰어와 한 줄로 묶을 때) */
+  renderIndicator?: (current: number, total: number) => React.ReactNode;
 }
 
 const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
@@ -47,6 +51,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   keyboardShortcuts = false,
   renderHeader,
   renderFooter,
+  onSlideChange,
+  renderIndicator,
 }) => {
   const [flipped, setFlipped] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -147,7 +153,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
     setFileError(null);
     const fetchPromise = currentRawUrl
       ? getFileContent(currentRawUrl)
-      : getMarkdown(currentFilename);
+      : getMarkdown(currentFilename, card?.metadata?.repositoryFullName);
     fetchPromise
       .then((content) => {
         if (!cancelled) {
@@ -241,11 +247,15 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
 
       {renderHeader?.()}
 
-      <div className="text-center mb-4">
-        <span className="inline-block bg-surface py-2.5 px-[22px] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3)] text-[0.95rem] font-semibold text-primary backdrop-blur-[10px] border border-border animate-[fc-slide-down_0.5s_ease-out] max-[768px]:py-2 max-[768px]:px-[18px] max-[768px]:text-[0.85rem]">
-          {currentSlide + 1} / {cards.length}
-        </span>
-      </div>
+      {renderIndicator ? (
+        renderIndicator(currentSlide, cards.length) ?? <div className="mb-4" aria-hidden />
+      ) : (
+        <div className="text-center mb-4">
+          <span className="inline-block bg-surface py-2.5 px-[22px] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3)] text-[0.95rem] font-semibold text-primary backdrop-blur-[10px] border border-border animate-[fc-slide-down_0.5s_ease-out] max-[768px]:py-2 max-[768px]:px-[18px] max-[768px]:text-[0.85rem]">
+            {currentSlide + 1} / {cards.length}
+          </span>
+        </div>
+      )}
 
       <div className="fc-player flex-1 flex flex-col min-h-0 max-w-[1200px] mx-auto w-full relative z-10">
         <div className="flex-1 min-h-0 flex flex-col">
@@ -263,6 +273,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
               setFileError(null);
               lastFetchedUrlRef.current = null;
               setCurrentSlide(next);
+              onSlideChange?.(next);
             }}
             appendDots={(dots) => (
               <div style={{ top: '10px' }}>
@@ -292,11 +303,25 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   {isFlipped ? (
                     <div className="fc-card-back w-full h-full flex flex-col min-h-0">
                       <div
-                        className="fc-back-header flex items-center gap-1 p-2 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-3xl"
+                        className="fc-back-header flex flex-wrap items-center gap-1 p-2 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-3xl"
                         onClick={(e) => e.stopPropagation()}
                         role="tablist"
                         aria-label="뒷면 보기 모드"
                       >
+                        {card.metadata?.repositoryFullName && (
+                          <a
+                            href={`https://github.com/${card.metadata.repositoryFullName}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 mr-2 px-2 py-1 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:bg-slate-100 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0" aria-hidden>
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                            </svg>
+                            <span className="truncate max-w-[140px] sm:max-w-[200px]" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
+                          </a>
+                        )}
                         <button
                           type="button"
                           role="tab"
@@ -370,6 +395,14 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center w-full p-4 text-center">
+                      {card.metadata?.repositoryFullName && (
+                        <span className="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[0.75rem] font-mono text-slate-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0" aria-hidden>
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                          </svg>
+                          <span className="truncate max-w-[200px] sm:max-w-[280px]" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
+                        </span>
+                      )}
                       <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                         질문
                       </span>

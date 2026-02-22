@@ -12,5 +12,7 @@ export interface FlashCard {
     /** 전체 파일 목록 (raw_url 등) */
     files?: FileChange[];
     filename?: string;
+    /** 카드 출처 레포 (owner/repo). 다중 레포 시 표시용 */
+    repositoryFullName?: string;
   };
 }

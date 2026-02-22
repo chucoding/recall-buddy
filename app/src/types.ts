@@ -10,7 +10,7 @@ export interface FlashcardStructuredOutput {
 }
 
 /**
- * GitHub Repository
+ * GitHub Repository (API 응답)
  */
 export interface Repository {
   id: number;
@@ -19,6 +19,15 @@ export interface Repository {
   description: string | null;
   html_url: string;
   private: boolean;
+}
+
+/**
+ * 사용자 설정용 저장 레포 (Firestore users.repositories)
+ * Free 1개, Pro 최대 5개
+ */
+export interface UserRepository {
+  fullName: string;
+  url: string;
 }
 
 /**
