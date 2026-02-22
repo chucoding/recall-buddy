@@ -155,8 +155,9 @@ const App: React.FC = () => {
   return (
     <>
       <main>
-        <nav className={`fixed top-0 left-0 right-0 bg-transparent z-[1000] px-5 py-3 flex justify-between items-center transition-all duration-300 ease-in-out ${isScrollAtTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-5 pointer-events-none'}`}>
-          <div>
+        {/* 플로팅 navbar: transparent 영역은 pointer-events-none으로 아래 콘텐츠 클릭 통과, 버튼만 pointer-events-auto (ui-ux-pro-max: Content padding, Floating navbar) */}
+        <nav className={`fixed top-4 left-4 right-4 max-[768px]:top-2 max-[768px]:left-2 max-[768px]:right-2 bg-transparent z-[1000] px-5 py-3 max-[768px]:py-2 max-[768px]:px-3 flex justify-between items-center transition-all duration-300 ease-in-out pointer-events-none ${isScrollAtTop ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>
+          <div className={isScrollAtTop ? 'pointer-events-auto' : 'pointer-events-none'}>
             {(currentPage === 'settings' || currentPage === 'pricing') && (
               <button
                 onClick={currentPage === 'pricing' ? navigateToSettings : navigateToFlashcard}
@@ -168,20 +169,25 @@ const App: React.FC = () => {
           </div>
 
           {currentPage === 'flashcard' && (
-            <button
-              onClick={navigateToSettings}
-              className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
-              title="설정"
-            >
-              ⚙️
-            </button>
+            <div className={isScrollAtTop ? 'pointer-events-auto' : 'pointer-events-none'}>
+              <button
+                onClick={navigateToSettings}
+                className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+                title="설정"
+              >
+                ⚙️
+              </button>
+            </div>
           )}
         </nav>
 
-        <div>
-          {currentPage === 'flashcard' && (selectedPastDate ? <PastDateReview date={selectedPastDate} /> : <FlashCardViewer />)}
-          {currentPage === 'settings' && <Settings />}
-          {currentPage === 'pricing' && <Pricing />}
+        {/* 뷰포트 높이로 제한해 패딩+콘텐츠가 100vh를 넘지 않게 (모바일 세로 스크롤 방지) */}
+        <div className="pt-16 max-[768px]:pt-12 bg-bg h-screen flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-auto">
+            {currentPage === 'flashcard' && (selectedPastDate ? <PastDateReview date={selectedPastDate} /> : <FlashCardViewer />)}
+            {currentPage === 'settings' && <Settings />}
+            {currentPage === 'pricing' && <Pricing />}
+          </div>
         </div>
       </main>
     </>

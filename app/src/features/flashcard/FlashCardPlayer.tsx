@@ -40,6 +40,10 @@ export interface FlashCardPlayerProps {
   keyboardShortcuts?: boolean;
   renderHeader?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
+  /** 슬라이드 변경 시 호출 (모바일에서 상단 인디케이터 연동용) */
+  onSlideChange?: (index: number) => void;
+  /** 제공 시 기본 인디케이터 대신 사용 (모바일에서 뷰어와 한 줄로 묶을 때) */
+  renderIndicator?: (current: number, total: number) => React.ReactNode;
 }
 
 const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
@@ -47,6 +51,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   keyboardShortcuts = false,
   renderHeader,
   renderFooter,
+  onSlideChange,
+  renderIndicator,
 }) => {
   const [flipped, setFlipped] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -241,11 +247,15 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
 
       {renderHeader?.()}
 
-      <div className="text-center mb-4">
-        <span className="inline-block bg-surface py-2.5 px-[22px] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3)] text-[0.95rem] font-semibold text-primary backdrop-blur-[10px] border border-border animate-[fc-slide-down_0.5s_ease-out] max-[768px]:py-2 max-[768px]:px-[18px] max-[768px]:text-[0.85rem]">
-          {currentSlide + 1} / {cards.length}
-        </span>
-      </div>
+      {renderIndicator ? (
+        renderIndicator(currentSlide, cards.length) ?? <div className="mb-4" aria-hidden />
+      ) : (
+        <div className="text-center mb-4">
+          <span className="inline-block bg-surface py-2.5 px-[22px] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3)] text-[0.95rem] font-semibold text-primary backdrop-blur-[10px] border border-border animate-[fc-slide-down_0.5s_ease-out] max-[768px]:py-2 max-[768px]:px-[18px] max-[768px]:text-[0.85rem]">
+            {currentSlide + 1} / {cards.length}
+          </span>
+        </div>
+      )}
 
       <div className="fc-player flex-1 flex flex-col min-h-0 max-w-[1200px] mx-auto w-full relative z-10">
         <div className="flex-1 min-h-0 flex flex-col">
@@ -263,6 +273,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
               setFileError(null);
               lastFetchedUrlRef.current = null;
               setCurrentSlide(next);
+              onSlideChange?.(next);
             }}
             appendDots={(dots) => (
               <div style={{ top: '10px' }}>
