@@ -2,7 +2,9 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 import {getMessaging} from "firebase-admin/messaging";
 import {getFirestore} from "firebase-admin/firestore";
 
-// 매일 오전 8시(KST)에 실행되는 스케줄러
+// 매일 오전 8시(KST)에 실행: pushEnabled && fcmToken 있는 사용자에게만 FCM 발송
+const FCM_BATCH_SIZE = 500;
+
 export const sendDaily8amPush = onSchedule(
   {
     schedule: "0 23 * * *", // KST 08:00 = UTC 23:00 (전날)
@@ -13,25 +15,51 @@ export const sendDaily8amPush = onSchedule(
     try {
       console.log("Daily push notification scheduled task started");
 
-      // FCM 토픽/토큰으로 브로드캐스트
-      // 실제 구현 시에는 Firestore에서 구독자 토큰들을 가져와야 함
+      const db = getFirestore();
+      const usersSnapshot = await db.collection("users").where("pushEnabled", "==", true).get();
+
+      const tokens: string[] = [];
+      usersSnapshot.forEach((docSnap) => {
+        const token = docSnap.data().fcmToken;
+        if (token && typeof token === "string") {
+          tokens.push(token);
+        }
+      });
+
+      if (tokens.length === 0) {
+        console.log("No push-enabled users with FCM token. Skipping send.");
+        return;
+      }
+
       const messaging = getMessaging();
-
-      // 예시: 토픽을 통한 브로드캐스트
-      const message = {
-        topic: "daily-reminder",
-        notification: {
-          title: "오늘의 리마인더",
-          body: "복습할 카드가 도착했어요!",
-        },
-        data: {
-          type: "daily-reminder",
-          url: "/",
-        },
+      const notification = {
+        title: "오늘의 리마인더",
+        body: "복습할 카드가 도착했어요!",
       };
+      const data = { type: "daily-reminder", url: "/" };
 
-      const response = await messaging.send(message);
-      console.log("Successfully sent message:", response);
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (let i = 0; i < tokens.length; i += FCM_BATCH_SIZE) {
+        const batch = tokens.slice(i, i + FCM_BATCH_SIZE);
+        const messages = batch.map((token) => ({
+          token,
+          notification,
+          data,
+        }));
+        const response = await messaging.sendEach(messages);
+        response.responses.forEach((r) => (r.success ? successCount++ : failureCount++));
+        if (response.failureCount > 0) {
+          response.responses.forEach((r, idx) => {
+            if (!r.success) {
+              console.warn("FCM send failed for token index", i + idx, r.error?.message);
+            }
+          });
+        }
+      }
+
+      console.log(`Successfully sent: ${successCount}, failed: ${failureCount}`);
     } catch (error) {
       console.error("Error sending push notification:", error);
     }
