@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, store } from '../firebase';
+import { trackEvent } from '../analytics';
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -77,6 +78,7 @@ const Login: React.FC = () => {
           });
         }
       }
+      trackEvent('login', { method: 'github' });
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
         setError('로그인이 취소되었습니다.');

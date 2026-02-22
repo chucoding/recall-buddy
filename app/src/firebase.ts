@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAnalytics, type Analytics } from 'firebase/analytics';
 import { getAuth, GithubAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -14,6 +15,12 @@ const firebaseConfig = {
 
 // Firebase 앱 초기화 (이미 초기화된 경우 기존 앱 사용)
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+// Analytics 인스턴스 (measurementId가 있을 때만 초기화, SSR/미설정 환경 대비)
+export const analytics: Analytics | null =
+  typeof window !== 'undefined' && firebaseConfig.measurementId
+    ? getAnalytics(app)
+    : null;
 
 // Auth 인스턴스 생성
 export const auth = getAuth(app);

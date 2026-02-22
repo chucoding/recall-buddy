@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
+import { trackEvent } from '../analytics';
 import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
 
@@ -83,6 +84,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         onboardingSkipped: false,
         updatedAt: new Date(),
       }, { merge: true });
+
+      trackEvent('onboarding_complete');
 
       // Step 3으로 이동
       setStep(3);
