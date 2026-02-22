@@ -2,29 +2,34 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 import {getMessaging} from "firebase-admin/messaging";
 import {getFirestore} from "firebase-admin/firestore";
 
-// 매일 오전 8시(KST)에 실행: pushEnabled && fcmToken 있는 사용자에게만 FCM 발송
+// 매시 정각(KST) 실행: pushEnabled && fcmToken 있는 사용자 중 preferredPushHour(없으면 8)가 현재 시와 같은 경우에만 FCM 발송
 const FCM_BATCH_SIZE = 500;
 
 export const sendDaily8amPush = onSchedule(
   {
-    schedule: "0 23 * * *", // KST 08:00 = UTC 23:00 (전날)
+    schedule: "0 * * * *", // 매시 정각 (KST = UTC+9 이므로 UTC 0시 = KST 9시 등)
     timeZone: "Asia/Seoul",
     region: "asia-northeast3",
   },
   async () => {
     try {
-      console.log("Daily push notification scheduled task started");
-
       const db = getFirestore();
       const usersSnapshot = await db.collection("users").where("pushEnabled", "==", true).get();
 
+      const now = new Date();
+      const kstHour = (now.getUTCHours() + 9) % 24;
+
       const tokens: string[] = [];
       usersSnapshot.forEach((docSnap) => {
-        const token = docSnap.data().fcmToken;
-        if (token && typeof token === "string") {
+        const data = docSnap.data();
+        const token = data.fcmToken;
+        const preferredHour = typeof data.preferredPushHour === "number" ? data.preferredPushHour : 8;
+        if (token && typeof token === "string" && preferredHour === kstHour) {
           tokens.push(token);
         }
       });
+
+      console.log(`Daily push: KST hour=${kstHour}, sending to ${tokens.length} users`);
 
       if (tokens.length === 0) {
         console.log("No push-enabled users with FCM token. Skipping send.");

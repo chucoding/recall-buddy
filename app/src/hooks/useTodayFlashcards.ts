@@ -4,11 +4,14 @@ import { User } from 'firebase/auth';
 import { store } from '../firebase';
 import { chatCompletions } from '../api/ai-api';
 import type { FlashcardStructuredOutput } from '../types';
+import type { SubscriptionTier } from '../types';
 import { getCommits, getFilename, type CommitDetail, type FileChange } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
+import { useSubscription } from './useSubscription';
 
-const DATES_AGO = [1, 7, 30]; // days ago list
+const DATES_AGO_FREE = [1, 7];
+const DATES_AGO_PRO = [1, 7, 30];
 
 export interface FlashCardData {
   question: string;
@@ -34,6 +37,9 @@ export function useTodayFlashcards(user: User | null) {
   const [loading, setLoading] = useState<boolean>(true);
   const [hasData, setHasData] = useState<boolean>(false);
   const flashcardReloadTrigger = useNavigationStore((state) => state.flashcardReloadTrigger);
+  const { subscription } = useSubscription(user);
+  const tier: SubscriptionTier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
+  const datesAgo = tier === 'pro' ? DATES_AGO_PRO : DATES_AGO_FREE;
 
   useEffect(() => {
     if (!user) {
@@ -57,8 +63,8 @@ export function useTodayFlashcards(user: User | null) {
           return;
         }
 
-        // 오늘 데이터가 없으면 새로 생성
-        const list = await generateFlashcards();
+        // 오늘 데이터가 없으면 새로 생성 (tier에 따른 datesAgo 사용)
+        const list = await generateFlashcards(datesAgo);
         
         // 생성된 플래시카드가 있으면 Firestore에 저장
         if (list.length > 0) {
@@ -77,20 +83,21 @@ export function useTodayFlashcards(user: User | null) {
     };
 
     loadFlashcards();
-  }, [user, flashcardReloadTrigger]);
+  }, [user, flashcardReloadTrigger, tier]);
 
   return { loading, hasData };
 }
 
 /**
  * 여러 날짜의 GitHub 데이터를 기반으로 플래시카드 생성
+ * @param datesAgo - 사용할 "며칠 전" 목록 (Free: [1,7], Pro: [1,7,30])
  */
-async function generateFlashcards(): Promise<FlashCardData[]> {
+async function generateFlashcards(datesAgo: number[]): Promise<FlashCardData[]> {
   const list: FlashCardData[] = [];
 
-  for (const daysAgo of DATES_AGO) {
+  for (const d of datesAgo) {
     try {
-      const githubData = await getGithubData(daysAgo);
+      const githubData = await getGithubData(d);
       
       if (!githubData) {
         continue;
@@ -116,7 +123,7 @@ async function generateFlashcards(): Promise<FlashCardData[]> {
         });
       }
     } catch (error) {
-      console.error(`Error fetching data for ${daysAgo} days ago:`, error);
+      console.error(`Error fetching data for ${d} days ago:`, error);
       // 에러가 발생해도 다음 날짜 처리를 계속함
     }
   }

@@ -5,8 +5,10 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, store } from './firebase';
 import { trackScreen, trackEvent } from './analytics';
 import FlashCardViewer from './pages/FlashCardViewer';
+import PastDateReview from './pages/PastDateReview';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
+import Pricing from './pages/Pricing';
 import NoDataView from './pages/NoDataView';
 import Onboarding from './pages/Onboarding';
 import Card from './components/Card';
@@ -19,7 +21,14 @@ const App: React.FC = () => {
   const [isScrollAtTop, setIsScrollAtTop] = useState<boolean>(true);
   const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(false);
   const [onboardingChecked, setOnboardingChecked] = useState<boolean>(false);
-  const { currentPage, navigateToSettings, navigateToFlashcard } = useNavigationStore();
+  const { currentPage, navigateToSettings, navigateToFlashcard, selectedPastDate, setCurrentPage } = useNavigationStore();
+
+  // Stripe 결제 복귀 URL (#settings?subscription=success) 시 설정 페이지로 이동
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('subscription=success')) {
+      setCurrentPage('settings');
+    }
+  }, [setCurrentPage]);
   
   // 오늘의 플래시카드 데이터 로드 (user가 null이면 로드하지 않음)
   const { loading, hasData } = useTodayFlashcards(user);
@@ -79,6 +88,7 @@ const App: React.FC = () => {
     else if (!hasData && currentPage === 'flashcard') screen = 'no_data';
     else if (currentPage === 'flashcard') screen = 'flashcard';
     else if (currentPage === 'settings') screen = 'settings';
+    else if (currentPage === 'pricing') screen = 'pricing';
     else return;
 
     if (lastScreenRef.current === screen) return;
@@ -136,7 +146,7 @@ const App: React.FC = () => {
     );
   }
 
-  // 데이터가 없는 경우 - 하지만 Settings 페이지는 허용
+  // 데이터가 없는 경우 - Settings, Pricing 페이지는 허용
   if (!hasData && currentPage === 'flashcard') {
     return <NoDataView />;
   }
@@ -147,9 +157,9 @@ const App: React.FC = () => {
       <main>
         <nav className={`fixed top-0 left-0 right-0 bg-transparent z-[1000] px-5 py-3 flex justify-between items-center transition-all duration-300 ease-in-out ${isScrollAtTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-5 pointer-events-none'}`}>
           <div>
-            {currentPage === 'settings' && (
+            {(currentPage === 'settings' || currentPage === 'pricing') && (
               <button
-                onClick={navigateToFlashcard}
+                onClick={currentPage === 'pricing' ? navigateToSettings : navigateToFlashcard}
                 className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex items-center gap-1.5 backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               >
                 ← 뒤로가기
@@ -169,8 +179,9 @@ const App: React.FC = () => {
         </nav>
 
         <div>
-          {currentPage === 'flashcard' && <FlashCardViewer />}
+          {currentPage === 'flashcard' && (selectedPastDate ? <PastDateReview date={selectedPastDate} /> : <FlashCardViewer />)}
           {currentPage === 'settings' && <Settings />}
+          {currentPage === 'pricing' && <Pricing />}
         </div>
       </main>
     </>
