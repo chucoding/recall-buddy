@@ -19,7 +19,13 @@ alwaysApply: false
 - **Description**: 수정/추가한 파일, 변경 요약, 유지한 설정 등을 구체적으로 나열한다. 필요 시 리스트·테이블을 활용한다.
 - **How to test**: 리뷰어가 로컬 또는 브라우저에서 확인할 수 있는 단계를 번호로 적는다.
 - **Review Requirement**: 리뷰어가 특히 꼼꼼히 봐줬으면 하는 부분을 적는다.
-- **Additional Info**: 이슈 번호, 관련 링크, 주의사항 등 보조 정보가 있으면 적는다.
+- **Additional Info**: 이슈 번호, **관련 Notion 페이지 링크**(필수), 그 외 관련 링크·주의사항 등 보조 정보가 있으면 적는다.
+
+## 2.5 Notion 링크 (필수)
+
+- PR 관련 문서를 작성할 때 **항상** 해당 작업과 연결된 **Notion 페이지 링크**를 PR 본문에 포함한다.
+- **위치**: Additional Info 섹션에 "관련 Notion: [페이지 제목](URL)" 형태로 넣는다. 필요 시 Description 상단에 넣어도 된다.
+- **URL 확보**: 대화 중 사용자가 공유한 Notion URL이 있으면 그대로 사용한다. 없으면 PR 본문에 `관련 Notion: (해당 작업 Notion 페이지 URL을 넣어 주세요)` 등 placeholder를 두고, 사용자에게 링크를 채우도록 안내한다.
 
 ## 3. PR 제목 (필수)
 
