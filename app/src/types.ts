@@ -22,6 +22,23 @@ export interface Repository {
 }
 
 /**
+ * 구독 티어 (Firestore users/{uid} subscriptionTier와 동기화)
+ */
+export type SubscriptionTier = "free" | "pro";
+
+/**
+ * 사용자 구독·한도 정보 (Firestore users 문서 일부)
+ */
+export interface UserSubscription {
+  subscriptionTier: SubscriptionTier;
+  subscriptionPeriodEnd?: string | null;
+  stripeCustomerId?: string | null;
+  regenerateCountToday?: number;
+  lastRegenerateDate?: string | null;
+  preferredPushHour?: number | null;
+}
+
+/**
  * CLOVA Studio Chat Completion API Response
  */
 export interface ChatCompletionResponse {

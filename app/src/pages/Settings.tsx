@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
-import { reauthenticateWithPopup } from 'firebase/auth';
+import { reauthenticateWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, app, store, githubProvider } from '../firebase';
 import { getRepositories } from '../api/github-api';
+import { regenerateTodayFlashcards } from '../api/subscription-api';
 import { Repository } from '../types';
+import { useSubscription } from '../hooks/useSubscription';
+import { useNavigationStore } from '../stores/navigationStore';
 
 interface RepositorySettings {
   repositoryFullName: string;
@@ -33,7 +36,24 @@ const Settings: React.FC = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushUpdating, setPushUpdating] = useState<boolean>(false);
+  const [preferredPushHour, setPreferredPushHour] = useState<number>(8);
+  const [regenerating, setRegenerating] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, setCurrentUser);
+    return () => unsub();
+  }, []);
+  const { subscription } = useSubscription(currentUser);
+  const { setSelectedPastDate, setCurrentPage } = useNavigationStore();
+  const [pastDateInput, setPastDateInput] = useState('');
+  const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
+  const todayStr = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const canRegenerate = tier === 'pro' && (
+    (subscription?.lastRegenerateDate !== todayStr) ||
+    (typeof subscription?.regenerateCountToday === 'number' && subscription.regenerateCountToday < 3)
+  );
+  const regenerateCount = subscription?.lastRegenerateDate === todayStr ? (subscription?.regenerateCountToday ?? 0) : 0;
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -51,6 +71,15 @@ const Settings: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen]);
+
+  // Stripe 결제 복귀 시 쿼리 처리
+  useEffect(() => {
+    const hash = window.location.hash || '';
+    if (hash.includes('subscription=success')) {
+      setMessage({ type: 'success', text: 'Pro 구독이 완료되었습니다. 감사합니다!' });
+      window.history.replaceState(null, '', window.location.pathname + (window.location.search || ''));
+    }
+  }, []);
 
   // Firestore에서 공지사항 실시간 가져오기
   useEffect(() => {
@@ -112,6 +141,7 @@ const Settings: React.FC = () => {
               repositoryUrl: data.repositoryUrl || '',
             });
             setPushEnabled(!!data.pushEnabled);
+            setPreferredPushHour(typeof data.preferredPushHour === 'number' ? data.preferredPushHour : 8);
           }
         }
 
@@ -433,6 +463,32 @@ const Settings: React.FC = () => {
           </div>
         )}
 
+        {/* 구독 */}
+        <div className="flex flex-col gap-2 mb-8">
+          <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2">
+            구독
+          </h2>
+          <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg">
+            <span className="font-semibold text-text">
+              {tier === 'pro' ? (
+                <>Pro {subscription?.subscriptionPeriodEnd && <span className="text-text-light text-[0.85rem] font-normal">(만료: {new Date(subscription.subscriptionPeriodEnd).toLocaleDateString('ko-KR')})</span>}</>
+              ) : (
+                'Free'
+              )}
+            </span>
+            {/* TODO: 준비 완료 시 onClick을 navigateToPricing으로 복구 */}
+            {tier === 'free' && (
+              <button
+                type="button"
+                onClick={() => alert('Pro 업그레이드는 준비 중이에요. 조금만 기다려 주세요.')}
+                className="py-2 px-4 bg-primary text-bg border-none rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface"
+              >
+                Pro로 업그레이드
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center gap-3">
@@ -523,8 +579,36 @@ const Settings: React.FC = () => {
               알림
             </h2>
             <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
-              매일 오전 8시에 복습 리마인더를 보내드려요.
+              {tier === 'pro' ? '원하는 시각에 복습 리마인더를 보내드려요.' : '매일 오전 8시에 복습 리마인더를 보내드려요.'}
             </p>
+            {tier === 'pro' && (
+              <div className="flex items-center justify-between gap-4 p-4 bg-surface-light border-2 border-border rounded-lg mb-3">
+                <label htmlFor="push-hour" className="font-semibold text-text text-[0.95rem]">
+                  알림 희망 시 (KST)
+                </label>
+                <select
+                  id="push-hour"
+                  value={preferredPushHour}
+                  onChange={async (e) => {
+                    const hour = Number(e.target.value);
+                    setPreferredPushHour(hour);
+                    const user = auth.currentUser;
+                    if (!user) return;
+                    try {
+                      await updateDoc(doc(store, 'users', user.uid), { preferredPushHour: hour, updatedAt: new Date().toISOString() });
+                    } catch (err) {
+                      console.error('preferredPushHour 저장 실패:', err);
+                      setMessage({ type: 'error', text: '알림 시간 저장에 실패했습니다.' });
+                    }
+                  }}
+                  className="px-3 py-2 border-2 border-border rounded-lg bg-surface text-text text-[0.95rem] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface focus:border-primary"
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <option key={i} value={i}>{i}시</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="flex items-center justify-between gap-4 p-4 bg-surface-light border-2 border-border rounded-lg">
               <label htmlFor="push-toggle" className="font-semibold text-text text-[0.95rem] cursor-pointer flex-1">
                 PUSH 알림
@@ -546,6 +630,75 @@ const Settings: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {tier === 'pro' && (
+            <div className="flex flex-col gap-2">
+              <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">플래시카드 재생성</h2>
+              <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
+                오늘 분 플래시카드를 다시 만들 수 있어요. (일 3회까지)
+              </p>
+              <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg">
+                <button
+                  type="button"
+                  disabled={regenerating || !canRegenerate}
+                  onClick={async () => {
+                    setRegenerating(true);
+                    setMessage(null);
+                    try {
+                      await regenerateTodayFlashcards();
+                      setMessage({ type: 'success', text: '오늘 플래시카드를 삭제했습니다. 잠시 후 카드가 다시 생성됩니다.' });
+                      setTimeout(() => window.location.reload(), 800);
+                    } catch (e: unknown) {
+                      const err = e as { response?: { data?: { error?: string }; status?: number } };
+                      const msg = err.response?.status === 429
+                        ? '오늘 재생성 한도(3회)를 모두 사용했습니다.'
+                        : (err.response?.data?.error || '재생성에 실패했습니다.');
+                      setMessage({ type: 'error', text: msg });
+                    } finally {
+                      setRegenerating(false);
+                    }
+                  }}
+                  className="py-2.5 px-4 bg-primary text-bg border-none rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {regenerating ? '처리 중...' : '지금 다시 만들기'}
+                </button>
+                <span className="text-text-muted text-[0.85rem]">
+                  오늘 {regenerateCount}/3회 사용
+                </span>
+              </div>
+            </div>
+          )}
+
+          {tier === 'pro' && (
+            <div className="flex flex-col gap-2">
+              <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">과거 날짜 복습</h2>
+              <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
+                저장된 날짜의 플래시카드를 다시 볼 수 있어요.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg">
+                <input
+                  type="date"
+                  value={pastDateInput}
+                  onChange={(e) => setPastDateInput(e.target.value)}
+                  max={new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                  className="px-3 py-2 border-2 border-border rounded-lg bg-surface text-text text-[0.95rem] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface focus:border-primary"
+                />
+                <button
+                  type="button"
+                  disabled={!pastDateInput}
+                  onClick={() => {
+                    if (pastDateInput) {
+                      setSelectedPastDate(pastDateInput);
+                      setCurrentPage('flashcard');
+                    }
+                  }}
+                  className="py-2.5 px-4 bg-primary text-bg border-none rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  해당 날짜 카드 보기
+                </button>
+              </div>
+            </div>
+          )}
 
           {settings.repositoryFullName && (
             <div className="bg-surface border border-border rounded-lg p-4 mt-2">
