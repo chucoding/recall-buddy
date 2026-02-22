@@ -1,8 +1,15 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
+import Clarity from '@microsoft/clarity';
 import './index.css';
 import LandingDemo from './pages/LandingDemo';
 import { trackEvent, trackScreen } from './analytics';
+
+// Microsoft Clarity (랜딩 우선): 히트맵·세션 녹화
+const clarityId = import.meta.env.VITE_CLARITY_PROJECT_ID;
+if (typeof clarityId === 'string' && clarityId.trim()) {
+  Clarity.init(clarityId.trim());
+}
 
 const demoRoot = document.getElementById('demo-root');
 
