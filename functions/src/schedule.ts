@@ -2,14 +2,14 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 import {getMessaging} from "firebase-admin/messaging";
 import {getFirestore} from "firebase-admin/firestore";
 
-// 매시 정각(KST) 실행: pushEnabled && fcmToken 있는 사용자 중 preferredPushHour(없으면 8)가 현재 시와 같은 경우에만 FCM 발송
-// 참고: 8시 KST = 23:00 UTC. 단말 알림 시간이 UTC로 보이면 23시로 표시될 수 있음.
+// 매시 정각 실행: pushEnabled && fcmToken 있는 사용자 중, 해당 사용자 타임존의 "현재 시"가 preferredPushHour와 같은 경우에만 FCM 발송
 const FCM_BATCH_SIZE = 500;
+const DEFAULT_PUSH_TIMEZONE = "Asia/Seoul";
 
-/** 스케줄 트리거 시각(또는 현재 시각)을 기준으로 KST 시(0–23) 반환. Intl로 Asia/Seoul 적용. */
-function getKstHour(date: Date): number {
-  const formatter = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
+/** 주어진 시각을 특정 타임존의 시(0–23)로 반환. */
+function getHourInTimezone(date: Date, timeZone: string): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
     hour: "numeric",
     hour12: false,
   });
@@ -18,7 +18,7 @@ function getKstHour(date: Date): number {
 
 export const sendDaily8amPush = onSchedule(
   {
-    schedule: "0 * * * *", // 매시 정각 (timeZone: Asia/Seoul 기준)
+    schedule: "0 * * * *", // 매시 정각 (24회/일로 전 타임존 커버)
     timeZone: "Asia/Seoul",
     region: "asia-northeast3",
   },
@@ -27,12 +27,10 @@ export const sendDaily8amPush = onSchedule(
       const db = getFirestore();
       const usersSnapshot = await db.collection("users").where("pushEnabled", "==", true).get();
 
-      // 스케줄러가 예정한 트리거 시각 사용(지연 실행 시에도 의도한 시각 기준). 없으면 현재 시각 사용.
       const now =
         typeof event?.scheduleTime === "string"
           ? new Date(event.scheduleTime)
           : new Date();
-      const kstHour = getKstHour(now);
       const utcHour = now.getUTCHours();
 
       const tokens: string[] = [];
@@ -40,13 +38,17 @@ export const sendDaily8amPush = onSchedule(
         const data = docSnap.data();
         const token = data.fcmToken;
         const preferredHour = typeof data.preferredPushHour === "number" ? data.preferredPushHour : 8;
-        if (token && typeof token === "string" && preferredHour === kstHour) {
+        const tz = typeof data.preferredPushTimezone === "string" && data.preferredPushTimezone
+          ? data.preferredPushTimezone
+          : DEFAULT_PUSH_TIMEZONE;
+        const hourInTz = getHourInTimezone(now, tz);
+        if (token && typeof token === "string" && preferredHour === hourInTz) {
           tokens.push(token);
         }
       });
 
       console.log(
-        `Daily push: UTC hour=${utcHour}, KST hour=${kstHour} (preferredPushHour=${kstHour}인 사용자만), sending to ${tokens.length} users`
+        `Daily push: UTC hour=${utcHour}, sending to ${tokens.length} users (by their local hour)`
       );
 
       if (tokens.length === 0) {

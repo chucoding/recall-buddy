@@ -8,7 +8,7 @@ const DEFAULT_TIER: SubscriptionTier = 'free';
 
 /**
  * 사용자 구독·한도 정보 실시간 구독 (users/{uid})
- * subscriptionTier, subscriptionPeriodEnd, regenerateCountToday, lastRegenerateDate, preferredPushHour
+ * subscriptionTier, subscriptionPeriodEnd, regenerateCountToday, lastRegenerateDate, preferredPushHour, preferredPushTimezone
  */
 export function useSubscription(user: User | null) {
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
@@ -38,6 +38,7 @@ export function useSubscription(user: User | null) {
           regenerateCountToday: typeof data.regenerateCountToday === 'number' ? data.regenerateCountToday : 0,
           lastRegenerateDate: data.lastRegenerateDate ?? null,
           preferredPushHour: typeof data.preferredPushHour === 'number' ? data.preferredPushHour : null,
+          preferredPushTimezone: typeof data.preferredPushTimezone === 'string' ? data.preferredPushTimezone : null,
         });
         setLoading(false);
       },

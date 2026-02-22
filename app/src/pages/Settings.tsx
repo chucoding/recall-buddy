@@ -262,10 +262,12 @@ const Settings: React.FC = () => {
         }
         const userDoc = await getDoc(doc(store, 'users', user.uid));
         const existingData = userDoc.exists() ? userDoc.data() : {};
+        const timeZone = existingData?.preferredPushTimezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
         await setDoc(doc(store, 'users', user.uid), {
           ...existingData,
           pushEnabled: true,
           fcmToken: token,
+          preferredPushTimezone: timeZone,
           updatedAt: new Date().toISOString(),
         });
         setPushEnabled(true);
@@ -572,7 +574,7 @@ const Settings: React.FC = () => {
             {tier === 'pro' && (
               <div className="flex items-center justify-between gap-4 p-4 bg-surface-light border-2 border-border rounded-lg mb-3">
                 <label htmlFor="push-hour" className="font-semibold text-text text-[0.95rem]">
-                  알림 희망 시 (KST)
+                  알림 희망 시 (내 시간대)
                 </label>
                 <select
                   id="push-hour"
@@ -582,8 +584,13 @@ const Settings: React.FC = () => {
                     setPreferredPushHour(hour);
                     const user = auth.currentUser;
                     if (!user) return;
+                    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     try {
-                      await updateDoc(doc(store, 'users', user.uid), { preferredPushHour: hour, updatedAt: new Date().toISOString() });
+                      await updateDoc(doc(store, 'users', user.uid), {
+                        preferredPushHour: hour,
+                        preferredPushTimezone: timeZone,
+                        updatedAt: new Date().toISOString()
+                      });
                     } catch (err) {
                       console.error('preferredPushHour 저장 실패:', err);
                       setMessage({ type: 'error', text: '알림 시간 저장에 실패했습니다.' });
