@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { reauthenticateWithPopup } from 'firebase/auth';
-import { auth, store, githubProvider } from '../firebase';
+import { auth, app, store, githubProvider } from '../firebase';
 import { getRepositories } from '../api/github-api';
 import { Repository } from '../types';
 
@@ -31,6 +31,8 @@ const Settings: React.FC = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [pushEnabled, setPushEnabled] = useState<boolean>(false);
+  const [pushUpdating, setPushUpdating] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 드롭다운 외부 클릭 감지
@@ -103,12 +105,13 @@ const Settings: React.FC = () => {
         if (userDoc.exists()) {
           const data = userDoc.data();
           
-          // 저장된 설정 불러오기
+          // 저장된 설정 불러오기 (pushEnabled, fcmToken은 users 문서에 저장)
           if (mounted) {
             setSettings({
               repositoryFullName: data.repositoryFullName || '',
               repositoryUrl: data.repositoryUrl || '',
             });
+            setPushEnabled(!!data.pushEnabled);
           }
         }
 
@@ -198,6 +201,67 @@ const Settings: React.FC = () => {
       console.error('설정 저장 실패:', error);
       setMessage({ type: 'error', text: '설정 저장에 실패했습니다.' });
       setSaving(false);
+    }
+  };
+
+  // PUSH 알림 토글: ON 시 권한 요청 후 FCM 토큰 발급·저장, OFF 시 pushEnabled만 false
+  const handlePushToggle = async (nextEnabled: boolean) => {
+    const user = auth.currentUser;
+    if (!user) {
+      setMessage({ type: 'error', text: '로그인이 필요합니다.' });
+      return;
+    }
+    setPushUpdating(true);
+    setMessage(null);
+    try {
+      if (nextEnabled) {
+        if (typeof window === 'undefined' || !('Notification' in window)) {
+          setMessage({ type: 'error', text: '이 브라우저에서는 알림을 지원하지 않습니다.' });
+          setPushUpdating(false);
+          return;
+        }
+        let permission = Notification.permission;
+        if (permission === 'default') {
+          permission = await Notification.requestPermission();
+        }
+        if (permission !== 'granted') {
+          setMessage({ type: 'error', text: '알림을 사용하려면 브라우저 알림을 허용해 주세요.' });
+          setPushUpdating(false);
+          return;
+        }
+        const { getMessaging, getToken } = await import('firebase/messaging');
+        const messaging = getMessaging(app);
+        const vapidKey = import.meta.env.VITE_VAPID_KEY;
+        const token = await getToken(messaging, vapidKey ? { vapidKey } : undefined);
+        if (!token) {
+          setMessage({ type: 'error', text: '알림 토큰을 받지 못했습니다. 잠시 후 다시 시도해 주세요.' });
+          setPushUpdating(false);
+          return;
+        }
+        const userDoc = await getDoc(doc(store, 'users', user.uid));
+        const existingData = userDoc.exists() ? userDoc.data() : {};
+        await setDoc(doc(store, 'users', user.uid), {
+          ...existingData,
+          pushEnabled: true,
+          fcmToken: token,
+          updatedAt: new Date().toISOString(),
+        });
+        setPushEnabled(true);
+      } else {
+        await updateDoc(doc(store, 'users', user.uid), {
+          pushEnabled: false,
+          updatedAt: new Date().toISOString(),
+        });
+        setPushEnabled(false);
+      }
+    } catch (err) {
+      console.error('PUSH 알림 설정 실패:', err);
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : '알림 설정에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+      });
+    } finally {
+      setPushUpdating(false);
     }
   };
 
@@ -445,6 +509,42 @@ const Settings: React.FC = () => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* 알림: 매일 8시 PUSH 리마인더 켜기/끄기 */}
+          <div className="flex flex-col gap-2">
+            <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2">
+              <span className="inline-flex shrink-0" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-text-light">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+              </span>
+              알림
+            </h2>
+            <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
+              매일 오전 8시에 복습 리마인더를 보내드려요.
+            </p>
+            <div className="flex items-center justify-between gap-4 p-4 bg-surface-light border-2 border-border rounded-lg">
+              <label htmlFor="push-toggle" className="font-semibold text-text text-[0.95rem] cursor-pointer flex-1">
+                PUSH 알림
+              </label>
+              <button
+                id="push-toggle"
+                type="button"
+                role="switch"
+                aria-checked={pushEnabled}
+                aria-label={pushEnabled ? 'PUSH 알림 끄기' : 'PUSH 알림 켜기'}
+                disabled={pushUpdating}
+                onClick={() => handlePushToggle(!pushEnabled)}
+                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-60 ${pushEnabled ? 'bg-primary border-primary' : 'bg-bg border-border-medium'}`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.4)] ring-0 transition duration-200 ${pushEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </div>
 
           {settings.repositoryFullName && (

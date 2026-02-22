@@ -13,7 +13,7 @@ const firebaseConfig = {
 };
 
 // Firebase 앱 초기화 (이미 초기화된 경우 기존 앱 사용)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Auth 인스턴스 생성
 export const auth = getAuth(app);
