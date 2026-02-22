@@ -6,7 +6,7 @@ import { chatCompletions } from '../api/ai-api';
 import type { FlashcardStructuredOutput } from '../types';
 import type { SubscriptionTier } from '../types';
 import { getCommits, getFilename, type CommitDetail, type FileChange } from '../api/github-api';
-import { getCurrentDate, getKstDateStringDaysAgo, getKstDayRange } from '../modules/utils';
+import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
 import { useSubscription } from './useSubscription';
 
@@ -141,14 +141,20 @@ interface GithubData {
 
 /**
  * GitHub에서 특정 날짜의 데이터 가져오기.
- * 날짜는 KST 기준으로 통일 (getCurrentDate·서버와 동일).
+ * 날짜는 사용자 디바이스(로컬) 타임존 기준으로 "며칠 전" 그날 00:00~23:59 구간 사용.
  *
- * @param daysAgo - 며칠 전 데이터를 가져올지 (KST 기준)
+ * @param daysAgo - 며칠 전 데이터를 가져올지 (로컬 기준)
  * @returns GithubData 또는 null
  */
 async function getGithubData(daysAgo: number): Promise<GithubData | null> {
-  const targetDateKst = getKstDateStringDaysAgo(daysAgo);
-  const { since, until } = getKstDayRange(targetDateKst);
+  const interval = 24 * daysAgo * 60 * 60 * 1000;
+  const now = new Date();
+  const pastDate = new Date(now.getTime() - interval);
+
+  const since = new Date(pastDate);
+  since.setHours(0, 0, 0, 0);
+  const until = new Date(pastDate);
+  until.setHours(23, 59, 59, 999);
 
   const commits = await getCommits(since, until);
 

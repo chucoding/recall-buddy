@@ -25,19 +25,19 @@ const Login: React.FC = () => {
         if (deletedUserDoc.exists()) {
           const deletedData = deletedUserDoc.data();
           
-          // 한국 시간 기준으로 날짜 비교 (getCurrentDate와 동일 기준)
-          const todayKST = getCurrentDate();
+          // 사용자 로컬 타임존 기준으로 "오늘"과 탈퇴일 비교 (getCurrentDate와 동일 기준)
+          const todayStr = getCurrentDate();
           const deletedAt = new Date(deletedData.deletedAt);
-          const deletedDateKST = deletedAt.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+          const deletedDateStr = deletedAt.toLocaleDateString('en-CA');
           
           console.log('⚠️ 탈퇴 기록 발견:', {
             deletedAt: deletedData.deletedAt,
-            deletedDateKST,
-            todayKST,
+            deletedDateStr,
+            todayStr,
             email: deletedData.email
           });
           
-          if (deletedDateKST === todayKST) {
+          if (deletedDateStr === todayStr) {
             await signOut(auth);
             setError('회원탈퇴 후에는 다음날부터 재가입할 수 있습니다.');
             setLoading(false);
