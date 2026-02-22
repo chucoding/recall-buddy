@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
 import { generateDemoFlashcards } from '../lib/demoFlashcards';
+import { trackEvent } from '../analytics';
 
 /**
  * 랜딩 데모 페이지
@@ -15,10 +16,15 @@ const LandingDemo: React.FC = () => {
   const [error, setError] = useState('');
   const cardSectionRef = useRef<HTMLDivElement>(null);
 
-  const runSubmit = async (url: string) => {
+  const runSubmit = async (url: string, source: 'form' | 'example') => {
     setError('');
     setCards([]);
     setLoading(true);
+    if (source === 'form') {
+      trackEvent('landing_demo_generate', { source: 'form' });
+    } else {
+      trackEvent('landing_demo_example_repo', { repo_url: url.slice(0, 80) });
+    }
     try {
       const result = await generateDemoFlashcards(url);
       if (result.ok) {
@@ -38,7 +44,7 @@ const LandingDemo: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    runSubmit(repoUrl);
+    runSubmit(repoUrl, 'form');
   };
 
   const EXAMPLE_REPOS = [
@@ -91,7 +97,7 @@ const LandingDemo: React.FC = () => {
             type="button"
             onClick={() => {
               setRepoUrl(url);
-              runSubmit(url);
+              runSubmit(url, 'example');
             }}
             disabled={loading}
             className={`inline-flex items-center justify-center h-11 min-h-[44px] w-[max-content] shrink-0 rounded-full text-[0.85rem] font-semibold border-0 transition-[opacity,filter] duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:opacity-90 focus:outline focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg ${badge ? 'pl-4 pr-6' : 'px-4'}`}
@@ -137,7 +143,9 @@ const LandingDemo: React.FC = () => {
                 </p>
                 <a
                   href="/app"
+                  data-landing-action="get_started_free"
                   className="inline-flex items-center gap-2.5 py-3.5 px-8 bg-primary text-bg rounded-xl text-base font-bold no-underline transition-all duration-300 shadow-[0_8px_24px_rgba(7,166,107,0.2)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_12px_36px_rgba(7,166,107,0.3)]"
+                  onClick={() => trackEvent('landing_demo_get_started_free', { from: 'after_demo' })}
                 >
                   Get Started Free
                 </a>
