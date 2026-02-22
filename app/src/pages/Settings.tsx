@@ -13,11 +13,6 @@ interface RepositorySettings {
   repositoryUrl: string;
 }
 
-interface Notice {
-  id: string;
-  message: string;
-}
-
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<RepositorySettings>({
     repositoryFullName: '',
@@ -33,7 +28,7 @@ const Settings: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
-  const [notices, setNotices] = useState<Notice[]>([]);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushUpdating, setPushUpdating] = useState<boolean>(false);
   const [preferredPushHour, setPreferredPushHour] = useState<number>(8);
@@ -81,24 +76,20 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  // Firestore에서 공지사항 실시간 가져오기
+  // Firestore config/notice 단일 문서에서 공지 메시지 실시간 구독 (message 하나만 사용)
   useEffect(() => {
+    const noticeRef = doc(store, 'config', 'notice');
     const unsubscribe = onSnapshot(
-      collection(store, 'notices'),
+      noticeRef,
       (snapshot) => {
-        const noticesList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as Notice));
-        
-        console.log('📢 공지사항 업데이트:', noticesList.length, '개');
-        setNotices(noticesList);
+        const msg = (snapshot.exists() ? snapshot.data()?.message : undefined) ?? '';
+        const trimmed = typeof msg === 'string' ? msg.trim() : '';
+        setNoticeMessage(trimmed || null);
       },
       (error) => {
         console.error('❌ 공지사항 가져오기 실패:', error);
       }
     );
-
     return () => unsubscribe();
   }, []);
 
@@ -449,17 +440,13 @@ const Settings: React.FC = () => {
   return (
     <div className="min-h-screen flex justify-center items-start bg-bg pt-20 px-5 pb-5">
       <div className="bg-surface rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.4)] max-[768px]:p-6">
-        {/* 공지사항 */}
-        {notices.length > 0 && (
+        {/* 공지사항: config/notice 문서의 message가 있을 때만 표시 */}
+        {noticeMessage && (
           <div className="flex items-start gap-3 bg-[#f59e0b]/10 border-2 border-[#f59e0b]/40 rounded-xl p-4 mb-8 animate-fade-in max-[768px]:p-3 max-[768px]:mb-6">
             <div className="text-2xl shrink-0 max-[768px]:text-xl">📢</div>
-            <div className="flex-1">
-              {notices.map((notice, index) => (
-                <p key={notice.id} className={`m-0 text-[#fbbf24] text-[0.9rem] leading-relaxed font-medium max-[768px]:text-[0.85rem] ${index < notices.length - 1 ? 'mb-2' : ''}`}>
-                  {notice.message}
-                </p>
-              ))}
-            </div>
+            <p className="m-0 flex-1 text-[#fbbf24] text-[0.9rem] leading-relaxed font-medium max-[768px]:text-[0.85rem]">
+              {noticeMessage}
+            </p>
           </div>
         )}
 
