@@ -4,6 +4,7 @@ import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import FileContentBlock from '../../templates/FileContentBlock';
 import { getFileContent, getMarkdown } from '../../api/github-api';
 import type { FlashCard } from './types';
+import { trackEvent } from '../../analytics';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -68,7 +69,15 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   };
 
   const flipCard = () => {
-    setFlipped((prev) => !prev);
+    setFlipped((prev) => {
+      if (!prev) {
+        trackEvent('flashcard_flip', {
+          card_index: currentSlide + 1,
+          total_cards: cards.length,
+        });
+      }
+      return !prev;
+    });
   };
 
   useEffect(() => {

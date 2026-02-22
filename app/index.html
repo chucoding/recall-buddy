@@ -78,9 +78,9 @@
 
         <!-- Desktop: 로고 + Get Started만 (Google/ChatGPT 스타일) -->
         <div class="hidden md:flex items-center gap-6">
-          <a href="#how-it-works" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">How it Works</a>
-          <a href="#features" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">Features</a>
-          <a href="/app" class="py-2.5 px-5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline transition-all duration-200 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(7,166,107,0.3)]">
+          <a href="#how-it-works" data-landing-action="nav_how_it_works" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">How it Works</a>
+          <a href="#features" data-landing-action="nav_features" class="text-[0.9rem] text-text-body no-underline font-medium transition-colors duration-200 hover:text-primary">Features</a>
+          <a href="/app" data-landing-action="get_started_nav" class="py-2.5 px-5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline transition-all duration-200 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(7,166,107,0.3)]">
             Get Started
           </a>
         </div>
@@ -94,9 +94,9 @@
       </div>
 
       <div class="hidden peer-checked:flex flex-col gap-1 px-6 pb-4 rounded-b-xl bg-surface/95 backdrop-blur-xl md:!hidden animate-fade-in">
-        <a href="#how-it-works" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">How it Works</a>
-        <a href="#features" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">Features</a>
-        <a href="/app" class="mt-1 flex items-center justify-center gap-2 py-2.5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline">
+        <a href="#how-it-works" data-landing-action="nav_how_it_works_mobile" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">How it Works</a>
+        <a href="#features" data-landing-action="nav_features_mobile" class="py-2.5 text-[0.95rem] text-text-body no-underline font-medium">Features</a>
+        <a href="/app" data-landing-action="get_started_nav_mobile" class="mt-1 flex items-center justify-center gap-2 py-2.5 bg-primary text-bg rounded-lg text-[0.9rem] font-semibold no-underline">
           Get Started
         </a>
       </div>
@@ -228,10 +228,10 @@
           오늘의 커밋이 내일의 실력이 됩니다.
         </p>
         <div class="flex flex-wrap items-center justify-center gap-3 max-[480px]:flex-col">
-          <a href="/app" class="inline-flex items-center gap-3 py-4 px-10 bg-primary text-bg rounded-xl text-lg font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(7,166,107,0.25)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(7,166,107,0.35)] max-[480px]:w-full max-[480px]:justify-center cursor-pointer">
+          <a href="/app" data-landing-action="get_started_footer" class="inline-flex items-center gap-3 py-4 px-10 bg-primary text-bg rounded-xl text-lg font-bold no-underline transition-all duration-300 shadow-[0_8px_30px_rgba(7,166,107,0.25)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(7,166,107,0.35)] max-[480px]:w-full max-[480px]:justify-center cursor-pointer">
             Get Started with GitHub
           </a>
-          <button type="button" id="pwa-install-btn" class="pwa-install-btn hidden inline-flex items-center gap-2.5 py-4 px-8 bg-transparent text-text-body border border-border rounded-xl text-base font-semibold transition-all duration-300 hover:bg-surface hover:border-border-medium hover:text-text max-[480px]:w-full max-[480px]:justify-center cursor-pointer" aria-label="앱 설치">
+          <button type="button" id="pwa-install-btn" data-landing-action="pwa_install" class="pwa-install-btn hidden inline-flex items-center gap-2.5 py-4 px-8 bg-transparent text-text-body border border-border rounded-xl text-base font-semibold transition-all duration-300 hover:bg-surface hover:border-border-medium hover:text-text max-[480px]:w-full max-[480px]:justify-center cursor-pointer" aria-label="앱 설치">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             앱으로 설치
           </button>
@@ -244,9 +244,9 @@
       <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4 max-[768px]:flex-col max-[768px]:items-center max-[768px]:text-center max-[768px]:gap-3">
         <a href="/" class="no-underline flex items-center" aria-label="CodeRecall 홈"><img src="/logo.png" alt="CodeRecall" class="h-8 opacity-90 max-[480px]:h-6" /></a>
         <div class="flex items-center gap-6 text-text-muted text-sm max-[480px]:gap-4">
-          <a href="https://github.com/chucoding" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">GitHub</a>
-          <a href="/terms" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Terms</a>
-          <a href="/privacy" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Privacy</a>
+          <a href="https://github.com/chucoding" data-landing-action="footer_github" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">GitHub</a>
+          <a href="/terms" data-landing-action="footer_terms" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Terms</a>
+          <a href="/privacy" data-landing-action="footer_privacy" class="transition-colors duration-200 hover:text-text-light no-underline text-text-muted">Privacy</a>
         </div>
         <p class="text-text-muted/50 text-sm">&copy; 2026 CodeRecall</p>
       </div>

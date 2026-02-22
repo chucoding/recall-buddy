@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
 import { auth, store } from './firebase';
+import { trackScreen, trackEvent } from './analytics';
 import FlashCardViewer from './pages/FlashCardViewer';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
@@ -67,6 +68,26 @@ const App: React.FC = () => {
 
     checkOnboarding();
   }, [user]);
+
+  // GA4 화면 추적 (퍼널 탐색용): 화면이 바뀔 때만 screen_view 전송
+  const lastScreenRef = useRef<string | null>(null);
+  useEffect(() => {
+    let screen: string;
+    if (!user) screen = 'login';
+    else if (authLoading || !onboardingChecked || loading) screen = 'loading';
+    else if (needsOnboarding) screen = 'onboarding';
+    else if (!hasData && currentPage === 'flashcard') screen = 'no_data';
+    else if (currentPage === 'flashcard') screen = 'flashcard';
+    else if (currentPage === 'settings') screen = 'settings';
+    else return;
+
+    if (lastScreenRef.current === screen) return;
+    lastScreenRef.current = screen;
+
+    trackScreen(screen, screen === 'flashcard' ? 'FlashCardViewer' : screen === 'settings' ? 'Settings' : undefined);
+    if (screen === 'flashcard') trackEvent('view_flashcard');
+    if (screen === 'settings') trackEvent('view_settings');
+  }, [user, authLoading, onboardingChecked, loading, needsOnboarding, hasData, currentPage]);
 
   // 스크롤 위치 감지
   useEffect(() => {
