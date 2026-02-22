@@ -60,8 +60,8 @@ const App: React.FC = () => {
           setNeedsOnboarding(true);
         } else {
           const data = userDoc.data();
-          // onboardingCompleted가 true이거나 repositoryFullName이 있으면 온보딩 불필요
-          if (data?.onboardingCompleted || data?.repositoryFullName) {
+          // onboardingCompleted가 true이거나 repositories가 있으면 온보딩 불필요
+          if (data?.onboardingCompleted || (Array.isArray(data?.repositories) && data.repositories.length > 0)) {
             setNeedsOnboarding(false);
           } else {
             setNeedsOnboarding(true);

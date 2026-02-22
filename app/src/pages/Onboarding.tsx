@@ -3,23 +3,16 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
 import { trackEvent } from '../analytics';
 import { getRepositories } from '../api/github-api';
-import { Repository } from '../types';
+import { Repository, UserRepository } from '../types';
 
 interface OnboardingProps {
   onComplete: () => void;
 }
 
-interface RepositorySettings {
-  repositoryFullName: string;
-  repositoryUrl: string;
-}
-
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [step, setStep] = useState<number>(1);
-  const [settings, setSettings] = useState<RepositorySettings>({
-    repositoryFullName: '',
-    repositoryUrl: '',
-  });
+  /** 온보딩에서는 1개만 선택 → 저장 시 repositories: [선택한 1개] */
+  const [selectedRepo, setSelectedRepo] = useState<UserRepository | null>(null);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
@@ -56,16 +49,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   }, [step, repositories.length, fetchRepositories]);
 
   const handleRepositorySelect = (repo: Repository) => {
-    setSettings({
-      repositoryFullName: repo.full_name,
-      repositoryUrl: repo.html_url,
-    });
+    setSelectedRepo({ fullName: repo.full_name, url: repo.html_url });
     setIsDropdownOpen(false);
   };
 
   const handleSaveSettings = async () => {
     if (!auth.currentUser) return;
-    if (!settings.repositoryFullName) {
+    if (!selectedRepo) {
       setError({
         type: 'save',
         message: '리포지토리를 선택해주세요.'
@@ -78,11 +68,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       setError(null);
       const userDocRef = doc(store, 'users', auth.currentUser.uid);
       await setDoc(userDocRef, {
-        repositoryFullName: settings.repositoryFullName,
-        repositoryUrl: settings.repositoryUrl,
+        repositories: [selectedRepo],
         onboardingCompleted: true,
         onboardingSkipped: false,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       }, { merge: true });
 
       trackEvent('onboarding_complete');
@@ -114,7 +103,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   const canProceed = () => {
     if (step === 1) return true;
-    if (step === 2) return !!settings.repositoryFullName;
+    if (step === 2) return !!selectedRepo;
     return false;
   };
 
@@ -232,8 +221,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     disabled={loadingRepos}
                   >
-                    <span className={settings.repositoryFullName ? "" : "text-text-muted"}>
-                      {settings.repositoryFullName || "리포지토리를 선택하세요"}
+                    <span className={selectedRepo ? "" : "text-text-muted"}>
+                      {selectedRepo ? selectedRepo.fullName : "리포지토리를 선택하세요"}
                     </span>
                     <span className="text-xs text-text-light transition-transform duration-200">▼</span>
                   </button>

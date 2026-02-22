@@ -21,6 +21,7 @@ export interface FlashCardData {
     commitMessage?: string;
     rawDiff?: string;
     files?: FileChange[];
+    repositoryFullName?: string;
   };
 }
 
@@ -54,6 +55,16 @@ export function useTodayFlashcards(user: User | null) {
         const todayDate = getCurrentDate();
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
         
+        // 사용자 레포 목록 (repositories만 사용)
+        const userDocRef = doc(store, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const repositories = userDoc.exists() ? (userDoc.data()?.repositories as Array<{ fullName: string; url: string }> | undefined) : undefined;
+        if (!Array.isArray(repositories) || repositories.length === 0) {
+          setLoading(false);
+          setHasData(false);
+          return;
+        }
+
         // Firestore에서 오늘 날짜의 데이터 확인
         const todayDoc = await getDoc(flashcardDocRef);
         if (todayDoc.exists()) {
@@ -63,8 +74,8 @@ export function useTodayFlashcards(user: User | null) {
           return;
         }
 
-        // 오늘 데이터가 없으면 새로 생성 (tier에 따른 datesAgo 사용)
-        const list = await generateFlashcards(datesAgo);
+        // 오늘 데이터가 없으면 새로 생성 (다중 레포 지원: 레포별·날짜별로 생성 후 합침)
+        const list = await generateFlashcards(datesAgo, repositories);
         
         // 생성된 플래시카드가 있으면 Firestore에 저장
         if (list.length > 0) {
@@ -89,42 +100,48 @@ export function useTodayFlashcards(user: User | null) {
 }
 
 /**
- * 여러 날짜의 GitHub 데이터를 기반으로 플래시카드 생성
+ * 여러 날짜·여러 레포의 GitHub 데이터를 기반으로 플래시카드 생성
  * @param datesAgo - 사용할 "며칠 전" 목록 (Free: [1,7], Pro: [1,7,30])
+ * @param repositories - 사용자 선택 레포 목록 (Firestore users.repositories)
  */
-async function generateFlashcards(datesAgo: number[]): Promise<FlashCardData[]> {
+async function generateFlashcards(
+  datesAgo: number[],
+  repositories: Array<{ fullName: string; url: string }>
+): Promise<FlashCardData[]> {
   const list: FlashCardData[] = [];
 
-  for (const d of datesAgo) {
-    try {
-      const githubData = await getGithubData(d);
-      
-      if (!githubData) {
-        continue;
+  for (const repo of repositories) {
+    const repoFullName = repo.fullName;
+
+    for (const d of datesAgo) {
+      try {
+        const githubData = await getGithubData(d, repoFullName);
+
+        if (!githubData) {
+          continue;
+        }
+
+        const { content, metadata } = githubData;
+
+        const result = await chatCompletions(content);
+        const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
+        const pairs =
+          parsed?.items?.filter(
+            (x): x is { question: string; answer: string; highlights?: string[] } =>
+              x != null && typeof x.question === "string" && typeof x.answer === "string"
+          ) ?? [];
+
+        for (const { question, answer, highlights } of pairs) {
+          list.push({
+            question,
+            answer,
+            highlights: highlights?.filter((h): h is string => typeof h === "string" && h.length > 0),
+            metadata: { ...metadata, rawDiff: content, repositoryFullName: repoFullName }
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching data for repo ${repoFullName} ${d} days ago:`, error);
       }
-
-      const { content, metadata } = githubData;
-
-      // AI를 통해 질문·답변 쌍 생성 (OpenAI Structured Output: items 배열)
-      const result = await chatCompletions(content);
-      const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
-      const pairs =
-        parsed?.items?.filter(
-          (x): x is { question: string; answer: string; highlights?: string[] } =>
-            x != null && typeof x.question === "string" && typeof x.answer === "string"
-        ) ?? [];
-
-      for (const { question, answer, highlights } of pairs) {
-        list.push({
-          question,
-          answer,
-          highlights: highlights?.filter((h): h is string => typeof h === "string" && h.length > 0),
-          metadata: { ...metadata, rawDiff: content }
-        });
-      }
-    } catch (error) {
-      console.error(`Error fetching data for ${d} days ago:`, error);
-      // 에러가 발생해도 다음 날짜 처리를 계속함
     }
   }
 
@@ -140,13 +157,14 @@ interface GithubData {
 }
 
 /**
- * GitHub에서 특정 날짜의 데이터 가져오기.
+ * GitHub에서 특정 날짜·특정 레포의 데이터 가져오기.
  * 날짜는 사용자 디바이스(로컬) 타임존 기준으로 "며칠 전" 그날 00:00~23:59 구간 사용.
  *
  * @param daysAgo - 며칠 전 데이터를 가져올지 (로컬 기준)
+ * @param repositoryFullName - 레포 지정 (다중 레포 시 필수)
  * @returns GithubData 또는 null
  */
-async function getGithubData(daysAgo: number): Promise<GithubData | null> {
+async function getGithubData(daysAgo: number, repositoryFullName: string): Promise<GithubData | null> {
   const interval = 24 * daysAgo * 60 * 60 * 1000;
   const now = new Date();
   const pastDate = new Date(now.getTime() - interval);
@@ -156,14 +174,14 @@ async function getGithubData(daysAgo: number): Promise<GithubData | null> {
   const until = new Date(pastDate);
   until.setHours(23, 59, 59, 999);
 
-  const commits = await getCommits(since, until);
+  const commits = await getCommits(since, until, repositoryFullName);
 
   if (commits.length === 0) {
     return null;
   }
 
   for (const commit of commits) {
-    const commitDetail = await getFilename(commit.sha);
+    const commitDetail = await getFilename(commit.sha, repositoryFullName);
     const codeDiff = formatCodeDiff(commitDetail);
     if (codeDiff) {
       return {

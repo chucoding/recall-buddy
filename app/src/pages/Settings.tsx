@@ -4,21 +4,18 @@ import { reauthenticateWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, app, store, githubProvider } from '../firebase';
 import { getRepositories } from '../api/github-api';
 import { regenerateTodayFlashcards } from '../api/subscription-api';
-import { Repository } from '../types';
+import { Repository, UserRepository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate } from '../modules/utils';
 
-interface RepositorySettings {
-  repositoryFullName: string;
-  repositoryUrl: string;
-}
+const MAX_REPOS_FREE = 1;
+const MAX_REPOS_PRO = 5;
 
 const Settings: React.FC = () => {
-  const [settings, setSettings] = useState<RepositorySettings>({
-    repositoryFullName: '',
-    repositoryUrl: '',
-  });
+  /** 사용자가 선택한 레포 목록 (Firestore repositories와 동기화). Free 1개, Pro 최대 5개 */
+  const [selectedRepos, setSelectedRepos] = useState<UserRepository[]>([]);
+  /** GitHub API로 불러온 전체 레포 목록 (드롭다운용) */
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
@@ -126,12 +123,10 @@ const Settings: React.FC = () => {
         if (userDoc.exists()) {
           const data = userDoc.data();
           
-          // 저장된 설정 불러오기 (pushEnabled, fcmToken은 users 문서에 저장)
+          // 저장된 설정 불러오기 (repositories만 사용, pushEnabled 등은 users 문서에 저장)
           if (mounted) {
-            setSettings({
-              repositoryFullName: data.repositoryFullName || '',
-              repositoryUrl: data.repositoryUrl || '',
-            });
+            const repos = data.repositories;
+            setSelectedRepos(Array.isArray(repos) ? repos : []);
             setPushEnabled(!!data.pushEnabled);
             setPreferredPushHour(typeof data.preferredPushHour === 'number' ? data.preferredPushHour : 8);
           }
@@ -160,27 +155,50 @@ const Settings: React.FC = () => {
     };
   }, []); // 마운트 시 한 번만 실행
 
-  // 리포지토리 선택 (상태만 변경)
+  const maxRepos = tier === 'pro' ? MAX_REPOS_PRO : MAX_REPOS_FREE;
+
+  /** 단일 레포 선택 (Free 또는 Pro에서 첫 번째/유일 레포 설정) */
   const handleRepositorySelect = (repo: Repository) => {
     setIsDropdownOpen(false);
     setMessage(null);
-    setSettings({
-      repositoryFullName: repo.full_name,
-      repositoryUrl: repo.html_url,
-    });
+    setSelectedRepos([{ fullName: repo.full_name, url: repo.html_url }]);
+  };
+
+  /** Pro: 레포 추가 (이미 선택된 건 제외) */
+  const handleAddRepository = (repo: Repository) => {
+    setIsDropdownOpen(false);
+    setMessage(null);
+    if (selectedRepos.length >= MAX_REPOS_PRO) {
+      setMessage({ type: 'error', text: `Pro는 최대 ${MAX_REPOS_PRO}개까지 연결할 수 있어요.` });
+      return;
+    }
+    if (selectedRepos.some((r) => r.fullName === repo.full_name)) return;
+    setSelectedRepos((prev) => [...prev, { fullName: repo.full_name, url: repo.html_url }]);
+  };
+
+  /** Pro: 레포 제거 */
+  const handleRemoveRepository = (fullName: string) => {
+    setMessage(null);
+    setSelectedRepos((prev) => prev.filter((r) => r.fullName !== fullName));
   };
 
   // 설정 저장
   const handleSaveSettings = async () => {
     const user = auth.currentUser;
-    
+
     if (!user) {
       setMessage({ type: 'error', text: '로그인이 필요합니다.' });
       return;
     }
 
-    if (!settings.repositoryFullName) {
-      setMessage({ type: 'error', text: '리포지토리를 선택해주세요.' });
+    if (selectedRepos.length === 0) {
+      setMessage({ type: 'error', text: '리포지토리를 1개 이상 선택해주세요.' });
+      return;
+    }
+
+    const reposToSave = selectedRepos.slice(0, maxRepos);
+    if (reposToSave.length !== selectedRepos.length) {
+      setMessage({ type: 'error', text: `Free는 1개, Pro는 최대 ${MAX_REPOS_PRO}개까지 가능해요.` });
       return;
     }
 
@@ -188,15 +206,12 @@ const Settings: React.FC = () => {
     setMessage(null);
 
     try {
-      // 기존 데이터 확인
       const userDoc = await getDoc(doc(store, 'users', user.uid));
       const existingData = userDoc.exists() ? userDoc.data() : {};
 
-      // Firestore에 설정 저장
       await setDoc(doc(store, 'users', user.uid), {
         ...existingData,
-        repositoryFullName: settings.repositoryFullName,
-        repositoryUrl: settings.repositoryUrl,
+        repositories: reposToSave,
         updatedAt: new Date().toISOString(),
       });
 
@@ -289,8 +304,12 @@ const Settings: React.FC = () => {
     }
   };
 
-  // 선택된 리포지토리 찾기
-  const selectedRepo = repositories.find(repo => repo.full_name === settings.repositoryFullName);
+  /** 드롭다운에 표시할 후보: Pro일 때는 아직 선택하지 않은 레포만, Free일 때는 전체 */
+  const availableReposForDropdown =
+    tier === 'pro'
+      ? repositories.filter((repo) => !selectedRepos.some((r) => r.fullName === repo.full_name))
+      : repositories;
+  const canAddMore = tier === 'pro' && selectedRepos.length < MAX_REPOS_PRO;
 
   // 로그아웃 핸들러
   const handleLogout = async () => {
@@ -485,15 +504,18 @@ const Settings: React.FC = () => {
               <label htmlFor="repository" className="font-semibold text-text text-[0.95rem] block m-0 uppercase-none">
                 GitHub 리포지토리
                 <span className="text-error ml-1">*</span>
+                {tier === 'pro' && (
+                  <span className="text-text-light font-normal text-[0.8rem] ml-2">(최대 {MAX_REPOS_PRO}개)</span>
+                )}
               </label>
             </div>
-            
+
             <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
-              {repositories.length > 0 
+              {repositories.length > 0
                 ? `총 ${repositories.length}개의 리포지토리를 찾았습니다`
                 : '접근 가능한 리포지토리가 없습니다'}
             </p>
-            
+
             {loadingRepos ? (
               <div className="flex items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg text-text-body text-[0.95rem]">
                 <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
@@ -507,53 +529,101 @@ const Settings: React.FC = () => {
                   className="ml-2 px-3 py-1.5 bg-transparent text-primary border border-primary rounded-md text-[1.1rem] cursor-pointer transition-all duration-200 flex items-center justify-center min-w-[40px] h-8 hover:bg-primary hover:text-white hover:rotate-180 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => fetchRepositories()}
                 >
-                  🔄 다시 시도
+                  다시 시도
                 </button>
               </div>
             ) : (
-              <div className="relative w-full" ref={dropdownRef}>
-                <button
-                  type="button"
-                  className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-surface-light cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(7,166,107,0.15)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
-                  onClick={() => !saving && setIsDropdownOpen(!isDropdownOpen)}
-                  disabled={repositories.length === 0 || saving}
-                >
-                  {saving ? (
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
-                      <span className="font-mono font-medium text-text">저장 중...</span>
-                    </div>
-                  ) : selectedRepo ? (
-                    <div className="flex items-center gap-3 flex-1">
-                      <span className="font-mono font-medium text-text">{selectedRepo.full_name}</span>
-                      <span className="text-[0.75rem] px-2 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{selectedRepo.private ? '🔒 Private' : '🌐 Public'}</span>
-                    </div>
-                  ) : (
-                    <span className="text-text-muted">리포지토리를 선택하세요</span>
-                  )}
-                  <span className="text-text-light text-[0.75rem]">{isDropdownOpen ? '▲' : '▼'}</span>
-                </button>
-
-                {isDropdownOpen && !saving && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 max-h-[300px] overflow-y-auto bg-surface border-2 border-primary rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.4)] z-[1000] animate-fade-in">
-                    {repositories.map((repo) => (
-                      <div
-                        key={repo.id}
-                        className={`px-4 py-3 cursor-pointer transition-colors duration-150 border-b border-border last:border-b-0 hover:bg-surface-light ${settings.repositoryFullName === repo.full_name ? 'bg-surface-light' : ''}`}
-                        onClick={() => handleRepositorySelect(repo)}
-                      >
-                        <div className="flex items-center justify-between gap-3 mb-1">
-                          <span className="font-mono font-semibold text-text text-[0.95rem]">{repo.full_name}</span>
-                          <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{repo.private ? '🔒' : '🌐'}</span>
-                        </div>
-                        {repo.description && (
-                          <div className="text-[0.85rem] text-text-light leading-snug mt-1 pl-0.5">{repo.description}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+              <>
+                {/* 선택된 레포 목록 (Pro일 때 여러 개, Free일 때 1개) */}
+                {selectedRepos.length > 0 && (
+                  <ul className="list-none m-0 p-0 flex flex-col gap-2 mb-3">
+                    {selectedRepos.map((r) => {
+                      const repoMeta = repositories.find((x) => x.full_name === r.fullName);
+                      return (
+                        <li
+                          key={r.fullName}
+                          className="flex items-center justify-between gap-3 px-4 py-3 bg-surface-light border-2 border-border rounded-lg"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <span className="font-mono font-semibold text-text text-[0.95rem] block truncate">{r.fullName}</span>
+                            <a
+                              href={r.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary text-[0.8rem] no-underline hover:underline truncate block"
+                            >
+                              {r.url}
+                            </a>
+                          </div>
+                          {tier === 'pro' && selectedRepos.length > 1 && (
+                            <button
+                              type="button"
+                              aria-label={`${r.fullName} 제거`}
+                              className="shrink-0 p-2 rounded-lg border border-border text-text-body cursor-pointer transition-colors duration-200 hover:bg-error/10 hover:border-error hover:text-error focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                              onClick={() => handleRemoveRepository(r.fullName)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                          {tier === 'free' && repoMeta && (
+                            <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap shrink-0">{repoMeta.private ? 'Private' : 'Public'}</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
-              </div>
+
+                {/* 레포 선택 드롭다운: Free는 1개 선택, Pro는 "추가"로 여러 개 */}
+                <div className="relative w-full" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    id="repository"
+                    className={`w-full px-4 py-3 border-2 border-border rounded-lg bg-surface-light cursor-pointer flex items-center justify-between gap-3 transition-all duration-200 text-left text-base hover:border-border-medium disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-surface ${isDropdownOpen ? 'border-primary shadow-[0_0_0_3px_rgba(7,166,107,0.15)]' : ''} ${saving ? 'cursor-wait opacity-80' : ''}`}
+                    onClick={() => !saving && (tier === 'free' ? selectedRepos.length < 1 : canAddMore) && setIsDropdownOpen(!isDropdownOpen)}
+                    disabled={repositories.length === 0 || saving || (tier === 'free' && selectedRepos.length >= 1) || (tier === 'pro' && !canAddMore)}
+                  >
+                    {saving ? (
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
+                        <span className="font-mono font-medium text-text">저장 중...</span>
+                      </div>
+                    ) : tier === 'pro' ? (
+                      <span className="text-text-muted">레포 추가 (최대 {MAX_REPOS_PRO}개)</span>
+                    ) : (
+                      <span className={selectedRepos.length ? 'font-mono font-medium text-text' : 'text-text-muted'}>
+                        {selectedRepos.length ? selectedRepos[0].fullName : '리포지토리를 선택하세요'}
+                      </span>
+                    )}
+                    <span className="text-text-light text-[0.75rem]">{isDropdownOpen ? '▲' : '▼'}</span>
+                  </button>
+
+                  {isDropdownOpen && !saving && (
+                    <div className="absolute top-[calc(100%+4px)] left-0 right-0 max-h-[300px] overflow-y-auto bg-surface border-2 border-primary rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.4)] z-[1000] animate-fade-in">
+                      {(tier === 'free' ? repositories : availableReposForDropdown).map((repo) => (
+                        <div
+                          key={repo.id}
+                          className="px-4 py-3 cursor-pointer transition-colors duration-150 border-b border-border last:border-b-0 hover:bg-surface-light"
+                          onClick={() => (tier === 'free' ? handleRepositorySelect(repo) : handleAddRepository(repo))}
+                        >
+                          <div className="flex items-center justify-between gap-3 mb-1">
+                            <span className="font-mono font-semibold text-text text-[0.95rem]">{repo.full_name}</span>
+                            <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap">{repo.private ? 'Private' : 'Public'}</span>
+                          </div>
+                          {repo.description && (
+                            <div className="text-[0.85rem] text-text-light leading-snug mt-1 pl-0.5">{repo.description}</div>
+                          )}
+                        </div>
+                      ))}
+                      {tier === 'pro' && availableReposForDropdown.length === 0 && (
+                        <div className="px-4 py-3 text-text-muted text-[0.9rem]">추가할 레포가 없거나 이미 최대 개수입니다.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
@@ -695,36 +765,20 @@ const Settings: React.FC = () => {
             </div>
           )}
 
-          {settings.repositoryFullName && (
-            <div className="bg-surface border border-border rounded-lg p-4 mt-2">
-              <p className="m-0 mb-2 text-[0.9rem] font-semibold text-text-body">📂 선택된 리포지토리:</p>
-              <code className="block px-3 py-2 bg-surface-light border border-border-medium rounded-md font-mono text-[0.9rem] text-text break-all">
-                <a 
-                  href={settings.repositoryUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary no-underline transition-colors duration-200 hover:text-primary-dark hover:underline"
-                >
-                  {settings.repositoryUrl}
-                </a>
-              </code>
-            </div>
-          )}
-
           {message && (
             <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-primary/30 shadow-[0_2px_8px_rgba(7,166,107,0.15)]' : 'bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]'}`}>
               {message.text}
             </div>
           )}
 
-          {settings.repositoryFullName && (
+          {selectedRepos.length > 0 && (
             <button
               type="button"
               className="w-full py-3 px-6 text-base font-bold text-bg bg-primary border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] disabled:bg-surface-light disabled:text-text-muted disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               onClick={handleSaveSettings}
-              disabled={saving || !settings.repositoryFullName}
+              disabled={saving}
             >
-              {saving ? '저장 중...' : '🚀 설정 저장'}
+              {saving ? '저장 중...' : '설정 저장'}
             </button>
           )}
         </div>
