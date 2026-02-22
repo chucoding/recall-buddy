@@ -3,21 +3,37 @@ import {getMessaging} from "firebase-admin/messaging";
 import {getFirestore} from "firebase-admin/firestore";
 
 // 매시 정각(KST) 실행: pushEnabled && fcmToken 있는 사용자 중 preferredPushHour(없으면 8)가 현재 시와 같은 경우에만 FCM 발송
+// 참고: 8시 KST = 23:00 UTC. 단말 알림 시간이 UTC로 보이면 23시로 표시될 수 있음.
 const FCM_BATCH_SIZE = 500;
+
+/** 스케줄 트리거 시각(또는 현재 시각)을 기준으로 KST 시(0–23) 반환. Intl로 Asia/Seoul 적용. */
+function getKstHour(date: Date): number {
+  const formatter = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    hour: "numeric",
+    hour12: false,
+  });
+  return parseInt(formatter.format(date), 10);
+}
 
 export const sendDaily8amPush = onSchedule(
   {
-    schedule: "0 * * * *", // 매시 정각 (KST = UTC+9 이므로 UTC 0시 = KST 9시 등)
+    schedule: "0 * * * *", // 매시 정각 (timeZone: Asia/Seoul 기준)
     timeZone: "Asia/Seoul",
     region: "asia-northeast3",
   },
-  async () => {
+  async (event) => {
     try {
       const db = getFirestore();
       const usersSnapshot = await db.collection("users").where("pushEnabled", "==", true).get();
 
-      const now = new Date();
-      const kstHour = (now.getUTCHours() + 9) % 24;
+      // 스케줄러가 예정한 트리거 시각 사용(지연 실행 시에도 의도한 시각 기준). 없으면 현재 시각 사용.
+      const now =
+        typeof event?.scheduleTime === "string"
+          ? new Date(event.scheduleTime)
+          : new Date();
+      const kstHour = getKstHour(now);
+      const utcHour = now.getUTCHours();
 
       const tokens: string[] = [];
       usersSnapshot.forEach((docSnap) => {
@@ -29,7 +45,9 @@ export const sendDaily8amPush = onSchedule(
         }
       });
 
-      console.log(`Daily push: KST hour=${kstHour}, sending to ${tokens.length} users`);
+      console.log(
+        `Daily push: UTC hour=${utcHour}, KST hour=${kstHour} (preferredPushHour=${kstHour}인 사용자만), sending to ${tokens.length} users`
+      );
 
       if (tokens.length === 0) {
         console.log("No push-enabled users with FCM token. Skipping send.");

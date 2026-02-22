@@ -7,6 +7,7 @@ import { regenerateTodayFlashcards } from '../api/subscription-api';
 import { Repository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
+import { getCurrentDate } from '../modules/utils';
 
 interface RepositorySettings {
   repositoryFullName: string;
@@ -43,7 +44,7 @@ const Settings: React.FC = () => {
   const { setSelectedPastDate, setCurrentPage } = useNavigationStore();
   const [pastDateInput, setPastDateInput] = useState('');
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
-  const todayStr = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const todayStr = getCurrentDate();
   const canRegenerate = tier === 'pro' && (
     (subscription?.lastRegenerateDate !== todayStr) ||
     (typeof subscription?.regenerateCountToday === 'number' && subscription.regenerateCountToday < 3)
@@ -667,7 +668,7 @@ const Settings: React.FC = () => {
                   type="date"
                   value={pastDateInput}
                   onChange={(e) => setPastDateInput(e.target.value)}
-                  max={new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                  max={getCurrentDate()}
                   className="px-3 py-2 border-2 border-border rounded-lg bg-surface text-text text-[0.95rem] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface focus:border-primary"
                 />
                 <button

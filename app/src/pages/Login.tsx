@@ -3,6 +3,7 @@ import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, store } from '../firebase';
 import { trackEvent } from '../analytics';
+import { getCurrentDate } from '../modules/utils';
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -24,16 +25,10 @@ const Login: React.FC = () => {
         if (deletedUserDoc.exists()) {
           const deletedData = deletedUserDoc.data();
           
-          // 한국 시간 기준으로 날짜 비교
-          const now = new Date();
-          const kstOffset = 9 * 60; // KST = UTC+9
-          const kstNow = new Date(now.getTime() + kstOffset * 60 * 1000);
+          // 한국 시간 기준으로 날짜 비교 (getCurrentDate와 동일 기준)
+          const todayKST = getCurrentDate();
           const deletedAt = new Date(deletedData.deletedAt);
-          const kstDeletedAt = new Date(deletedAt.getTime() + kstOffset * 60 * 1000);
-          
-          // 오늘 날짜와 탈퇴 날짜 비교 (YYYY-MM-DD 형식)
-          const todayKST = kstNow.toISOString().split('T')[0];
-          const deletedDateKST = kstDeletedAt.toISOString().split('T')[0];
+          const deletedDateKST = deletedAt.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
           
           console.log('⚠️ 탈퇴 기록 발견:', {
             deletedAt: deletedData.deletedAt,
