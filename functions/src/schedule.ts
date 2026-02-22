@@ -2,34 +2,54 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 import {getMessaging} from "firebase-admin/messaging";
 import {getFirestore} from "firebase-admin/firestore";
 
-// 매시 정각(KST) 실행: pushEnabled && fcmToken 있는 사용자 중 preferredPushHour(없으면 8)가 현재 시와 같은 경우에만 FCM 발송
+// 매시 정각 실행: pushEnabled && fcmToken 있는 사용자 중, 해당 사용자 타임존의 "현재 시"가 preferredPushHour와 같은 경우에만 FCM 발송
 const FCM_BATCH_SIZE = 500;
+const DEFAULT_PUSH_TIMEZONE = "Asia/Seoul";
+
+/** 주어진 시각을 특정 타임존의 시(0–23)로 반환. */
+function getHourInTimezone(date: Date, timeZone: string): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    hour12: false,
+  });
+  return parseInt(formatter.format(date), 10);
+}
 
 export const sendDaily8amPush = onSchedule(
   {
-    schedule: "0 * * * *", // 매시 정각 (KST = UTC+9 이므로 UTC 0시 = KST 9시 등)
+    schedule: "0 * * * *", // 매시 정각 (24회/일로 전 타임존 커버)
     timeZone: "Asia/Seoul",
     region: "asia-northeast3",
   },
-  async () => {
+  async (event) => {
     try {
       const db = getFirestore();
       const usersSnapshot = await db.collection("users").where("pushEnabled", "==", true).get();
 
-      const now = new Date();
-      const kstHour = (now.getUTCHours() + 9) % 24;
+      const now =
+        typeof event?.scheduleTime === "string"
+          ? new Date(event.scheduleTime)
+          : new Date();
+      const utcHour = now.getUTCHours();
 
       const tokens: string[] = [];
       usersSnapshot.forEach((docSnap) => {
         const data = docSnap.data();
         const token = data.fcmToken;
         const preferredHour = typeof data.preferredPushHour === "number" ? data.preferredPushHour : 8;
-        if (token && typeof token === "string" && preferredHour === kstHour) {
+        const tz = typeof data.preferredPushTimezone === "string" && data.preferredPushTimezone
+          ? data.preferredPushTimezone
+          : DEFAULT_PUSH_TIMEZONE;
+        const hourInTz = getHourInTimezone(now, tz);
+        if (token && typeof token === "string" && preferredHour === hourInTz) {
           tokens.push(token);
         }
       });
 
-      console.log(`Daily push: KST hour=${kstHour}, sending to ${tokens.length} users`);
+      console.log(
+        `Daily push: UTC hour=${utcHour}, sending to ${tokens.length} users (by their local hour)`
+      );
 
       if (tokens.length === 0) {
         console.log("No push-enabled users with FCM token. Skipping send.");

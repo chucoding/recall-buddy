@@ -140,19 +140,19 @@ interface GithubData {
 }
 
 /**
- * GitHub에서 특정 날짜의 데이터 가져오기
+ * GitHub에서 특정 날짜의 데이터 가져오기.
+ * 날짜는 사용자 디바이스(로컬) 타임존 기준으로 "며칠 전" 그날 00:00~23:59 구간 사용.
  *
- * @param daysAgo - 며칠 전 데이터를 가져올지
+ * @param daysAgo - 며칠 전 데이터를 가져올지 (로컬 기준)
  * @returns GithubData 또는 null
  */
 async function getGithubData(daysAgo: number): Promise<GithubData | null> {
   const interval = 24 * daysAgo * 60 * 60 * 1000;
-  const currentDate = new Date();
-  const pastDate = new Date(currentDate.getTime() - interval);
+  const now = new Date();
+  const pastDate = new Date(now.getTime() - interval);
 
   const since = new Date(pastDate);
   since.setHours(0, 0, 0, 0);
-
   const until = new Date(pastDate);
   until.setHours(23, 59, 59, 999);
 
