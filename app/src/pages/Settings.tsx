@@ -8,7 +8,7 @@ import { Repository, UserRepository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate } from '../modules/utils';
-import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb } from 'lucide-react';
+import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb, CalendarIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 const MAX_REPOS_FREE = 1;
 const MAX_REPOS_PRO = 5;
@@ -60,6 +68,7 @@ const Settings: React.FC = () => {
   const { subscription } = useSubscription(currentUser);
   const { setSelectedPastDate, setCurrentPage } = useNavigationStore();
   const [pastDateInput, setPastDateInput] = useState('');
+  const [pastDatePopoverOpen, setPastDatePopoverOpen] = useState(false);
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const todayStr = getCurrentDate();
   const canRegenerate = tier === 'pro' && (
@@ -720,13 +729,35 @@ const Settings: React.FC = () => {
                 저장된 날짜의 플래시카드를 다시 볼 수 있어요.
               </p>
               <div className="flex flex-wrap items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg">
-                <Input
-                  type="date"
-                  value={pastDateInput}
-                  onChange={(e) => setPastDateInput(e.target.value)}
-                  max={getCurrentDate()}
-                  className="text-[0.95rem] w-auto"
-                />
+                <Popover open={pastDatePopoverOpen} onOpenChange={setPastDatePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[0.95rem] justify-start text-left font-normal min-w-[10rem]"
+                    >
+                      <CalendarIcon className="mr-2 size-4" />
+                      {pastDateInput
+                        ? format(new Date(pastDateInput + 'T12:00:00'), 'PPP', { locale: ko })
+                        : '날짜 선택'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={pastDateInput ? new Date(pastDateInput + 'T12:00:00') : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setPastDateInput(format(date, 'yyyy-MM-dd'));
+                          setPastDatePopoverOpen(false);
+                        }
+                      }}
+                      disabled={(date) => date.toLocaleDateString('en-CA') > getCurrentDate()}
+                      endMonth={new Date()}
+                      className="rounded-lg border-0"
+                    />
+                  </PopoverContent>
+                </Popover>
                 <Button
                   type="button"
                   size="sm"
