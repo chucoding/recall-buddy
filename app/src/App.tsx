@@ -14,6 +14,7 @@ import Onboarding from './pages/Onboarding';
 import Card from './components/Card';
 import { useTodayFlashcards } from './hooks/useTodayFlashcards';
 import { useNavigationStore } from './stores/navigationStore';
+import { BookOpen, ArrowLeft, Settings as SettingsIcon, Clock } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -125,9 +126,9 @@ const App: React.FC = () => {
       <>
         <Card>
           <div className="w-[50px] h-[50px] border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
-          <h2 className="mb-2.5 text-xl">📚 플래시카드 준비 중</h2>
+          <h2 className="mb-2.5 text-xl flex items-center justify-center gap-2"><BookOpen className="w-6 h-6 shrink-0" aria-hidden />플래시카드 준비 중</h2>
           <p className="text-base">GitHub에서 최근 커밋을 분석하고 있습니다...</p>
-          <p className="mt-2.5 text-[0.9rem] opacity-80">⏱️ 데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
+          <p className="mt-2.5 text-[0.9rem] opacity-80 flex items-center justify-center gap-1.5"><Clock className="w-4 h-4 shrink-0" aria-hidden />데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
         </Card>
       </>
     );
@@ -163,7 +164,8 @@ const App: React.FC = () => {
                 onClick={currentPage === 'pricing' ? navigateToSettings : navigateToFlashcard}
                 className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex items-center gap-1.5 backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               >
-                ← 뒤로가기
+                <ArrowLeft className="w-5 h-5 shrink-0" aria-hidden />
+                뒤로가기
               </button>
             )}
           </div>
@@ -175,7 +177,7 @@ const App: React.FC = () => {
                 className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
                 title="설정"
               >
-                ⚙️
+                <SettingsIcon className="w-5 h-5" aria-hidden />
               </button>
             </div>
           )}

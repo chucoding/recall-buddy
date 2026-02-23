@@ -5,6 +5,7 @@ import FileContentBlock from '../../templates/FileContentBlock';
 import { getFileContent, getMarkdown } from '../../api/github-api';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
+import { Sparkles, Folder } from 'lucide-react';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -22,9 +23,7 @@ function AIAnswerFloatingBlock({ answer }: { answer: string }) {
     >
       <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200">
         <span className="flex items-center justify-center w-6 h-6 rounded-xl bg-primary/10 text-primary" aria-hidden>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a2.25 2.25 0 001.576 1.576l2.846.813a.75.75 0 010 1.442l-2.846.813a2.25 2.25 0 00-1.576 1.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a2.25 2.25 0 00-1.576-1.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A2.25 2.25 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.25 2.25 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.25 2.25 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.25 2.25 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clipRule="evenodd" />
-          </svg>
+          <Sparkles className="w-3.5 h-3.5" aria-hidden />
         </span>
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">예시 답변</span>
       </div>
@@ -316,9 +315,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             className="inline-flex items-center gap-1.5 mr-2 px-2 py-1 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:bg-slate-100 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0" aria-hidden>
-                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                            </svg>
+                            <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />
                             <span className="truncate max-w-[140px] sm:max-w-[200px]" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
                           </a>
                         )}
@@ -397,9 +394,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                     <div className="flex flex-col items-center justify-center w-full p-4 text-center">
                       {card.metadata?.repositoryFullName && (
                         <span className="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[0.75rem] font-mono text-slate-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0" aria-hidden>
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                          </svg>
+                          <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />
                           <span className="truncate max-w-[200px] sm:max-w-[280px]" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
                         </span>
                       )}

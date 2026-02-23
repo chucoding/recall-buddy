@@ -19,6 +19,7 @@ import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
 import { auth, store } from '../firebase';
 import { getCurrentDate, shuffleArray } from '../modules/utils';
+import { Shuffle } from 'lucide-react';
 
 /**
  * 로그인 사용자 전용 플래시카드 뷰어
@@ -90,15 +91,7 @@ const FlashCardViewer: React.FC = () => {
             aria-label="덱 순서 섞기"
             className={`${shuffleBtnClass} max-[768px]:order-last`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 shrink-0" aria-hidden>
-              <path d="M16 3h5v5" />
-              <path d="M8 3H3v5" />
-              <path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" />
-              <path d="m15 9 6-6" />
-              <path d="M9 21H4v-5" />
-              <path d="M21 21v-5h-5" />
-              <path d="m15 15 6 6" />
-            </svg>
+            <Shuffle className="w-5 h-5 shrink-0" aria-hidden />
             <span>덱 셔플</span>
           </button>
         </div>

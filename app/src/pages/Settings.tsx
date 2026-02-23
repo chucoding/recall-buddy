@@ -8,6 +8,7 @@ import { Repository, UserRepository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate } from '../modules/utils';
+import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb } from 'lucide-react';
 
 const MAX_REPOS_FREE = 1;
 const MAX_REPOS_PRO = 5;
@@ -85,7 +86,7 @@ const Settings: React.FC = () => {
         setNoticeMessage(trimmed || null);
       },
       (error) => {
-        console.error('❌ 공지사항 가져오기 실패:', error);
+        console.error('공지사항 가져오기 실패:', error);
       }
     );
     return () => unsubscribe();
@@ -99,7 +100,7 @@ const Settings: React.FC = () => {
       const repos = await getRepositories();
       setRepositories(repos);
     } catch (error) {
-      console.error('❌ 리포지토리 불러오기 실패:', error);
+      console.error('리포지토리 불러오기 실패:', error);
       setReposFetchError(true);
       setMessage({ type: 'error', text: '리포지토리 목록을 불러오는데 실패했습니다.' });
     } finally {
@@ -221,16 +222,15 @@ const Settings: React.FC = () => {
         const flashcardsSnapshot = await getDocs(flashcardsRef);
         const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
         await Promise.all(deletePromises);
-        console.log('🗑️ Firestore 플래시카드 데이터를 삭제했습니다.');
-        
-        setMessage({ type: 'success', text: '✅ 설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
+
+        setMessage({ type: 'success', text: '설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
         
         // 페이지 새로고침으로 플래시카드 새로 생성
         setTimeout(() => {
           window.location.reload();
         }, 500);
       } catch (clearError) {
-        console.error('❌ 플래시카드 데이터 삭제 실패:', clearError);
+        console.error('플래시카드 데이터 삭제 실패:', clearError);
         setMessage({ type: 'error', text: '데이터 삭제에 실패했습니다. 다시 시도해주세요.' });
         setSaving(false);
       }
@@ -339,42 +339,26 @@ const Settings: React.FC = () => {
       setDeleting(true);
       setMessage(null);
 
-      console.log('🚨 회원탈퇴 시작:', {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName
-      });
-
       // 1. 탈퇴 기록 생성 (재가입 방지용)
-      console.log('📝 탈퇴 기록 생성 중...');
       await setDoc(doc(store, 'deletedUsers', user.uid), {
         deletedAt: new Date().toISOString(),
         email: user.email,
         githubUsername: user.displayName,
       });
-      console.log('✅ 탈퇴 기록 생성 완료');
-      
+
       // 2. Firestore 플래시카드 서브컬렉션 삭제 (Auth 삭제 전에 처리해야 함)
-      console.log('🗑️ Firestore 플래시카드 데이터 삭제 중...');
       const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
       const flashcardsSnapshot = await getDocs(flashcardsRef);
       const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
       await Promise.all(deletePromises);
-      console.log('✅ Firestore 플래시카드 데이터 삭제 완료');
 
       // 3. Firestore 사용자 데이터 삭제
-      console.log('🗑️ Firestore 사용자 데이터 삭제 중...');
       await deleteDoc(doc(store, 'users', user.uid));
-      console.log('✅ Firestore 사용자 데이터 삭제 완료');
 
       // 4. Firebase Auth 계정 삭제 (항상 마지막 — 이후 인증 불가)
-      console.log('🗑️ Firebase Auth 계정 삭제 중...');
       await user.delete();
-      console.log('✅ Firebase Auth 계정 삭제 완료');
-      
-      console.log('🎉 회원탈퇴 완료');
     } catch (error: any) {
-      console.error('❌ 회원탈퇴 실패:', error);
+      console.error('회원탈퇴 실패:', error);
       
       // 재인증이 필요한 경우 (다양한 오류 코드 처리)
       const needsReauth = 
@@ -385,46 +369,34 @@ const Settings: React.FC = () => {
       if (needsReauth) {
         try {
           // 자동으로 재인증 시도
-          console.log('🔄 재인증이 필요합니다. GitHub 로그인 팝업을 엽니다...');
           setMessage({ 
             type: 'error', 
             text: '보안을 위해 재인증이 필요합니다. 팝업에서 GitHub 로그인을 진행해주세요.' 
           });
           
           await reauthenticateWithPopup(user, githubProvider);
-          console.log('✅ 재인증 완료');
-          
+
           // 재인증 후 다시 계정 삭제 시도
           setMessage({ type: 'error', text: '재인증되었습니다. 다시 탈퇴를 시도합니다...' });
           
           // 1. 탈퇴 기록 생성
-          console.log('📝 (재시도) 탈퇴 기록 생성 중...');
           await setDoc(doc(store, 'deletedUsers', user.uid), {
             deletedAt: new Date().toISOString(),
             email: user.email,
             githubUsername: user.displayName,
           });
-          console.log('✅ (재시도) 탈퇴 기록 생성 완료');
-          
+
           // 2. Firestore 플래시카드 서브컬렉션 삭제 (Auth 삭제 전에 처리해야 함)
-          console.log('🗑️ (재시도) Firestore 플래시카드 데이터 삭제 중...');
           const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
           const flashcardsSnapshot = await getDocs(flashcardsRef);
           const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
           await Promise.all(deletePromises);
-          console.log('✅ (재시도) Firestore 플래시카드 데이터 삭제 완료');
 
           // 3. Firestore 사용자 데이터 삭제
-          console.log('🗑️ (재시도) Firestore 사용자 데이터 삭제 중...');
           await deleteDoc(doc(store, 'users', user.uid));
-          console.log('✅ (재시도) Firestore 사용자 데이터 삭제 완료');
 
           // 4. Firebase Auth 계정 삭제 (항상 마지막 — 이후 인증 불가)
-          console.log('🗑️ (재시도) Firebase Auth 계정 삭제 중...');
           await user.delete();
-          console.log('✅ (재시도) Firebase Auth 계정 삭제 완료');
-          
-          console.log('🎉 (재시도) 회원탈퇴 완료');
         } catch (reauthError: any) {
           console.error('재인증 실패:', reauthError);
           
@@ -465,7 +437,7 @@ const Settings: React.FC = () => {
         {/* 공지사항: config/notice 문서의 message가 있을 때만 표시 */}
         {noticeMessage && (
           <div className="flex items-start gap-3 bg-[#f59e0b]/10 border-2 border-[#f59e0b]/40 rounded-xl p-4 mb-8 animate-fade-in max-[768px]:p-3 max-[768px]:mb-6">
-            <div className="text-2xl shrink-0 max-[768px]:text-xl">📢</div>
+            <Megaphone className="w-7 h-7 shrink-0 max-[768px]:w-6 max-[768px]:h-6 text-[#f59e0b]" aria-hidden />
             <p className="m-0 flex-1 text-[#fbbf24] text-[0.9rem] leading-relaxed font-medium max-[768px]:text-[0.85rem]">
               {noticeMessage}
             </p>
@@ -562,9 +534,7 @@ const Settings: React.FC = () => {
                               className="shrink-0 p-2 rounded-lg border border-border text-text-body cursor-pointer transition-colors duration-200 hover:bg-error/10 hover:border-error hover:text-error focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                               onClick={() => handleRemoveRepository(r.fullName)}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                <path d="M18 6L6 18M6 6l12 12" />
-                              </svg>
+                              <X className="w-5 h-5" aria-hidden />
                             </button>
                           )}
                           {tier === 'free' && repoMeta && (
@@ -597,7 +567,7 @@ const Settings: React.FC = () => {
                         {selectedRepos.length ? selectedRepos[0].fullName : '리포지토리를 선택하세요'}
                       </span>
                     )}
-                    <span className="text-text-light text-[0.75rem]">{isDropdownOpen ? '▲' : '▼'}</span>
+                    {isDropdownOpen ? <ChevronUp className="w-4 h-4 text-text-light shrink-0" aria-hidden /> : <ChevronDown className="w-4 h-4 text-text-light shrink-0" aria-hidden />}
                   </button>
 
                   {isDropdownOpen && !saving && (
@@ -631,10 +601,7 @@ const Settings: React.FC = () => {
           <div className="flex flex-col gap-2">
             <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2">
               <span className="inline-flex shrink-0" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-text-light">
-                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                </svg>
+                <Bell className="w-5 h-5 text-text-light" aria-hidden />
               </span>
               알림
             </h2>
@@ -782,16 +749,17 @@ const Settings: React.FC = () => {
             </button>
           )}
         </div>
-        <p className="m-0 mb-2 text-[0.85rem] text-text-light text-left leading-relaxed">
-          ℹ️ GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
+        <p className="m-0 mb-2 text-[0.85rem] text-text-light text-left leading-relaxed flex items-center gap-2">
+          <Info className="w-4 h-4 shrink-0" aria-hidden />
+          GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
         </p>
-        <p className="m-0 text-[0.85rem] text-text-light text-left leading-relaxed">
-          🔒 = Private 리포지토리, 🌐 = Public 리포지토리
+        <p className="m-0 text-[0.85rem] text-text-light text-left leading-relaxed flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1"><Lock className="w-4 h-4 shrink-0" aria-hidden /> = Private 리포지토리</span>, <span className="inline-flex items-center gap-1"><Globe className="w-4 h-4 shrink-0" aria-hidden /> = Public 리포지토리</span>
         </p>
 
         {/* 릴리즈 노트 */}
         <div className="border-t border-border text-left mt-8 pt-5 max-[768px]:pt-4">
-          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">📝 릴리즈 노트</h2>
+          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2"><FileText className="w-5 h-5 shrink-0" aria-hidden />릴리즈 노트</h2>
           <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
             새로운 기능과 개선사항을 확인하세요
           </p>
@@ -801,13 +769,14 @@ const Settings: React.FC = () => {
             rel="noopener noreferrer"
             className="inline-block px-6 py-3 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
           >
-            📋 릴리즈 노트 보기
+            <ClipboardList className="w-5 h-5 shrink-0 inline-block align-middle mr-1.5" aria-hidden />
+            릴리즈 노트 보기
           </a>
         </div>
 
         {/* 계정 관리 */}
         <div className="border-t border-border text-left mt-4 pt-5 max-[768px]:pt-4">
-          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">👤 계정 관리</h2>
+          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2"><User className="w-5 h-5 shrink-0" aria-hidden />계정 관리</h2>
           <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
             계정 로그아웃 또는 서비스 탈퇴를 진행할 수 있습니다.
           </p>
@@ -817,7 +786,8 @@ const Settings: React.FC = () => {
               className="flex-1 py-3 px-6 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] max-[768px]:w-full"
               onClick={handleLogout}
             >
-              🚪 로그아웃
+              <LogOut className="w-5 h-5 shrink-0 inline-block align-middle mr-1.5" aria-hidden />
+              로그아웃
             </button>
             <button
               type="button"
@@ -841,16 +811,16 @@ const Settings: React.FC = () => {
       {showDeleteDialog && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[9999] animate-fade-in p-5" onClick={() => !deleting && setShowDeleteDialog(false)}>
           <div className="bg-surface rounded-2xl p-8 max-w-[500px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-slide-up max-h-[90vh] overflow-y-auto max-[768px]:p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="m-0 mb-4 text-text text-2xl font-bold max-[768px]:text-xl">👋 서비스 탈퇴</h2>
+            <h2 className="m-0 mb-4 text-text text-2xl font-bold max-[768px]:text-xl flex items-center gap-2"><UserX className="w-7 h-7 shrink-0" aria-hidden />서비스 탈퇴</h2>
             <p className="m-0 mb-5 text-text-body text-base leading-relaxed">
               정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
             </p>
             <div className="m-0 mb-6 p-4 bg-surface-light border border-border rounded-lg">
-              <p className="m-0 mb-3 text-text text-[0.95rem] font-semibold">✨ 탈퇴 시 안내사항</p>
+              <p className="m-0 mb-3 text-text text-[0.95rem] font-semibold flex items-center gap-2"><Sparkles className="w-5 h-5 shrink-0" aria-hidden />탈퇴 시 안내사항</p>
               <ul className="m-0 pl-5 text-text-light">
                 <li className="my-2 leading-relaxed text-[0.9rem]">저장된 모든 데이터가 삭제됩니다</li>
                 <li className="my-2 leading-relaxed text-[0.9rem]">탈퇴 시 다음날부터 재가입할 수 있습니다</li>
-                <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border">💡 보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
+                <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border flex items-center gap-2"><Lightbulb className="w-4 h-4 shrink-0" aria-hidden />보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
               </ul>
             </div>
             
