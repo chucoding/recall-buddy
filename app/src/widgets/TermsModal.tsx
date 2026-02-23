@@ -1,4 +1,12 @@
 import React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -7,27 +15,18 @@ interface TermsModalProps {
 }
 
 const TermsModal: React.FC<TermsModalProps> = ({ isOpen, termsType, onClose }) => {
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex justify-center items-center z-[1000] p-5 animate-fade-in"
-      onClick={onClose}
-    >
-      <div
-        className="bg-surface rounded-2xl max-w-[600px] w-full max-h-[80vh] flex flex-col shadow-[0_25px_50px_rgba(0,0,0,0.5)] animate-slide-up border border-border max-[480px]:max-h-[90vh] max-[480px]:mx-2.5"
-        onClick={(e) => e.stopPropagation()}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        showClose={true}
+        className="max-w-[600px] w-full max-h-[80vh] flex flex-col max-[480px]:max-h-[90vh] p-0 gap-0"
       >
-        <div className="flex justify-between items-center px-7 py-6 border-b border-border max-[480px]:p-5">
-          <h2 className="m-0 text-2xl text-text font-bold max-[480px]:text-xl">{termsType === 'terms' ? '이용약관' : '개인정보처리방침'}</h2>
-          <button
-            className="bg-transparent border-none text-[2rem] text-text-muted cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 leading-none p-0 hover:bg-surface-light hover:text-text"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-7 text-text leading-[1.8] max-[480px]:p-5 [&_h3]:text-text [&_h3]:text-[1.1rem] [&_h3]:font-bold [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:pt-2 [&_h3:first-child]:mt-0 [&_p]:my-2 [&_p]:text-[0.95rem] [&_p]:text-text-body [&_p]:leading-[1.7] max-[480px]:[&_h3]:text-base max-[480px]:[&_p]:text-[0.9rem]">
+        <DialogHeader className="px-7 py-6 border-b border-border max-[480px]:p-5 text-left">
+          <DialogTitle className="text-2xl max-[480px]:text-xl">
+            {termsType === 'terms' ? '이용약관' : '개인정보처리방침'}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto p-7 text-foreground leading-[1.8] max-[480px]:p-5 [&_h3]:text-foreground [&_h3]:text-[1.1rem] [&_h3]:font-bold [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:pt-2 [&_h3:first-child]:mt-0 [&_p]:my-2 [&_p]:text-[0.95rem] [&_p]:text-muted-foreground [&_p]:leading-[1.7] max-[480px]:[&_h3]:text-base max-[480px]:[&_p]:text-[0.9rem]">
           {termsType === 'terms' ? (
             <>
               <h3>제1조 (목적)</h3>
@@ -116,16 +115,13 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, termsType, onClose }) =
             </>
           )}
         </div>
-        <div className="px-7 py-5 border-t border-border flex justify-end max-[480px]:px-5 max-[480px]:py-4">
-          <button
-            className="bg-primary text-bg border-none rounded-lg px-7 py-3 text-base font-semibold cursor-pointer transition-all duration-300 hover:bg-primary-dark hover:-translate-y-px hover:shadow-[0_4px_15px_rgba(7,166,107,0.3)]"
-            onClick={onClose}
-          >
+        <DialogFooter className="px-7 py-5 border-t border-border flex justify-end max-[480px]:px-5 max-[480px]:py-4">
+          <Button onClick={onClose}>
             닫기
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => {
     ? env.VITE_FUNCTIONS_URL_PROD : env.VITE_FUNCTIONS_URL_LOCAL;
 
   return {
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, './src'),
+      },
+    },
     plugins: [
       tailwindcss(),
       react(),

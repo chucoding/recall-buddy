@@ -4,6 +4,9 @@ import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, githubProvider, store } from '../firebase';
 import { trackEvent } from '../analytics';
 import { getCurrentDate } from '../modules/utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -82,48 +85,52 @@ const Login: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-bg p-5 font-sans">
-        <div className="bg-surface rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-10 max-w-[400px] w-full text-center animate-slide-up border border-border">
-          <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text">로그인 중...</p>
-        </div>
+      <div className="flex justify-center items-center min-h-screen bg-background p-5 font-sans">
+        <Card className="rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] max-w-[400px] w-full animate-slide-up">
+          <CardContent className="p-10 text-center">
+            <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-foreground">로그인 중...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-bg p-5 font-sans max-[480px]:p-4">
-      <div className="bg-surface rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-10 max-w-[400px] w-full text-center animate-slide-up border border-border max-[480px]:p-6">
-        <div className="mb-6 flex justify-center">
-          <a href="/" className="inline-block" aria-label="CodeRecall 홈">
-            <img src="/logo.png" alt="CodeRecall" className="h-14 w-auto max-[480px]:h-11 transition-opacity duration-200 hover:opacity-90" />
-          </a>
-        </div>
-        <div className="mb-8">
-          <p className="text-text-body text-[1.1rem] leading-relaxed font-sans font-medium max-[480px]:text-base">GitHub에 남긴 학습 기록을<br />플래시카드로 복습하세요</p>
-        </div>
-        
-        {error && (
-          <div className="bg-error-bg text-error-text px-4 py-3 rounded-lg mb-6 text-[0.9rem] border border-error/30">
-            {error}
+    <div className="flex justify-center items-center min-h-screen bg-background p-5 font-sans max-[480px]:p-4">
+      <Card className="rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] max-w-[400px] w-full animate-slide-up max-[480px]:p-6">
+        <CardContent className="p-10 text-center max-[480px]:p-6">
+          <div className="mb-6 flex justify-center">
+            <a href="/" className="inline-block" aria-label="CodeRecall 홈">
+              <img src="/logo.png" alt="CodeRecall" className="h-14 w-auto max-[480px]:h-11 transition-opacity duration-200 hover:opacity-90 cursor-pointer" />
+            </a>
           </div>
-        )}
+          <div className="mb-8">
+            <p className="text-muted-foreground text-[1.1rem] leading-relaxed font-sans font-medium max-[480px]:text-base">GitHub에 남긴 학습 기록을<br />플래시카드로 복습하세요</p>
+          </div>
 
-        <button 
-          onClick={handleGitHubLogin}
-          className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-primary text-bg border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-300 mb-6 hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(7,166,107,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none max-[480px]:py-3.5 max-[480px]:px-5 max-[480px]:text-[0.9rem]"
-          disabled={loading}
-        >
-          GitHub로 로그인
-        </button>
+          {error && (
+            <Alert variant="destructive" className="mb-6 text-[0.9rem]">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        <div className="text-center">
-          <p className="text-text-muted text-[0.8rem] m-0 leading-snug">로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">이용약관</a>
-          {' · '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">개인정보처리방침</a>
-        </div>
-      </div>
+          <Button
+            onClick={handleGitHubLogin}
+            className="w-full py-4 px-6 rounded-lg text-base mb-6 max-[480px]:py-3.5 max-[480px]:px-5 max-[480px]:text-[0.9rem]"
+            disabled={loading}
+          >
+            GitHub로 로그인
+          </Button>
+
+          <div className="text-center">
+            <p className="text-muted-foreground text-[0.8rem] m-0 leading-snug">로그인하면 GitHub의 공개 정보에 접근할 수 있습니다</p>
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-muted-foreground no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline cursor-pointer">이용약관</a>
+            {' · '}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-muted-foreground no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline cursor-pointer">개인정보처리방침</a>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

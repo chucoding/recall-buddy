@@ -5,6 +5,8 @@ import { trackEvent } from '../analytics';
 import { getRepositories } from '../api/github-api';
 import { Repository, UserRepository } from '../types';
 import { LayoutTemplate, TriangleAlert, CircleCheck, RefreshCw, Lightbulb, Smartphone, ChevronRight, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -169,12 +171,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </div>
             </div>
 
-            <button 
-              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(7,166,107,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(7,166,107,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
-              onClick={handleNext}
-            >
+            <Button className="w-full py-3.5 px-8 rounded-xl text-base mb-3" onClick={handleNext}>
               <span className="inline-flex items-center justify-center gap-1.5">시작하기 <ChevronRight className="w-5 h-5 shrink-0" aria-hidden /></span>
-            </button>
+            </Button>
           </div>
         )}
 
@@ -191,22 +190,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
             {/* 에러 메시지 */}
             {error && (
-              <div className="bg-error-bg border-2 border-error-light rounded-xl p-4 mb-6 flex gap-3 items-start animate-[errorSlide_0.3s_ease-out]">
-                <span className="shrink-0 w-8 h-8 text-error flex items-center justify-center" aria-hidden>
-                  <TriangleAlert className="w-5 h-5" aria-hidden />
-                </span>
+              <Alert variant="destructive" className="mb-6 animate-[errorSlide_0.3s_ease-out]">
+                <TriangleAlert className="size-5 shrink-0" aria-hidden />
                 <div className="flex-1">
-                  <p className="text-error-text text-sm leading-relaxed mb-4 font-medium m-0">{error.message}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    <button 
-                      className="flex-1 min-w-[150px] py-2.5 px-4 border-2 border-border rounded-lg text-[13px] font-semibold cursor-pointer transition-all duration-200 bg-surface-light text-text-light hover:bg-border hover:border-border-medium hover:text-text-body"
-                      onClick={handleSkipOnboarding}
-                    >
-                      나중에 설정하기
-                    </button>
-                  </div>
+                  <AlertDescription className="mb-4">{error.message}</AlertDescription>
+                  <Button variant="outline" size="sm" className="min-w-[150px]" onClick={handleSkipOnboarding}>
+                    나중에 설정하기
+                  </Button>
                 </div>
-              </div>
+              </Alert>
             )}
 
             <div className="my-8 text-left">
@@ -254,21 +246,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </div>
             </div>
 
-            <button 
-              className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(7,166,107,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(7,166,107,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+            <Button
+              className="w-full py-3.5 px-8 rounded-xl text-base mb-3"
               onClick={handleNext}
               disabled={!canProceed() || saving}
             >
               {saving ? '저장 중...' : (<span className="inline-flex items-center justify-center gap-1.5">완료하기 <ChevronRight className="w-5 h-5 shrink-0" aria-hidden /></span>)}
-            </button>
+            </Button>
 
-            <button 
-              className="w-full py-3.5 px-8 bg-surface-light text-text-light border-2 border-border rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 hover:enabled:bg-border hover:enabled:border-border-medium hover:enabled:text-text-body disabled:opacity-50 disabled:cursor-not-allowed"
+            <Button
+              variant="outline"
+              className="w-full py-3.5 px-8 rounded-xl text-base border-2"
               onClick={handleSkipOnboarding}
               disabled={saving}
             >
               나중에 설정하기
-            </button>
+            </Button>
           </div>
         )}
 
