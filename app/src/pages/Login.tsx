@@ -30,13 +30,6 @@ const Login: React.FC = () => {
           const deletedAt = new Date(deletedData.deletedAt);
           const deletedDateStr = deletedAt.toLocaleDateString('en-CA');
           
-          console.log('탈퇴 기록 발견:', {
-            deletedAt: deletedData.deletedAt,
-            deletedDateStr,
-            todayStr,
-            email: deletedData.email
-          });
-          
           if (deletedDateStr === todayStr) {
             await signOut(auth);
             setError('회원탈퇴 후에는 다음날부터 재가입할 수 있습니다.');

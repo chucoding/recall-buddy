@@ -222,8 +222,7 @@ const Settings: React.FC = () => {
         const flashcardsSnapshot = await getDocs(flashcardsRef);
         const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
         await Promise.all(deletePromises);
-        console.log('Firestore 플래시카드 데이터를 삭제했습니다.');
-        
+
         setMessage({ type: 'success', text: '설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
         
         // 페이지 새로고침으로 플래시카드 새로 생성
@@ -340,40 +339,24 @@ const Settings: React.FC = () => {
       setDeleting(true);
       setMessage(null);
 
-      console.log('회원탈퇴 시작:', {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName
-      });
-
       // 1. 탈퇴 기록 생성 (재가입 방지용)
-      console.log('탈퇴 기록 생성 중...');
       await setDoc(doc(store, 'deletedUsers', user.uid), {
         deletedAt: new Date().toISOString(),
         email: user.email,
         githubUsername: user.displayName,
       });
-      console.log('탈퇴 기록 생성 완료');
-      
+
       // 2. Firestore 플래시카드 서브컬렉션 삭제 (Auth 삭제 전에 처리해야 함)
-      console.log('Firestore 플래시카드 데이터 삭제 중...');
       const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
       const flashcardsSnapshot = await getDocs(flashcardsRef);
       const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
       await Promise.all(deletePromises);
-      console.log('Firestore 플래시카드 데이터 삭제 완료');
 
       // 3. Firestore 사용자 데이터 삭제
-      console.log('Firestore 사용자 데이터 삭제 중...');
       await deleteDoc(doc(store, 'users', user.uid));
-      console.log('Firestore 사용자 데이터 삭제 완료');
 
       // 4. Firebase Auth 계정 삭제 (항상 마지막 — 이후 인증 불가)
-      console.log('Firebase Auth 계정 삭제 중...');
       await user.delete();
-      console.log('Firebase Auth 계정 삭제 완료');
-      
-      console.log('회원탈퇴 완료');
     } catch (error: any) {
       console.error('회원탈퇴 실패:', error);
       
@@ -386,46 +369,34 @@ const Settings: React.FC = () => {
       if (needsReauth) {
         try {
           // 자동으로 재인증 시도
-          console.log('재인증이 필요합니다. GitHub 로그인 팝업을 엽니다...');
           setMessage({ 
             type: 'error', 
             text: '보안을 위해 재인증이 필요합니다. 팝업에서 GitHub 로그인을 진행해주세요.' 
           });
           
           await reauthenticateWithPopup(user, githubProvider);
-          console.log('재인증 완료');
-          
+
           // 재인증 후 다시 계정 삭제 시도
           setMessage({ type: 'error', text: '재인증되었습니다. 다시 탈퇴를 시도합니다...' });
           
           // 1. 탈퇴 기록 생성
-          console.log('(재시도) 탈퇴 기록 생성 중...');
           await setDoc(doc(store, 'deletedUsers', user.uid), {
             deletedAt: new Date().toISOString(),
             email: user.email,
             githubUsername: user.displayName,
           });
-          console.log('(재시도) 탈퇴 기록 생성 완료');
-          
+
           // 2. Firestore 플래시카드 서브컬렉션 삭제 (Auth 삭제 전에 처리해야 함)
-          console.log('(재시도) Firestore 플래시카드 데이터 삭제 중...');
           const flashcardsRef = collection(store, 'users', user.uid, 'flashcards');
           const flashcardsSnapshot = await getDocs(flashcardsRef);
           const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
           await Promise.all(deletePromises);
-          console.log('(재시도) Firestore 플래시카드 데이터 삭제 완료');
 
           // 3. Firestore 사용자 데이터 삭제
-          console.log('(재시도) Firestore 사용자 데이터 삭제 중...');
           await deleteDoc(doc(store, 'users', user.uid));
-          console.log('(재시도) Firestore 사용자 데이터 삭제 완료');
 
           // 4. Firebase Auth 계정 삭제 (항상 마지막 — 이후 인증 불가)
-          console.log('(재시도) Firebase Auth 계정 삭제 중...');
           await user.delete();
-          console.log('(재시도) Firebase Auth 계정 삭제 완료');
-          
-          console.log('(재시도) 회원탈퇴 완료');
         } catch (reauthError: any) {
           console.error('재인증 실패:', reauthError);
           
