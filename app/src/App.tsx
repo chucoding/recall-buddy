@@ -14,7 +14,7 @@ import Onboarding from './pages/Onboarding';
 import Card from './components/Card';
 import { useTodayFlashcards } from './hooks/useTodayFlashcards';
 import { useNavigationStore } from './stores/navigationStore';
-import { BookOpen, ArrowLeft, Settings, Clock } from 'lucide-react';
+import { BookOpen, ArrowLeft, Settings as SettingsIcon, Clock } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -177,7 +177,7 @@ const App: React.FC = () => {
                 className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
                 title="설정"
               >
-                <Settings className="w-5 h-5" aria-hidden />
+                <SettingsIcon className="w-5 h-5" aria-hidden />
               </button>
             </div>
           )}

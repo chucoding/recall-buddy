@@ -30,7 +30,7 @@ const Login: React.FC = () => {
           const deletedAt = new Date(deletedData.deletedAt);
           const deletedDateStr = deletedAt.toLocaleDateString('en-CA');
           
-          console.log('⚠️ 탈퇴 기록 발견:', {
+          console.log('탈퇴 기록 발견:', {
             deletedAt: deletedData.deletedAt,
             deletedDateStr,
             todayStr,
@@ -47,7 +47,7 @@ const Login: React.FC = () => {
           }
         }
       } catch (firestoreError) {
-        console.error('❌ Firestore 탈퇴 기록 확인 실패:', firestoreError);
+        console.error('Firestore 탈퇴 기록 확인 실패:', firestoreError);
         // Firestore 오류가 있어도 로그인은 계속 진행
         // 보안상 문제가 있을 수 있으므로 관리자에게 알림 필요
       }
