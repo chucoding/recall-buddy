@@ -3,7 +3,7 @@ import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
 import { generateDemoFlashcards } from '../lib/demoFlashcards';
 import { trackEvent } from '../analytics';
-import { Github, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 /**
  * 랜딩 데모 페이지
@@ -61,7 +61,7 @@ const LandingDemo: React.FC = () => {
     <>
       <form onSubmit={handleSubmit}>
         <div className="flex items-center bg-surface-light/60 backdrop-blur-md rounded-2xl border border-border shadow-[0_16px_48px_rgba(0,0,0,0.3)] overflow-hidden p-1.5 max-[768px]:flex-col max-[768px]:p-3 max-[768px]:gap-2">
-          <Github className="w-5 h-5 ml-4 shrink-0 text-text-muted max-[768px]:hidden" aria-hidden />
+          <img src="/github-mark-white.svg" alt="" width={20} height={20} className="w-5 h-5 ml-4 shrink-0 max-[768px]:hidden" aria-hidden />
           <input
             type="text"
             className="flex-1 border-0 outline-none text-base py-3.5 px-3 bg-transparent text-text min-w-0 placeholder:text-text-muted max-[768px]:w-full max-[768px]:text-center max-[768px]:py-3"
