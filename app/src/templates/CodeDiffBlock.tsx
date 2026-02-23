@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { highlightText } from '../modules/highlightText';
+import { FileText } from 'lucide-react';
 import 'github-markdown-css/github-markdown.css';
 
 const MONO_STYLE: React.CSSProperties = {
@@ -94,8 +95,9 @@ const CodeDiffBlock: React.FC<CodeDiffBlockProps> = ({ diffContent, highlightStr
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-[1.25em] font-semibold mt-5 mb-3 text-[#24292f]">
-              📄 {children}
+            <h3 className="text-[1.25em] font-semibold mt-5 mb-3 text-[#24292f] flex items-center gap-2">
+              <FileText className="w-5 h-5 shrink-0" aria-hidden />
+              {children}
             </h3>
           ),
           strong: ({ children }) => {

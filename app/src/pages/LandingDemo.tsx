@@ -3,6 +3,7 @@ import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
 import { generateDemoFlashcards } from '../lib/demoFlashcards';
 import { trackEvent } from '../analytics';
+import { Github, Info } from 'lucide-react';
 
 /**
  * 랜딩 데모 페이지
@@ -60,13 +61,7 @@ const LandingDemo: React.FC = () => {
     <>
       <form onSubmit={handleSubmit}>
         <div className="flex items-center bg-surface-light/60 backdrop-blur-md rounded-2xl border border-border shadow-[0_16px_48px_rgba(0,0,0,0.3)] overflow-hidden p-1.5 max-[768px]:flex-col max-[768px]:p-3 max-[768px]:gap-2">
-          <svg
-            className="w-5 h-5 ml-4 shrink-0 text-text-muted max-[768px]:hidden"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-          >
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-          </svg>
+          <Github className="w-5 h-5 ml-4 shrink-0 text-text-muted max-[768px]:hidden" aria-hidden />
           <input
             type="text"
             className="flex-1 border-0 outline-none text-base py-3.5 px-3 bg-transparent text-text min-w-0 placeholder:text-text-muted max-[768px]:w-full max-[768px]:text-center max-[768px]:py-3"
@@ -133,9 +128,7 @@ const LandingDemo: React.FC = () => {
                   role="note"
                   aria-label="데모 안내"
                 >
-                  <svg className="w-3.5 h-3.5 shrink-0 text-text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
+                  <Info className="w-3.5 h-3.5 shrink-0 text-text-muted" aria-hidden />
                   <span>데모에서는 가장 최근 커밋 3개를 기반으로 플래시카드를 생성합니다</span>
                 </p>
                 <p className="text-text-body text-lg mb-5">

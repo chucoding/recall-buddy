@@ -4,6 +4,7 @@ import { auth, store } from '../firebase';
 import { trackEvent } from '../analytics';
 import { getRepositories } from '../api/github-api';
 import { Repository, UserRepository } from '../types';
+import { LayoutTemplate, TriangleAlert, CircleCheck, RefreshCw, Lightbulb, Smartphone, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -155,15 +156,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             
             <div className="my-8 text-left space-y-3">
               <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl transition-colors duration-200 hover:bg-border cursor-default border border-transparent hover:border-border-medium">
-                <span className="text-2xl shrink-0" aria-hidden>🔄</span>
+                <span className="shrink-0 flex items-center justify-center text-primary" aria-hidden><RefreshCw className="w-6 h-6" /></span>
                 <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">1일, 7일, 30일 전 커밋 자동 분석</span>
               </div>
               <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl transition-colors duration-200 hover:bg-border cursor-default border border-transparent hover:border-border-medium">
-                <span className="text-2xl shrink-0" aria-hidden>💡</span>
+                <span className="shrink-0 flex items-center justify-center text-primary" aria-hidden><Lightbulb className="w-6 h-6" /></span>
                 <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">AI가 핵심 내용을 질문으로 변환</span>
               </div>
               <div className="flex items-center gap-3 p-4 bg-surface-light rounded-xl transition-colors duration-200 hover:bg-border cursor-default border border-transparent hover:border-border-medium">
-                <span className="text-2xl shrink-0" aria-hidden>📱</span>
+                <span className="shrink-0 flex items-center justify-center text-primary" aria-hidden><Smartphone className="w-6 h-6" /></span>
                 <span className="text-sm text-text-body font-medium max-[640px]:text-[13px]">매일 아침 푸시 알림으로 복습</span>
               </div>
             </div>
@@ -172,7 +173,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               className="w-full py-3.5 px-8 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 bg-primary text-bg shadow-[0_4px_15px_rgba(7,166,107,0.3)] mb-3 hover:enabled:-translate-y-0.5 hover:enabled:bg-primary-dark hover:enabled:shadow-[0_6px_20px_rgba(7,166,107,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               onClick={handleNext}
             >
-              시작하기 →
+              <span className="inline-flex items-center justify-center gap-1.5">시작하기 <ChevronRight className="w-5 h-5 shrink-0" aria-hidden /></span>
             </button>
           </div>
         )}
@@ -181,7 +182,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {step === 2 && (
           <div className="text-center animate-fade-in">
             <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center" aria-hidden>
-              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
+              <LayoutTemplate className="w-8 h-8 text-primary" aria-hidden />
             </div>
             <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">리포지토리 선택</h1>
             <p className="text-base text-text-light leading-relaxed mb-8 m-0 max-[640px]:text-sm">
@@ -192,7 +193,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             {error && (
               <div className="bg-error-bg border-2 border-error-light rounded-xl p-4 mb-6 flex gap-3 items-start animate-[errorSlide_0.3s_ease-out]">
                 <span className="shrink-0 w-8 h-8 text-error flex items-center justify-center" aria-hidden>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                  <TriangleAlert className="w-5 h-5" aria-hidden />
                 </span>
                 <div className="flex-1">
                   <p className="text-error-text text-sm leading-relaxed mb-4 font-medium m-0">{error.message}</p>
@@ -224,7 +225,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     <span className={selectedRepo ? "" : "text-text-muted"}>
                       {selectedRepo ? selectedRepo.fullName : "리포지토리를 선택하세요"}
                     </span>
-                    <span className="text-xs text-text-light transition-transform duration-200">▼</span>
+                    <ChevronDown className="w-4 h-4 text-text-light shrink-0 transition-transform duration-200" aria-hidden />
                   </button>
                   
                   {isDropdownOpen && (
@@ -258,7 +259,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               onClick={handleNext}
               disabled={!canProceed() || saving}
             >
-              {saving ? '저장 중...' : '완료하기 →'}
+              {saving ? '저장 중...' : (<span className="inline-flex items-center justify-center gap-1.5">완료하기 <ChevronRight className="w-5 h-5 shrink-0" aria-hidden /></span>)}
             </button>
 
             <button 
@@ -275,7 +276,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {step === 3 && (
           <div className="text-center animate-fade-in">
             <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center animate-[successPulse_0.6s_ease-out]" aria-hidden>
-              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <CircleCheck className="w-8 h-8 text-primary" aria-hidden />
             </div>
             <h1 className="text-3xl font-bold text-text mb-4 m-0 max-[640px]:text-[28px]">준비 완료</h1>
             <p className="text-base text-text-light leading-relaxed mb-8 m-0 max-[640px]:text-sm">
