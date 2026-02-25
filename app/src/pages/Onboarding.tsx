@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
 import { trackEvent } from '../analytics';
@@ -25,6 +25,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [error, setError] = useState<{ type: 'repos' | 'save'; message: string } | null>(null);
   const [branches, setBranches] = useState<{ name: string }[]>([]);
   const [loadingBranches, setLoadingBranches] = useState<boolean>(false);
+  const selectedRepoRef = useRef<UserRepository | null>(null);
+  selectedRepoRef.current = selectedRepo;
 
   // 리포지토리 목록 가져오기
   const fetchRepositories = useCallback(async () => {
@@ -61,7 +63,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     setBranches([]);
   };
 
-  // selectedRepo 변경 시 브랜치 목록 로드
+  // selectedRepo 변경 시 브랜치 목록 로드 (stale 응답 무시: 레포 전환 시 이전 요청 결과가 새 레포 브랜치를 덮어쓰지 않도록)
   useEffect(() => {
     if (!selectedRepo) {
       setBranches([]);
@@ -70,10 +72,17 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     }
     const [owner, repo] = selectedRepo.fullName.split('/');
     if (!owner || !repo) return;
+    const fetchFor = selectedRepo.fullName;
     setLoadingBranches(true);
     getBranches(owner, repo)
-      .then((list) => { setBranches(list); setLoadingBranches(false); })
-      .catch(() => { setBranches([]); setLoadingBranches(false); });
+      .then((list) => {
+        const stillSelected = fetchFor === selectedRepoRef.current?.fullName;
+        if (stillSelected) { setBranches(list); setLoadingBranches(false); }
+      })
+      .catch(() => {
+        const stillSelected = fetchFor === selectedRepoRef.current?.fullName;
+        if (stillSelected) { setBranches([]); setLoadingBranches(false); }
+      });
   }, [selectedRepo?.fullName]);
 
   const handleBranchChange = (value: string) => {
