@@ -531,7 +531,7 @@ const Settings: React.FC = () => {
                 'Free'
               )}
             </span>
-            {/* TODO: 준비 완료 시 onClick을 navigateToPricing으로 복구 */}
+            {/* TODO: 준비 완료 시 onClick을 setCurrentPage('pricing') 복구 */}
             {tier === 'free' && (
               <Button
                 type="button"
