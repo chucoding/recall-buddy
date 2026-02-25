@@ -453,27 +453,38 @@ export const getBranches = onRequest(
         return;
       }
 
-      // GitHub API로 브랜치 목록 가져오기
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches`, {
-        headers: {
-          "Authorization": `Bearer ${githubToken}`,
-          "Accept": "application/vnd.github.v3+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-        },
-      });
+      // GitHub API로 브랜치 목록 가져오기 (페이지네이션으로 전체 목록 수집)
+      const headers = {
+        "Authorization": `Bearer ${githubToken}`,
+        "Accept": "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      };
+      const allBranches: Array<{name: string; protected?: boolean}> = [];
+      const perPage = 100;
+      let page = 1;
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(`GitHub API error: ${response.status}`, errorBody);
-        res.status(response.status).json({
-          error: "Failed to fetch branches from GitHub",
-          details: errorBody,
-        });
-        return;
+      while (true) {
+        const url = `https://api.github.com/repos/${owner}/${repo}/branches?per_page=${perPage}&page=${page}`;
+        const response = await fetch(url, { headers });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          console.error(`GitHub API error: ${response.status}`, errorBody);
+          res.status(response.status).json({
+            error: "Failed to fetch branches from GitHub",
+            details: errorBody,
+          });
+          return;
+        }
+
+        const pageBranches = await response.json();
+        allBranches.push(...pageBranches);
+
+        if (pageBranches.length < perPage) break;
+        page += 1;
       }
 
-      const branches = await response.json();
-      res.json(branches);
+      res.json(allBranches);
     } catch (error) {
       console.error("Error fetching branches:", error);
       res.status(500).json({
