@@ -360,7 +360,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             >
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent onClick={(e) => e.stopPropagation()}>
                               {effectiveFiles.map((f, i) => (
                                 <SelectItem key={i} value={String(i)} title={f.filename}>
                                   <span className="truncate block max-w-[180px]">{f.filename}</span>
