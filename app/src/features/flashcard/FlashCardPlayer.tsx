@@ -6,6 +6,13 @@ import { getFileContent, getMarkdown } from '../../api/github-api';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
 import { Sparkles, Folder } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -339,22 +346,28 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           파일 보기
                         </button>
                         {backViewMode === 'file' && hasFilesArray && effectiveFiles.length > 1 && (
-                          <select
-                            className="ml-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 py-1.5 px-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 max-w-[200px] truncate"
-                            value={safeFileIndex}
-                            onChange={(e) => {
-                              setSelectedFileIndex(Number(e.target.value));
+                          <Select
+                            value={String(safeFileIndex)}
+                            onValueChange={(value) => {
+                              setSelectedFileIndex(Number(value));
                               lastFetchedUrlRef.current = null;
                             }}
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label="파일 선택"
                           >
-                            {effectiveFiles.map((f, i) => (
-                              <option key={i} value={i} title={f.filename}>
-                                {f.filename}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger
+                              className="ml-2 h-8 min-w-0 max-w-[200px] rounded-xl border border-slate-200 bg-white px-2 text-xs text-slate-800 focus:ring-primary focus:ring-offset-1"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label="파일 선택"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent onClick={(e) => e.stopPropagation()}>
+                              {effectiveFiles.map((f, i) => (
+                                <SelectItem key={i} value={String(i)} title={f.filename}>
+                                  <span className="truncate block max-w-[180px]">{f.filename}</span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         )}
                         {backViewMode === 'file' && hasFileView && effectiveFiles.length === 1 && (
                           <span className="ml-2 text-xs text-slate-500 truncate max-w-[180px]" title={currentFilename}>

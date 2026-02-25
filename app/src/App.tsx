@@ -12,6 +12,7 @@ import Pricing from './pages/Pricing';
 import NoDataView from './pages/NoDataView';
 import Onboarding from './pages/Onboarding';
 import Card from './components/Card';
+import { Button } from '@/components/ui/button';
 import { useTodayFlashcards } from './hooks/useTodayFlashcards';
 import { useNavigationStore } from './stores/navigationStore';
 import { BookOpen, ArrowLeft, Settings as SettingsIcon, Clock } from 'lucide-react';
@@ -160,25 +161,28 @@ const App: React.FC = () => {
         <nav className={`fixed top-4 left-4 right-4 max-[768px]:top-2 max-[768px]:left-2 max-[768px]:right-2 bg-transparent z-[1000] px-5 py-3 max-[768px]:py-2 max-[768px]:px-3 flex justify-between items-center transition-all duration-300 ease-in-out pointer-events-none ${isScrollAtTop ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>
           <div className={isScrollAtTop ? 'pointer-events-auto' : 'pointer-events-none'}>
             {(currentPage === 'settings' || currentPage === 'pricing') && (
-              <button
+              <Button
+                variant="outline"
                 onClick={currentPage === 'pricing' ? navigateToSettings : navigateToFlashcard}
-                className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer font-semibold transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex items-center gap-1.5 backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+                className="bg-card/95 border-border shadow-[0_2px_8px_rgba(0,0,0,0.3)] gap-1.5 backdrop-blur-sm hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               >
                 <ArrowLeft className="w-5 h-5 shrink-0" aria-hidden />
                 뒤로가기
-              </button>
+              </Button>
             )}
           </div>
 
           {currentPage === 'flashcard' && (
             <div className={isScrollAtTop ? 'pointer-events-auto' : 'pointer-events-none'}>
-              <button
+              <Button
+                variant="outline"
                 onClick={navigateToSettings}
-                className="py-2 px-4 bg-surface/95 text-text border border-border rounded-lg cursor-pointer text-[1.2rem] transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-surface-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
                 title="설정"
+                size="icon"
+                className="text-[1.2rem] bg-card/95 border-border shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               >
                 <SettingsIcon className="w-5 h-5" aria-hidden />
-              </button>
+              </Button>
             </div>
           )}
         </nav>

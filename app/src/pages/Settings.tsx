@@ -8,7 +8,34 @@ import { Repository, UserRepository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate } from '../modules/utils';
-import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb } from 'lucide-react';
+import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb, CalendarIcon } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 const MAX_REPOS_FREE = 1;
 const MAX_REPOS_PRO = 5;
@@ -41,6 +68,7 @@ const Settings: React.FC = () => {
   const { subscription } = useSubscription(currentUser);
   const { setSelectedPastDate, setCurrentPage } = useNavigationStore();
   const [pastDateInput, setPastDateInput] = useState('');
+  const [pastDatePopoverOpen, setPastDatePopoverOpen] = useState(false);
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const todayStr = getCurrentDate();
   const canRegenerate = tier === 'pro' && (
@@ -459,13 +487,13 @@ const Settings: React.FC = () => {
             </span>
             {/* TODO: 준비 완료 시 onClick을 navigateToPricing으로 복구 */}
             {tier === 'free' && (
-              <button
+              <Button
                 type="button"
+                size="sm"
                 onClick={() => alert('Pro 업그레이드는 준비 중이에요. 조금만 기다려 주세요.')}
-                className="py-2 px-4 bg-primary text-bg border-none rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface"
               >
                 Pro로 업그레이드
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -494,15 +522,11 @@ const Settings: React.FC = () => {
                 <span>리포지토리 목록을 불러오는 중...</span>
               </div>
             ) : reposFetchError ? (
-              <div className="flex items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg text-text-body text-[0.95rem]">
+              <div className="flex items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg text-foreground text-[0.95rem]">
                 <span>리포지토리를 불러오지 못했습니다.</span>
-                <button
-                  type="button"
-                  className="ml-2 px-3 py-1.5 bg-transparent text-primary border border-primary rounded-md text-[1.1rem] cursor-pointer transition-all duration-200 flex items-center justify-center min-w-[40px] h-8 hover:bg-primary hover:text-white hover:rotate-180 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => fetchRepositories()}
-                >
+                <Button variant="outline" size="sm" className="ml-2" onClick={() => fetchRepositories()}>
                   다시 시도
-                </button>
+                </Button>
               </div>
             ) : (
               <>
@@ -528,14 +552,16 @@ const Settings: React.FC = () => {
                             </a>
                           </div>
                           {tier === 'pro' && selectedRepos.length > 1 && (
-                            <button
+                            <Button
                               type="button"
+                              variant="outline"
+                              size="icon"
                               aria-label={`${r.fullName} 제거`}
-                              className="shrink-0 p-2 rounded-lg border border-border text-text-body cursor-pointer transition-colors duration-200 hover:bg-error/10 hover:border-error hover:text-error focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                              className="shrink-0 hover:bg-destructive/10 hover:border-destructive hover:text-destructive"
                               onClick={() => handleRemoveRepository(r.fullName)}
                             >
                               <X className="w-5 h-5" aria-hidden />
-                            </button>
+                            </Button>
                           )}
                           {tier === 'free' && repoMeta && (
                             <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap shrink-0">{repoMeta.private ? 'Private' : 'Public'}</span>
@@ -609,15 +635,14 @@ const Settings: React.FC = () => {
               {tier === 'pro' ? '원하는 시각에 복습 리마인더를 보내드려요.' : '매일 오전 8시에 복습 리마인더를 보내드려요.'}
             </p>
             {tier === 'pro' && (
-              <div className="flex items-center justify-between gap-4 p-4 bg-surface-light border-2 border-border rounded-lg mb-3">
-                <label htmlFor="push-hour" className="font-semibold text-text text-[0.95rem]">
+              <div className="flex items-center justify-between gap-4 p-4 bg-muted border-2 border-border rounded-lg mb-3">
+                <Label htmlFor="push-hour" className="font-semibold text-[0.95rem]">
                   알림 희망 시 (내 시간대)
-                </label>
-                <select
-                  id="push-hour"
-                  value={preferredPushHour}
-                  onChange={async (e) => {
-                    const hour = Number(e.target.value);
+                </Label>
+                <Select
+                  value={String(preferredPushHour)}
+                  onValueChange={async (v) => {
+                    const hour = Number(v);
                     setPreferredPushHour(hour);
                     const user = auth.currentUser;
                     if (!user) return;
@@ -633,33 +658,29 @@ const Settings: React.FC = () => {
                       setMessage({ type: 'error', text: '알림 시간 저장에 실패했습니다.' });
                     }
                   }}
-                  className="px-3 py-2 border-2 border-border rounded-lg bg-surface text-text text-[0.95rem] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface focus:border-primary"
                 >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>{i}시</option>
-                  ))}
-                </select>
+                  <SelectTrigger id="push-hour" className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <SelectItem key={i} value={String(i)}>{i}시</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
-            <div className="flex items-center justify-between gap-4 p-4 bg-surface-light border-2 border-border rounded-lg">
-              <label htmlFor="push-toggle" className="font-semibold text-text text-[0.95rem] cursor-pointer flex-1">
+            <div className="flex items-center justify-between gap-4 p-4 bg-muted border-2 border-border rounded-lg">
+              <Label htmlFor="push-toggle" className="font-semibold text-[0.95rem] cursor-pointer flex-1">
                 PUSH 알림
-              </label>
-              <button
+              </Label>
+              <Switch
                 id="push-toggle"
-                type="button"
-                role="switch"
-                aria-checked={pushEnabled}
-                aria-label={pushEnabled ? 'PUSH 알림 끄기' : 'PUSH 알림 켜기'}
+                checked={pushEnabled}
                 disabled={pushUpdating}
-                onClick={() => handlePushToggle(!pushEnabled)}
-                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-60 ${pushEnabled ? 'bg-primary border-primary' : 'bg-bg border-border-medium'}`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.4)] ring-0 transition duration-200 ${pushEnabled ? 'translate-x-5' : 'translate-x-1'}`}
-                  aria-hidden="true"
-                />
-              </button>
+                onCheckedChange={(checked) => handlePushToggle(checked)}
+                aria-label={pushEnabled ? 'PUSH 알림 끄기' : 'PUSH 알림 켜기'}
+              />
             </div>
           </div>
 
@@ -669,9 +690,10 @@ const Settings: React.FC = () => {
               <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
                 오늘 분 플래시카드를 다시 만들 수 있어요. (일 3회까지)
               </p>
-              <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg">
-                <button
+              <div className="flex flex-wrap items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg">
+                <Button
                   type="button"
+                  size="sm"
                   disabled={regenerating || !canRegenerate}
                   onClick={async () => {
                     setRegenerating(true);
@@ -690,11 +712,10 @@ const Settings: React.FC = () => {
                       setRegenerating(false);
                     }
                   }}
-                  className="py-2.5 px-4 bg-primary text-bg border-none rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {regenerating ? '처리 중...' : '지금 다시 만들기'}
-                </button>
-                <span className="text-text-muted text-[0.85rem]">
+                </Button>
+                <span className="text-muted-foreground text-[0.85rem]">
                   오늘 {regenerateCount}/3회 사용
                 </span>
               </div>
@@ -707,16 +728,39 @@ const Settings: React.FC = () => {
               <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
                 저장된 날짜의 플래시카드를 다시 볼 수 있어요.
               </p>
-              <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg">
-                <input
-                  type="date"
-                  value={pastDateInput}
-                  onChange={(e) => setPastDateInput(e.target.value)}
-                  max={getCurrentDate()}
-                  className="px-3 py-2 border-2 border-border rounded-lg bg-surface text-text text-[0.95rem] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface focus:border-primary"
-                />
-                <button
+              <div className="flex flex-wrap items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg">
+                <Popover open={pastDatePopoverOpen} onOpenChange={setPastDatePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[0.95rem] justify-start text-left font-normal min-w-[10rem]"
+                    >
+                      <CalendarIcon className="mr-2 size-4" />
+                      {pastDateInput
+                        ? format(new Date(pastDateInput + 'T12:00:00'), 'PPP', { locale: ko })
+                        : '날짜 선택'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={pastDateInput ? new Date(pastDateInput + 'T12:00:00') : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setPastDateInput(format(date, 'yyyy-MM-dd'));
+                          setPastDatePopoverOpen(false);
+                        }
+                      }}
+                      disabled={(date) => date.toLocaleDateString('en-CA') > getCurrentDate()}
+                      endMonth={new Date()}
+                      className="rounded-lg border-0"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Button
                   type="button"
+                  size="sm"
                   disabled={!pastDateInput}
                   onClick={() => {
                     if (pastDateInput) {
@@ -724,29 +768,28 @@ const Settings: React.FC = () => {
                       setCurrentPage('flashcard');
                     }
                   }}
-                  className="py-2.5 px-4 bg-primary text-bg border-none rounded-lg text-[0.9rem] font-semibold cursor-pointer transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   해당 날짜 카드 보기
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
           {message && (
-            <div className={`px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up ${message.type === 'success' ? 'bg-success-bg text-success border border-primary/30 shadow-[0_2px_8px_rgba(7,166,107,0.15)]' : 'bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]'}`}>
-              {message.text}
-            </div>
+            <Alert variant={message.type === 'success' ? 'success' : 'destructive'} className="my-4 animate-slide-up text-[0.95rem]">
+              <AlertDescription>{message.text}</AlertDescription>
+            </Alert>
           )}
 
           {selectedRepos.length > 0 && (
-            <button
+            <Button
               type="button"
-              className="w-full py-3 px-6 text-base font-bold text-bg bg-primary border-none rounded-lg cursor-pointer mt-5 mb-5 transition-all duration-200 shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] disabled:bg-surface-light disabled:text-text-muted disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+              className="w-full mt-5 mb-5 py-3 text-base"
               onClick={handleSaveSettings}
               disabled={saving}
             >
               {saving ? '저장 중...' : '설정 저장'}
-            </button>
+            </Button>
           )}
         </div>
         <p className="m-0 mb-2 text-[0.85rem] text-text-light text-left leading-relaxed flex items-center gap-2">
@@ -763,15 +806,17 @@ const Settings: React.FC = () => {
           <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
             새로운 기능과 개선사항을 확인하세요
           </p>
-          <a
-            href="https://www.notion.so/chucoding/RELEASE_NOTE-287fd64d44a080cd9564d2492b7de718"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-3 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 no-underline shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
-          >
-            <ClipboardList className="w-5 h-5 shrink-0 inline-block align-middle mr-1.5" aria-hidden />
-            릴리즈 노트 보기
-          </a>
+          <Button asChild>
+            <a
+              href="https://www.notion.so/chucoding/RELEASE_NOTE-287fd64d44a080cd9564d2492b7de718"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 no-underline max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
+            >
+              <ClipboardList className="w-5 h-5 shrink-0" aria-hidden />
+              릴리즈 노트 보기
+            </a>
+          </Button>
         </div>
 
         {/* 계정 관리 */}
@@ -781,21 +826,13 @@ const Settings: React.FC = () => {
             계정 로그아웃 또는 서비스 탈퇴를 진행할 수 있습니다.
           </p>
           <div className="flex gap-3 mt-4 max-[768px]:flex-col">
-            <button
-              type="button"
-              className="flex-1 py-3 px-6 bg-primary text-bg border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(7,166,107,0.3)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_6px_16px_rgba(7,166,107,0.4)] max-[768px]:w-full"
-              onClick={handleLogout}
-            >
+            <Button type="button" className="flex-1 max-[768px]:w-full" onClick={handleLogout}>
               <LogOut className="w-5 h-5 shrink-0 inline-block align-middle mr-1.5" aria-hidden />
               로그아웃
-            </button>
-            <button
-              type="button"
-              className="flex-1 py-3 px-6 bg-transparent text-text-muted border border-border rounded-lg text-[0.95rem] font-medium cursor-pointer transition-all duration-200 hover:text-text-light hover:border-border-medium hover:bg-surface max-[768px]:w-full"
-              onClick={() => setShowDeleteDialog(true)}
-            >
+            </Button>
+            <Button type="button" variant="outline" className="flex-1 max-[768px]:w-full" onClick={() => setShowDeleteDialog(true)}>
               서비스 탈퇴
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -808,68 +845,73 @@ const Settings: React.FC = () => {
       </div>
 
       {/* 서비스 탈퇴 확인 다이얼로그 */}
-      {showDeleteDialog && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[9999] animate-fade-in p-5" onClick={() => !deleting && setShowDeleteDialog(false)}>
-          <div className="bg-surface rounded-2xl p-8 max-w-[500px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-slide-up max-h-[90vh] overflow-y-auto max-[768px]:p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="m-0 mb-4 text-text text-2xl font-bold max-[768px]:text-xl flex items-center gap-2"><UserX className="w-7 h-7 shrink-0" aria-hidden />서비스 탈퇴</h2>
-            <p className="m-0 mb-5 text-text-body text-base leading-relaxed">
-              정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
-            </p>
-            <div className="m-0 mb-6 p-4 bg-surface-light border border-border rounded-lg">
-              <p className="m-0 mb-3 text-text text-[0.95rem] font-semibold flex items-center gap-2"><Sparkles className="w-5 h-5 shrink-0" aria-hidden />탈퇴 시 안내사항</p>
-              <ul className="m-0 pl-5 text-text-light">
-                <li className="my-2 leading-relaxed text-[0.9rem]">저장된 모든 데이터가 삭제됩니다</li>
-                <li className="my-2 leading-relaxed text-[0.9rem]">탈퇴 시 다음날부터 재가입할 수 있습니다</li>
-                <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border flex items-center gap-2"><Lightbulb className="w-4 h-4 shrink-0" aria-hidden />보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
-              </ul>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label htmlFor="confirmText" className="font-semibold text-text text-[0.95rem] block m-0">
-                확인을 위해 <strong>"회원탈퇴"</strong>를 입력해주세요:
-              </label>
-              <input
-                id="confirmText"
-                type="text"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="회원탈퇴"
-                disabled={deleting}
-                className="px-4 py-3 border-2 border-border rounded-lg text-base transition-all duration-200 w-full font-inherit bg-surface-light text-text focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(7,166,107,0.15)] disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface"
-              />
-            </div>
-
-            {message && message.type === 'error' && (
-              <div className="px-[18px] py-3.5 rounded-lg text-[0.95rem] font-medium my-4 animate-slide-up bg-error-bg text-error-text border border-error/30 shadow-[0_2px_8px_rgba(248,113,113,0.15)]">
-                {message.text}
-              </div>
-            )}
-
-            <div className="flex gap-3 mt-6 justify-end max-[768px]:flex-col">
-              <button
-                type="button"
-                className="px-6 py-3 border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-200 min-w-[100px] bg-border text-text-body hover:bg-border-medium disabled:opacity-60 disabled:cursor-not-allowed max-[768px]:w-full"
-                onClick={() => {
-                  setShowDeleteDialog(false);
-                  setDeleteConfirmText('');
-                  setMessage(null);
-                }}
-                disabled={deleting}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className="px-6 py-3 border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-200 min-w-[100px] bg-text-muted text-white hover:bg-text-light hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(113,128,150,0.3)] disabled:opacity-60 disabled:cursor-not-allowed max-[768px]:w-full"
-                onClick={handleDeleteAccount}
-                disabled={deleting || deleteConfirmText !== '회원탈퇴'}
-              >
-                {deleting ? '탈퇴 처리 중...' : '탈퇴하기'}
-              </button>
-            </div>
+      <Dialog open={showDeleteDialog} onOpenChange={(open) => { if (!open && !deleting) { setShowDeleteDialog(false); setDeleteConfirmText(''); setMessage(null); } }}>
+        <DialogContent showClose={!deleting} className="max-w-[500px] max-h-[90vh] overflow-y-auto p-8 max-[768px]:p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl max-[768px]:text-xl">
+              <UserX className="w-7 h-7 shrink-0" aria-hidden />
+              서비스 탈퇴
+            </DialogTitle>
+          </DialogHeader>
+          <p className="m-0 mb-5 text-muted-foreground text-base leading-relaxed">
+            정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
+          </p>
+          <div className="m-0 mb-6 p-4 bg-muted border border-border rounded-lg">
+            <p className="m-0 mb-3 text-foreground text-[0.95rem] font-semibold flex items-center gap-2"><Sparkles className="w-5 h-5 shrink-0" aria-hidden />탈퇴 시 안내사항</p>
+            <ul className="m-0 pl-5 text-muted-foreground">
+              <li className="my-2 leading-relaxed text-[0.9rem]">저장된 모든 데이터가 삭제됩니다</li>
+              <li className="my-2 leading-relaxed text-[0.9rem]">탈퇴 시 다음날부터 재가입할 수 있습니다</li>
+              <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border flex items-center gap-2"><Lightbulb className="w-4 h-4 shrink-0" aria-hidden />보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
+            </ul>
           </div>
-        </div>
-      )}
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="confirmText" className="text-[0.95rem]">
+              확인을 위해 <strong>"회원탈퇴"</strong>를 입력해주세요:
+            </Label>
+            <Input
+              id="confirmText"
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="회원탈퇴"
+              disabled={deleting}
+              className="py-3"
+            />
+          </div>
+
+          {message && message.type === 'error' && (
+            <Alert variant="destructive" className="my-4">
+              <AlertDescription>{message.text}</AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter className="flex gap-3 mt-6 justify-end max-[768px]:flex-col">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-w-[100px] max-[768px]:w-full"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeleteConfirmText('');
+                setMessage(null);
+              }}
+              disabled={deleting}
+            >
+              취소
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-w-[100px] max-[768px]:w-full bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/90"
+              onClick={handleDeleteAccount}
+              disabled={deleting || deleteConfirmText !== '회원탈퇴'}
+            >
+              {deleting ? '탈퇴 처리 중...' : '탈퇴하기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

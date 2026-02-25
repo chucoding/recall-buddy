@@ -20,6 +20,7 @@ import type { FlashCard } from '../features/flashcard';
 import { auth, store } from '../firebase';
 import { getCurrentDate, shuffleArray } from '../modules/utils';
 import { Shuffle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * 로그인 사용자 전용 플래시카드 뷰어
@@ -59,10 +60,8 @@ const FlashCardViewer: React.FC = () => {
     return null;
   }
 
-  const indicatorPillClass =
-      'items-center justify-center bg-surface py-2 px-[18px] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3)] text-[0.85rem] font-semibold text-primary backdrop-blur-[10px] border border-border';
-    const shuffleBtnClass =
-      'inline-flex items-center gap-2 px-4 py-2 rounded-[20px] bg-surface/90 border border-border shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-[0.85rem] font-medium text-text-light backdrop-blur-sm transition-colors duration-200 hover:bg-surface-light hover:border-border-medium hover:text-text cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg';
+    const indicatorPillClass =
+      'items-center justify-center bg-card py-2 px-[18px] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.3)] text-[0.85rem] font-semibold text-primary backdrop-blur-[10px] border border-border';
 
   return (
     <div className="min-h-full flex flex-col bg-bg p-5 relative overflow-hidden before:content-[''] before:absolute before:-top-1/2 before:-left-1/2 before:w-[200%] before:h-[200%] before:bg-[radial-gradient(circle,rgba(7,166,107,0.04)_1px,transparent_1px)] before:bg-[length:50px_50px] before:animate-[float-bg_20s_linear_infinite] before:pointer-events-none max-[768px]:p-2.5 max-[768px]:justify-center">
@@ -85,15 +84,17 @@ const FlashCardViewer: React.FC = () => {
           <span className={`hidden max-[768px]:inline-flex max-[768px]:order-first ${indicatorPillClass}`} aria-live="polite">
             {currentSlide + 1} / {cards.length}
           </span>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={handleShuffleDeck}
             aria-label="덱 순서 섞기"
-            className={`${shuffleBtnClass} max-[768px]:order-last`}
+            className="inline-flex items-center gap-2 rounded-[20px] bg-card/90 backdrop-blur-sm max-[768px]:order-last"
           >
             <Shuffle className="w-5 h-5 shrink-0" aria-hidden />
             <span>덱 셔플</span>
-          </button>
+          </Button>
         </div>
 
         <FlashCardPlayer
