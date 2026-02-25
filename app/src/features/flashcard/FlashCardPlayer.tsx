@@ -226,15 +226,18 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
         .fc-card::-webkit-scrollbar-thumb { background: rgba(34, 197, 94, 0.28); border-radius: 10px; }
         .fc-card::-webkit-scrollbar-thumb:hover { background: rgba(34, 197, 94, 0.45); }
         .fc-card.flipped .markdown-body {
-          width: 100%; height: 100%; overflow-y: auto;
-          padding: 2rem; box-sizing: border-box;
+          width: 100%; padding: 2rem; box-sizing: border-box;
           background: white; text-align: left;
+          overflow: visible;
         }
-        .fc-card .github-diff-container {
-          margin: 12px 0; border: 1px solid rgb(226 232 240);
-          border-radius: 12px; overflow: hidden;
+        .fc-card .github-diff-container { margin: 12px 0; border: 1px solid rgb(226 232 240); border-radius: 12px; }
+        .fc-card .code-diff-content { margin: 12px 0; }
+        .fc-card .fc-diff-code {
+          display: block !important;
+          width: max-content !important;
+          min-width: 100%;
         }
-        .fc-card .github-diff-container pre { margin: 0 !important; }
+        .fc-card .fc-diff-code mark { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         @media (max-width: 768px) {
           .fc-card.flipped .markdown-body { padding: 1.5rem; font-size: 0.95rem; }
         }
@@ -383,7 +386,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         <span className="inline-block w-3 h-3 rounded-sm bg-amber-100/90 border border-amber-200/80" />
                         <span>밝은 배경은 이 질문과 연결된 부분이에요. 카드에 따라 표시가 없을 수도 있어요.</span>
                       </div>
-                      <div className="fc-back-content flex-1 min-h-0 overflow-auto">
+                      <div className="fc-back-content flex-1 min-h-0 min-w-0 overflow-auto">
                         {backViewMode === 'diff' ? (
                           card.metadata?.rawDiff ? (
                             <CodeDiffBlock diffContent={card.metadata.rawDiff} highlightStrings={card.highlights} />
