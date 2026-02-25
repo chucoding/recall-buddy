@@ -28,6 +28,8 @@ export interface Repository {
 export interface UserRepository {
   fullName: string;
   url: string;
+  /** 브랜치 (없으면 default branch 사용) */
+  branch?: string;
 }
 
 /**

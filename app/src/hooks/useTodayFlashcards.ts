@@ -58,7 +58,7 @@ export function useTodayFlashcards(user: User | null) {
         // 사용자 레포 목록 (repositories만 사용)
         const userDocRef = doc(store, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-        const repositories = userDoc.exists() ? (userDoc.data()?.repositories as Array<{ fullName: string; url: string }> | undefined) : undefined;
+        const repositories = userDoc.exists() ? (userDoc.data()?.repositories as Array<{ fullName: string; url: string; branch?: string }> | undefined) : undefined;
         if (!Array.isArray(repositories) || repositories.length === 0) {
           setLoading(false);
           setHasData(false);
@@ -106,7 +106,7 @@ export function useTodayFlashcards(user: User | null) {
  */
 async function generateFlashcards(
   datesAgo: number[],
-  repositories: Array<{ fullName: string; url: string }>
+  repositories: Array<{ fullName: string; url: string; branch?: string }>
 ): Promise<FlashCardData[]> {
   const list: FlashCardData[] = [];
 
@@ -115,7 +115,7 @@ async function generateFlashcards(
 
     for (const d of datesAgo) {
       try {
-        const githubData = await getGithubData(d, repoFullName);
+        const githubData = await getGithubData(d, repoFullName, repo.branch);
 
         if (!githubData) {
           continue;
@@ -162,9 +162,10 @@ interface GithubData {
  *
  * @param daysAgo - 며칠 전 데이터를 가져올지 (로컬 기준)
  * @param repositoryFullName - 레포 지정 (다중 레포 시 필수)
+ * @param branch - 브랜치 (없으면 default branch)
  * @returns GithubData 또는 null
  */
-async function getGithubData(daysAgo: number, repositoryFullName: string): Promise<GithubData | null> {
+async function getGithubData(daysAgo: number, repositoryFullName: string, branch?: string): Promise<GithubData | null> {
   const interval = 24 * daysAgo * 60 * 60 * 1000;
   const now = new Date();
   const pastDate = new Date(now.getTime() - interval);
@@ -174,7 +175,7 @@ async function getGithubData(daysAgo: number, repositoryFullName: string): Promi
   const until = new Date(pastDate);
   until.setHours(23, 59, 59, 999);
 
-  const commits = await getCommits(since, until, repositoryFullName);
+  const commits = await getCommits(since, until, repositoryFullName, branch);
 
   if (commits.length === 0) {
     return null;

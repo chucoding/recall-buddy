@@ -93,12 +93,18 @@ async function fetchDemoFlashcardFromAI(answerContent: string): Promise<{ questi
   return null;
 }
 
-function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
+function parseGitHubUrl(url: string): { owner: string; repo: string; branch?: string } | null {
   const cleaned = url.trim().replace(/\/+$/, '');
-  const simpleMatch = cleaned.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)$/);
-  if (simpleMatch) return { owner: simpleMatch[1], repo: simpleMatch[2] };
-  const urlMatch = cleaned.match(/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)/);
-  if (urlMatch) return { owner: urlMatch[1], repo: urlMatch[2] };
+  // owner/repo 또는 owner/repo@branch
+  const simpleMatch = cleaned.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)(?:@([a-zA-Z0-9/_.-]+))?$/);
+  if (simpleMatch) {
+    return { owner: simpleMatch[1], repo: simpleMatch[2], branch: simpleMatch[3] || undefined };
+  }
+  // github.com/owner/repo 또는 github.com/owner/repo@branch
+  const urlMatch = cleaned.match(/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)(?:@([a-zA-Z0-9/_.-]+))?/);
+  if (urlMatch) {
+    return { owner: urlMatch[1], repo: urlMatch[2], branch: urlMatch[3] || undefined };
+  }
   return null;
 }
 
@@ -142,8 +148,9 @@ export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateD
     return { ok: false, error: '올바른 GitHub 리포지토리 URL을 입력해주세요. (예: https://github.com/owner/repo)' };
   }
 
+  const shaParam = parsed.branch ? `&sha=${encodeURIComponent(parsed.branch)}` : '';
   const commitsRes = await fetch(
-    `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=3`,
+    `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=3${shaParam}`,
     { headers: { Accept: 'application/vnd.github.v3+json' } }
   );
   if (!commitsRes.ok) {

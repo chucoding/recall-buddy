@@ -65,7 +65,7 @@ const LandingDemo: React.FC = () => {
           <input
             type="text"
             className="flex-1 border-0 outline-none text-base py-3.5 px-3 bg-transparent text-text min-w-0 placeholder:text-text-muted max-[768px]:w-full max-[768px]:text-center max-[768px]:py-3"
-            placeholder="https://github.com/owner/repo"
+            placeholder="owner/repo 또는 owner/repo@브랜치명"
             value={repoUrl}
             onChange={(e) => setRepoUrl(e.target.value)}
             disabled={loading}
@@ -83,6 +83,12 @@ const LandingDemo: React.FC = () => {
           </button>
         </div>
       </form>
+
+      <p className="mt-4 text-xs text-text-muted leading-relaxed max-[768px]:text-center">
+        기본: owner/repo (예: facebook/react)
+        <br className="max-[768px]:block" />
+        다른 브랜치: owner/repo@브랜치명 (예: facebook/react@main)
+      </p>
 
       <div className="mt-6 w-full max-w-[100vw] md:max-w-none md:relative md:left-1/2 md:-translate-x-1/2 md:w-screen md:overflow-x-hidden" role="group" aria-label="예시 리포지토리">
         <div className="flex flex-wrap items-center justify-center gap-3 md:flex-nowrap md:justify-center">
@@ -123,6 +129,16 @@ const LandingDemo: React.FC = () => {
             )}
             renderFooter={() => (
               <div className="text-center mt-14 animate-fade-up">
+                {cards.length === 1 && (
+                  <p
+                    className="mb-6 mx-auto max-w-xl text-center text-xs text-text-muted leading-relaxed flex items-center justify-center gap-1.5 flex-wrap animate-fade-in"
+                    role="note"
+                    aria-label="브랜치 가이드"
+                  >
+                    <Info className="w-3.5 h-3.5 shrink-0 text-text-muted" aria-hidden />
+                    <span>기본 브랜치(main)에 커밋이 적을 수 있어요. 다른 브랜치를 쓰려면 owner/repo@브랜치명 형식으로 다시 시도해보세요.</span>
+                  </p>
+                )}
                 <p
                   className="mb-8 mx-auto max-w-xl text-center text-xs text-text-muted leading-relaxed flex items-center justify-center gap-1.5 flex-wrap"
                   role="note"
