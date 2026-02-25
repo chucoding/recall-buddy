@@ -102,13 +102,25 @@ const Settings: React.FC = () => {
       const [owner, repo] = r.fullName.split('/');
       if (!owner || !repo) return;
       const cached = branchesByRepo[r.fullName];
-      if (cached && (cached.list.length > 0 || cached.loading)) return;
+      if (cached) return;
       setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list: [], loading: true } }));
       getBranches(owner, repo)
         .then((list) => setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list, loading: false } })))
         .catch(() => setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list: [], loading: false } })));
     });
   }, [selectedRepos, branchesByRepo]);
+
+  // 선택 해제된 레포의 브랜치 캐시 제거 (다시 추가 시 재시도 가능)
+  useEffect(() => {
+    const keys = new Set(selectedRepos.map((r) => r.fullName));
+    const toRemove = Object.keys(branchesByRepo).filter((k) => !keys.has(k));
+    if (toRemove.length === 0) return;
+    setBranchesByRepo((prev) => {
+      const next = { ...prev };
+      toRemove.forEach((k) => delete next[k]);
+      return next;
+    });
+  }, [selectedRepos.map((r) => r.fullName).join(',')]);
 
   // Stripe 결제 복귀 시 쿼리 처리
   useEffect(() => {
