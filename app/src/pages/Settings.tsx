@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { reauthenticateWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, app, store, githubProvider } from '../firebase';
-import { getRepositories } from '../api/github-api';
+import { getRepositories, getBranches } from '../api/github-api';
 import { regenerateTodayFlashcards } from '../api/subscription-api';
 import { Repository, UserRepository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate } from '../modules/utils';
-import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb, CalendarIcon } from 'lucide-react';
+import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb, CalendarIcon, GitBranch } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -61,6 +61,10 @@ const Settings: React.FC = () => {
   const [regenerating, setRegenerating] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedReposRef = useRef<UserRepository[]>([]);
+  selectedReposRef.current = selectedRepos;
+  /** 레포별 브랜치 목록 캐시 { fullName: { list, loading } } */
+  const [branchesByRepo, setBranchesByRepo] = useState<Record<string, { list: { name: string }[]; loading: boolean }>>({});
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, setCurrentUser);
     return () => unsub();
@@ -93,6 +97,39 @@ const Settings: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen]);
+
+  // 선택된 레포별 브랜치 목록 로드 (stale 콜백 무시: 레포 제거 후 응답이 도착하면 업데이트하지 않음 → 재추가 시 refetch 가능)
+  useEffect(() => {
+    selectedRepos.forEach((r) => {
+      const [owner, repo] = r.fullName.split('/');
+      if (!owner || !repo) return;
+      const cached = branchesByRepo[r.fullName];
+      if (cached) return;
+      const fetchFor = r.fullName;
+      setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list: [], loading: true } }));
+      getBranches(owner, repo)
+        .then((list) => {
+          const stillSelected = selectedReposRef.current.some((x) => x.fullName === fetchFor);
+          if (stillSelected) setBranchesByRepo((prev) => ({ ...prev, [fetchFor]: { list, loading: false } }));
+        })
+        .catch(() => {
+          const stillSelected = selectedReposRef.current.some((x) => x.fullName === fetchFor);
+          if (stillSelected) setBranchesByRepo((prev) => ({ ...prev, [fetchFor]: { list: [], loading: false } }));
+        });
+    });
+  }, [selectedRepos, branchesByRepo]);
+
+  // 선택 해제된 레포의 브랜치 캐시 제거 (다시 추가 시 재시도 가능)
+  useEffect(() => {
+    const keys = new Set(selectedRepos.map((r) => r.fullName));
+    const toRemove = Object.keys(branchesByRepo).filter((k) => !keys.has(k));
+    if (toRemove.length === 0) return;
+    setBranchesByRepo((prev) => {
+      const next = { ...prev };
+      toRemove.forEach((k) => delete next[k]);
+      return next;
+    });
+  }, [selectedRepos.map((r) => r.fullName).join(',')]);
 
   // Stripe 결제 복귀 시 쿼리 처리
   useEffect(() => {
@@ -211,6 +248,13 @@ const Settings: React.FC = () => {
     setSelectedRepos((prev) => prev.filter((r) => r.fullName !== fullName));
   };
 
+  /** 레포별 브랜치 변경 (value: '__default__'면 undefined) */
+  const handleBranchChange = (fullName: string, value: string | undefined) => {
+    setSelectedRepos((prev) =>
+      prev.map((r) => (r.fullName === fullName ? { ...r, branch: value && value !== '__default__' ? value : undefined } : r))
+    );
+  };
+
   // 설정 저장
   const handleSaveSettings = async () => {
     const user = auth.currentUser;
@@ -225,7 +269,9 @@ const Settings: React.FC = () => {
       return;
     }
 
-    const reposToSave = selectedRepos.slice(0, maxRepos);
+    const reposToSave = selectedRepos.slice(0, maxRepos).map(({ fullName, url, branch }) =>
+      ({ fullName, url, ...(branch ? { branch } : {}) })
+    );
     if (reposToSave.length !== selectedRepos.length) {
       setMessage({ type: 'error', text: `Free는 1개, Pro는 최대 ${MAX_REPOS_PRO}개까지 가능해요.` });
       return;
@@ -485,7 +531,7 @@ const Settings: React.FC = () => {
                 'Free'
               )}
             </span>
-            {/* TODO: 준비 완료 시 onClick을 navigateToPricing으로 복구 */}
+            {/* TODO: 준비 완료 시 onClick을 setCurrentPage('pricing') 복구 */}
             {tier === 'free' && (
               <Button
                 type="button"
@@ -535,37 +581,64 @@ const Settings: React.FC = () => {
                   <ul className="list-none m-0 p-0 flex flex-col gap-2 mb-3">
                     {selectedRepos.map((r) => {
                       const repoMeta = repositories.find((x) => x.full_name === r.fullName);
+                      const branchData = branchesByRepo[r.fullName];
                       return (
                         <li
                           key={r.fullName}
-                          className="flex items-center justify-between gap-3 px-4 py-3 bg-surface-light border-2 border-border rounded-lg"
+                          className="flex flex-col gap-3 px-4 py-3 bg-surface-light border-2 border-border rounded-lg"
                         >
-                          <div className="min-w-0 flex-1">
-                            <span className="font-mono font-semibold text-text text-[0.95rem] block truncate">{r.fullName}</span>
-                            <a
-                              href={r.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary text-[0.8rem] no-underline hover:underline truncate block"
-                            >
-                              {r.url}
-                            </a>
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <span className="font-mono font-semibold text-text text-[0.95rem] block truncate">{r.fullName}</span>
+                              <a
+                                href={r.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary text-[0.8rem] no-underline hover:underline truncate block"
+                              >
+                                {r.url}
+                              </a>
+                            </div>
+                            {tier === 'pro' && selectedRepos.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                aria-label={`${r.fullName} 제거`}
+                                className="shrink-0 hover:bg-destructive/10 hover:border-destructive hover:text-destructive"
+                                onClick={() => handleRemoveRepository(r.fullName)}
+                              >
+                                <X className="w-5 h-5" aria-hidden />
+                              </Button>
+                            )}
+                            {tier === 'free' && repoMeta && (
+                              <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap shrink-0">{repoMeta.private ? 'Private' : 'Public'}</span>
+                            )}
                           </div>
-                          {tier === 'pro' && selectedRepos.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              aria-label={`${r.fullName} 제거`}
-                              className="shrink-0 hover:bg-destructive/10 hover:border-destructive hover:text-destructive"
-                              onClick={() => handleRemoveRepository(r.fullName)}
+                          <div className="flex flex-col gap-2 min-w-0">
+                            <Label htmlFor={`branch-${r.fullName.replace('/', '-')}`} className="text-[0.85rem] text-text-light font-medium flex items-center gap-1.5">
+                              <GitBranch className="w-4 h-4 shrink-0" aria-hidden />
+                              브랜치 (선택사항)
+                            </Label>
+                            <Select
+                              value={r.branch || '__default__'}
+                              onValueChange={(v) => handleBranchChange(r.fullName, v)}
+                              disabled={branchData?.loading || saving}
                             >
-                              <X className="w-5 h-5" aria-hidden />
-                            </Button>
-                          )}
-                          {tier === 'free' && repoMeta && (
-                            <span className="text-[0.7rem] px-1.5 py-0.5 rounded bg-border text-text-body whitespace-nowrap shrink-0">{repoMeta.private ? 'Private' : 'Public'}</span>
-                          )}
+                              <SelectTrigger id={`branch-${r.fullName.replace('/', '-')}`} className="min-w-0 w-full max-w-[280px]">
+                                <SelectValue placeholder="기본 브랜치 (main)" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__default__">기본 브랜치 (main)</SelectItem>
+                                {branchData?.list.map((b) => (
+                                  <SelectItem key={b.name} value={b.name}>{b.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {branchData?.loading && (
+                              <span className="text-[0.75rem] text-text-muted">로딩 중...</span>
+                            )}
+                          </div>
                         </li>
                       );
                     })}

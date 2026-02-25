@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, store } from '../firebase';
 import { trackEvent } from '../analytics';
-import { getRepositories } from '../api/github-api';
+import { getRepositories, getBranches } from '../api/github-api';
 import { Repository, UserRepository } from '../types';
-import { LayoutTemplate, TriangleAlert, CircleCheck, RefreshCw, Lightbulb, Smartphone, ChevronRight, ChevronDown } from 'lucide-react';
+import { LayoutTemplate, TriangleAlert, CircleCheck, RefreshCw, Lightbulb, Smartphone, ChevronRight, ChevronDown, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -21,6 +23,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [saving, setSaving] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [error, setError] = useState<{ type: 'repos' | 'save'; message: string } | null>(null);
+  const [branches, setBranches] = useState<{ name: string }[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState<boolean>(false);
+  const selectedRepoRef = useRef<UserRepository | null>(null);
+  selectedRepoRef.current = selectedRepo;
 
   // 리포지토리 목록 가져오기
   const fetchRepositories = useCallback(async () => {
@@ -54,6 +60,34 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const handleRepositorySelect = (repo: Repository) => {
     setSelectedRepo({ fullName: repo.full_name, url: repo.html_url });
     setIsDropdownOpen(false);
+    setBranches([]);
+  };
+
+  // selectedRepo 변경 시 브랜치 목록 로드 (stale 응답 무시: 레포 전환 시 이전 요청 결과가 새 레포 브랜치를 덮어쓰지 않도록)
+  useEffect(() => {
+    if (!selectedRepo) {
+      setBranches([]);
+      setLoadingBranches(false);
+      return;
+    }
+    const [owner, repo] = selectedRepo.fullName.split('/');
+    if (!owner || !repo) return;
+    const fetchFor = selectedRepo.fullName;
+    setLoadingBranches(true);
+    getBranches(owner, repo)
+      .then((list) => {
+        const stillSelected = fetchFor === selectedRepoRef.current?.fullName;
+        if (stillSelected) { setBranches(list); setLoadingBranches(false); }
+      })
+      .catch(() => {
+        const stillSelected = fetchFor === selectedRepoRef.current?.fullName;
+        if (stillSelected) { setBranches([]); setLoadingBranches(false); }
+      });
+  }, [selectedRepo?.fullName]);
+
+  const handleBranchChange = (value: string) => {
+    if (!selectedRepo) return;
+    setSelectedRepo({ ...selectedRepo, branch: value && value !== '__default__' ? value : undefined });
   };
 
   const handleSaveSettings = async () => {
@@ -70,8 +104,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       setSaving(true);
       setError(null);
       const userDocRef = doc(store, 'users', auth.currentUser.uid);
+      const repoToSave = { fullName: selectedRepo.fullName, url: selectedRepo.url, ...(selectedRepo.branch ? { branch: selectedRepo.branch } : {}) };
       await setDoc(userDocRef, {
-        repositories: [selectedRepo],
+        repositories: [repoToSave],
         onboardingCompleted: true,
         onboardingSkipped: false,
         updatedAt: new Date().toISOString(),
@@ -243,6 +278,28 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     </div>
                   )}
                 </div>
+              </div>
+              {/* 브랜치 선택 (선택사항) */}
+              <div className="mt-4">
+                <Label htmlFor="branch-onboarding" className="block text-sm font-semibold text-text mb-2 flex items-center gap-1.5">
+                  <GitBranch className="w-4 h-4 shrink-0" aria-hidden />
+                  브랜치 (선택사항)
+                </Label>
+                <Select
+                  value={selectedRepo?.branch || '__default__'}
+                  onValueChange={handleBranchChange}
+                  disabled={!selectedRepo || loadingBranches || saving}
+                >
+                  <SelectTrigger id="branch-onboarding" className="w-full">
+                    <SelectValue placeholder={selectedRepo ? (loadingBranches ? '로딩 중...' : '기본 브랜치 (main)') : '리포지토리를 먼저 선택하세요'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">기본 브랜치 (main)</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.name} value={b.name}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

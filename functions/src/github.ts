@@ -18,6 +18,8 @@ interface Repository {
 interface UserRepository {
   fullName: string;
   url: string;
+  /** 브랜치 (없으면 default branch 사용) */
+  branch?: string;
 }
 
 /**
@@ -79,6 +81,15 @@ function resolveRepoFullName(
   return repositories[0].fullName;
 }
 
+/** repositoryFullName에 해당하는 레포의 branch 반환 (없으면 undefined) */
+function resolveBranch(
+  repositories: UserRepository[],
+  repoFullName: string
+): string | undefined {
+  const repo = repositories.find((r) => r.fullName === repoFullName);
+  return repo?.branch && repo.branch.trim() ? repo.branch.trim() : undefined;
+}
+
 /** getFileContent용: repositories 없이 토큰만 조회 (raw_url은 레포 불필요) */
 async function getOptionalToken(req: any): Promise<{ githubToken: string } | null> {
   const authHeader = req.headers.authorization;
@@ -102,7 +113,7 @@ export const getCommits = onRequest(
   },
   async (req, res) => {
     try {
-      const {since, until, repositoryFullName} = req.query;
+      const {since, until, repositoryFullName, branch: queryBranch} = req.query;
 
       if (!since || !until) {
         res.status(400).json({error: "since and until parameters are required"});
@@ -114,8 +125,12 @@ export const getCommits = onRequest(
         userData.repositories,
         typeof repositoryFullName === "string" ? repositoryFullName : undefined
       );
+      const branch = typeof queryBranch === "string" && queryBranch.trim()
+        ? queryBranch.trim()
+        : resolveBranch(userData.repositories, repoFullName);
+      const shaParam = branch ? `&sha=${encodeURIComponent(branch)}` : "";
 
-      const response = await fetch(`https://api.github.com/repos/${repoFullName}/commits?since=${since}&until=${until}`, {
+      const response = await fetch(`https://api.github.com/repos/${repoFullName}/commits?since=${since}&until=${until}${shaParam}`, {
         headers: {
           "Authorization": `Bearer ${userData.githubToken}`,
           "Accept": "application/vnd.github.v3+json",
@@ -438,27 +453,38 @@ export const getBranches = onRequest(
         return;
       }
 
-      // GitHub API로 브랜치 목록 가져오기
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches`, {
-        headers: {
-          "Authorization": `Bearer ${githubToken}`,
-          "Accept": "application/vnd.github.v3+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-        },
-      });
+      // GitHub API로 브랜치 목록 가져오기 (페이지네이션으로 전체 목록 수집)
+      const headers = {
+        "Authorization": `Bearer ${githubToken}`,
+        "Accept": "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      };
+      const allBranches: Array<{name: string; protected?: boolean}> = [];
+      const perPage = 100;
+      let page = 1;
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(`GitHub API error: ${response.status}`, errorBody);
-        res.status(response.status).json({
-          error: "Failed to fetch branches from GitHub",
-          details: errorBody,
-        });
-        return;
+      while (true) {
+        const url = `https://api.github.com/repos/${owner}/${repo}/branches?per_page=${perPage}&page=${page}`;
+        const response = await fetch(url, { headers });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          console.error(`GitHub API error: ${response.status}`, errorBody);
+          res.status(response.status).json({
+            error: "Failed to fetch branches from GitHub",
+            details: errorBody,
+          });
+          return;
+        }
+
+        const pageBranches = await response.json();
+        allBranches.push(...pageBranches);
+
+        if (pageBranches.length < perPage) break;
+        page += 1;
       }
 
-      const branches = await response.json();
-      res.json(branches);
+      res.json(allBranches);
     } catch (error) {
       console.error("Error fetching branches:", error);
       res.status(500).json({

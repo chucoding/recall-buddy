@@ -39,13 +39,15 @@ interface MarkdownResponse {
 export async function getCommits(
   since: Date,
   until: Date,
-  repositoryFullName?: string
+  repositoryFullName?: string,
+  branch?: string
 ): Promise<Commit[]> {
   const params: Record<string, string> = {
     since: since.toISOString(),
     until: until.toISOString(),
   };
   if (repositoryFullName) params.repositoryFullName = repositoryFullName;
+  if (branch) params.branch = branch;
 
   const response = await apiClient.get('/getCommits', { params });
   return response.data;
@@ -89,12 +91,6 @@ export async function getRepositories(): Promise<Repository[]> {
   return response.data;
 }
 
-/**
- * @deprecated
- * 과한 정보 제공으로 인해 사용하지 않음 2026-02-16
- * @TODO
- * 결제 기능 생기면 복구
- */
 export interface Branch {
   name: string;
   protected: boolean;
