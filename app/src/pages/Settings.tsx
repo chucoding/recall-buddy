@@ -61,6 +61,8 @@ const Settings: React.FC = () => {
   const [regenerating, setRegenerating] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedReposRef = useRef<UserRepository[]>([]);
+  selectedReposRef.current = selectedRepos;
   /** 레포별 브랜치 목록 캐시 { fullName: { list, loading } } */
   const [branchesByRepo, setBranchesByRepo] = useState<Record<string, { list: { name: string }[]; loading: boolean }>>({});
   useEffect(() => {
@@ -96,17 +98,24 @@ const Settings: React.FC = () => {
     };
   }, [isDropdownOpen]);
 
-  // 선택된 레포별 브랜치 목록 로드
+  // 선택된 레포별 브랜치 목록 로드 (stale 콜백 무시: 레포 제거 후 응답이 도착하면 업데이트하지 않음 → 재추가 시 refetch 가능)
   useEffect(() => {
     selectedRepos.forEach((r) => {
       const [owner, repo] = r.fullName.split('/');
       if (!owner || !repo) return;
       const cached = branchesByRepo[r.fullName];
       if (cached) return;
+      const fetchFor = r.fullName;
       setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list: [], loading: true } }));
       getBranches(owner, repo)
-        .then((list) => setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list, loading: false } })))
-        .catch(() => setBranchesByRepo((prev) => ({ ...prev, [r.fullName]: { list: [], loading: false } })));
+        .then((list) => {
+          const stillSelected = selectedReposRef.current.some((x) => x.fullName === fetchFor);
+          if (stillSelected) setBranchesByRepo((prev) => ({ ...prev, [fetchFor]: { list, loading: false } }));
+        })
+        .catch(() => {
+          const stillSelected = selectedReposRef.current.some((x) => x.fullName === fetchFor);
+          if (stillSelected) setBranchesByRepo((prev) => ({ ...prev, [fetchFor]: { list: [], loading: false } }));
+        });
     });
   }, [selectedRepos, branchesByRepo]);
 
