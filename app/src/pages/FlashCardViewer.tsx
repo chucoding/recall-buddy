@@ -18,6 +18,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
 import { auth, store } from '../firebase';
+import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate, shuffleArray } from '../modules/utils';
 import { Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ const FlashCardViewer: React.FC = () => {
   const [shuffleKey, setShuffleKey] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const isMobile = useIsMobile();
+  const flashcardReloadTrigger = useNavigationStore((s) => s.flashcardReloadTrigger);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -49,7 +51,7 @@ const FlashCardViewer: React.FC = () => {
         setCards([]);
       }
     });
-  }, []);
+  }, [flashcardReloadTrigger]);
 
   const handleShuffleDeck = useCallback(() => {
     setCards((prev) => shuffleArray(prev));
