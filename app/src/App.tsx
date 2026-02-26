@@ -14,6 +14,7 @@ import Onboarding from './pages/Onboarding';
 import Card from './components/Card';
 import { Button } from '@/components/ui/button';
 import { useTodayFlashcards } from './hooks/useTodayFlashcards';
+import { useVisibilityDateCheck } from './hooks/useVisibilityDateCheck';
 import { useNavigationStore } from './stores/navigationStore';
 import { BookOpen, ArrowLeft, Settings as SettingsIcon, Clock } from 'lucide-react';
 
@@ -34,6 +35,9 @@ const App: React.FC = () => {
   
   // 오늘의 플래시카드 데이터 로드 (user가 null이면 로드하지 않음)
   const { loading, hasData } = useTodayFlashcards(user);
+
+  // 앱 재활성화 시 날짜 변경 감지 → 하루 지났으면 플래시카드 재로드 (PWA 백그라운드 대응)
+  useVisibilityDateCheck(!!user);
 
   /* 인증 상태 감지 */
   useEffect(() => {

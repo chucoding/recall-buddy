@@ -38,6 +38,7 @@ export function useTodayFlashcards(user: User | null) {
   const [loading, setLoading] = useState<boolean>(true);
   const [hasData, setHasData] = useState<boolean>(false);
   const flashcardReloadTrigger = useNavigationStore((state) => state.flashcardReloadTrigger);
+  const setLastLoadedDateKey = useNavigationStore((state) => state.setLastLoadedDateKey);
   const { subscription } = useSubscription(user);
   const tier: SubscriptionTier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const datesAgo = tier === 'pro' ? DATES_AGO_PRO : DATES_AGO_FREE;
@@ -60,6 +61,7 @@ export function useTodayFlashcards(user: User | null) {
         const userDoc = await getDoc(userDocRef);
         const repositories = userDoc.exists() ? (userDoc.data()?.repositories as Array<{ fullName: string; url: string; branch?: string }> | undefined) : undefined;
         if (!Array.isArray(repositories) || repositories.length === 0) {
+          setLastLoadedDateKey(null);
           setLoading(false);
           setHasData(false);
           return;
@@ -69,6 +71,7 @@ export function useTodayFlashcards(user: User | null) {
         const todayDoc = await getDoc(flashcardDocRef);
         if (todayDoc.exists()) {
           const docData = todayDoc.data();
+          setLastLoadedDateKey(todayDate);
           setLoading(false);
           setHasData(docData.data && docData.data.length > 0);
           return;
@@ -80,14 +83,17 @@ export function useTodayFlashcards(user: User | null) {
         // 생성된 플래시카드가 있으면 Firestore에 저장
         if (list.length > 0) {
           await setDoc(flashcardDocRef, { data: list });
+          setLastLoadedDateKey(todayDate);
           setHasData(true);
         } else {
+          setLastLoadedDateKey(null);
           setHasData(false);
         }
         
         setLoading(false);
       } catch (error) {
         console.error('Error loading flashcards:', error);
+        setLastLoadedDateKey(null);
         setLoading(false);
         setHasData(false);
       }
