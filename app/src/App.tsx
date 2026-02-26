@@ -121,17 +121,38 @@ const App: React.FC = () => {
     return <Login />;
   }
 
-  // 로딩 중 (인증, 온보딩 확인, 데이터 로딩)
-  if (authLoading || !onboardingChecked || loading) {
+  // 일반 로딩 (인증·온보딩 확인 중)
+  if (authLoading || !onboardingChecked) {
     return (
-      <>
-        <Card>
-          <div className="w-[50px] h-[50px] border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
-          <h2 className="mb-2.5 text-xl flex items-center justify-center gap-2"><BookOpen className="w-6 h-6 shrink-0" aria-hidden />플래시카드 준비 중</h2>
-          <p className="text-base">GitHub에서 최근 커밋을 분석하고 있습니다...</p>
-          <p className="mt-2.5 text-[0.9rem] opacity-80 flex items-center justify-center gap-1.5"><Clock className="w-4 h-4 shrink-0" aria-hidden />데이터 양에 따라 시간이 조금 걸릴 수 있습니다</p>
-        </Card>
-      </>
+      <Card>
+        <div className="w-[50px] h-[50px] max-[768px]:w-10 max-[768px]:h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4 max-[768px]:mb-3" aria-hidden />
+        <h2 className="text-xl max-[768px]:text-lg flex items-center justify-center gap-2 whitespace-nowrap">
+          <BookOpen className="w-6 h-6 max-[768px]:w-5 max-[768px]:h-5 shrink-0" aria-hidden />
+          잠시만 기다려주세요
+        </h2>
+      </Card>
+    );
+  }
+
+  // 플래시카드 로딩 (GitHub 분석·AI 생성 중)
+  if (loading) {
+    return (
+      <Card>
+        <div className="w-[50px] h-[50px] max-[768px]:w-10 max-[768px]:h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4 max-[768px]:mb-3" aria-hidden />
+        <h2 className="mb-2.5 text-xl max-[768px]:text-lg flex items-center justify-center gap-2">
+          <BookOpen className="w-6 h-6 max-[768px]:w-5 max-[768px]:h-5 shrink-0" aria-hidden />
+          플래시카드 준비 중
+        </h2>
+        <p className="text-base max-[768px]:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+          <span className="hidden md:inline">GitHub에서 최근 커밋을 분석하고 있습니다...</span>
+          <span className="md:hidden">커밋 분석 중...</span>
+        </p>
+        <p className="mt-2.5 text-[0.9rem] max-[768px]:text-xs opacity-80 flex items-center justify-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
+          <Clock className="w-4 h-4 max-[768px]:w-3 max-[768px]:h-3 shrink-0" aria-hidden />
+          <span className="hidden md:inline">데이터 양에 따라 시간이 조금 걸릴 수 있습니다</span>
+          <span className="md:hidden">잠시만 기다려주세요</span>
+        </p>
+      </Card>
     );
   }
 
