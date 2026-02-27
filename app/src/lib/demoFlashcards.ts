@@ -197,6 +197,7 @@ export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateD
     })
   );
 
+  const repositoryFullName = `${parsed.owner}/${parsed.repo}`;
   const cards: FlashCard[] = detailedCommits.map((commit, i) => {
     const rawDiff = buildRawDiff(commit);
     const files = toFileChangeList(commit.files, parsed.owner, parsed.repo, commit.sha);
@@ -205,6 +206,7 @@ export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateD
       answer: aiPairs[i].answer,
       metadata: {
         commitMessage: commit.commit.message.split('\n')[0],
+        repositoryFullName,
         ...(rawDiff && { rawDiff }),
         ...(files.length > 0 && { files }),
       },

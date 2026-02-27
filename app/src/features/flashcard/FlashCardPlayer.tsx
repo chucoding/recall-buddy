@@ -5,7 +5,7 @@ import FileContentBlock from '../../templates/FileContentBlock';
 import { getFileContent, getMarkdown } from '../../api/github-api';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
-import { Sparkles, Folder } from 'lucide-react';
+import { Sparkles, Folder, GitCompare, FileText } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -333,50 +333,27 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           type="button"
                           role="tab"
                           aria-selected={backViewMode === 'diff'}
-                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'}`}
+                          aria-label="Diff 보기"
+                          title="Diff 보기"
+                          className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'}`}
                           onClick={() => setBackViewMode('diff')}
                         >
-                          Diff 보기
+                          <GitCompare className="w-4 h-4 shrink-0" aria-hidden />
+                          <span className="hidden sm:inline">Diff 보기</span>
                         </button>
                         <button
                           type="button"
                           role="tab"
                           aria-selected={backViewMode === 'file'}
+                          aria-label="파일 보기"
+                          title="파일 보기"
                           disabled={!hasFileView}
-                          className={`fc-tab min-w-[100px] py-2 px-3 rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'} ${hasFileView ? 'cursor-pointer' : ''}`}
+                          className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'} ${hasFileView ? 'cursor-pointer' : ''}`}
                           onClick={() => hasFileView && setBackViewMode('file')}
                         >
-                          파일 보기
+                          <FileText className="w-4 h-4 shrink-0" aria-hidden />
+                          <span className="hidden sm:inline">파일 보기</span>
                         </button>
-                        {backViewMode === 'file' && hasFilesArray && effectiveFiles.length > 1 && (
-                          <Select
-                            value={String(safeFileIndex)}
-                            onValueChange={(value) => {
-                              setSelectedFileIndex(Number(value));
-                              lastFetchedUrlRef.current = null;
-                            }}
-                          >
-                            <SelectTrigger
-                              className="ml-2 h-8 min-w-0 max-w-[200px] rounded-xl border border-slate-200 bg-white px-2 text-xs text-slate-800 focus:ring-primary focus:ring-offset-1"
-                              onClick={(e) => e.stopPropagation()}
-                              aria-label="파일 선택"
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent onClick={(e) => e.stopPropagation()}>
-                              {effectiveFiles.map((f, i) => (
-                                <SelectItem key={i} value={String(i)} title={f.filename}>
-                                  <span className="truncate block max-w-[180px]">{f.filename}</span>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {backViewMode === 'file' && hasFileView && effectiveFiles.length === 1 && (
-                          <span className="ml-2 text-xs text-slate-500 truncate max-w-[180px]" title={currentFilename}>
-                            {currentFilename}
-                          </span>
-                        )}
                       </div>
                       <div
                         className="fc-highlight-guide flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 bg-amber-50/60 text-slate-600 text-[11px] shrink-0"
@@ -386,22 +363,70 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         <span className="inline-block w-3 h-3 rounded-sm bg-amber-100/90 border border-amber-200/80" />
                         <span>밝은 배경은 이 질문과 연결된 부분이에요. 카드에 따라 표시가 없을 수도 있어요.</span>
                       </div>
-                      <div className="fc-back-content flex-1 min-h-0 min-w-0 overflow-auto">
-                        {backViewMode === 'diff' ? (
-                          card.metadata?.rawDiff ? (
-                            <CodeDiffBlock diffContent={card.metadata.rawDiff} highlightStrings={card.highlights} />
-                          ) : (
-                            <div className="p-6 text-slate-500 text-sm">코드 변경 내용이 없습니다. 파일 보기에서 확인하세요.</div>
-                          )
-                        ) : fileLoading ? (
-                          <div className="p-6 text-slate-500 text-sm">파일 내용을 불러오는 중...</div>
-                        ) : fileError ? (
-                          <div className="p-6 text-[#cf222e] text-sm">{fileError}</div>
-                        ) : fileContent !== null ? (
-                          <FileContentBlock content={fileContent} filename={currentFilename} highlightStrings={card.highlights} />
-                        ) : (
-                          <div className="p-6 text-slate-500 text-sm">파일 정보가 없습니다.</div>
+                      <div className="fc-back-content flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
+                        {backViewMode === 'file' && hasFileView && (
+                          <div
+                            className="shrink-0 px-3 py-2 border-b border-slate-200 bg-white space-y-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {card.metadata?.repositoryFullName && (
+                              <a
+                                href={`https://github.com/${card.metadata.repositoryFullName}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:text-slate-800 hover:underline"
+                              >
+                                <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                                <span className="truncate max-w-full" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
+                              </a>
+                            )}
+                            {hasFilesArray && effectiveFiles.length > 1 ? (
+                              <Select
+                                value={String(safeFileIndex)}
+                                onValueChange={(value) => {
+                                  setSelectedFileIndex(Number(value));
+                                  lastFetchedUrlRef.current = null;
+                                }}
+                              >
+                                <SelectTrigger
+                                  className="h-8 w-full max-w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-800 focus:ring-primary focus:ring-offset-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label="파일 선택"
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent onClick={(e) => e.stopPropagation()}>
+                                  {effectiveFiles.map((f, i) => (
+                                    <SelectItem key={i} value={String(i)} title={f.filename}>
+                                      <span className="truncate block max-w-[240px]">{f.filename}</span>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <span className="text-xs text-slate-500 truncate block" title={currentFilename}>
+                                {currentFilename}
+                              </span>
+                            )}
+                          </div>
                         )}
+                        <div className="flex-1 min-h-0 overflow-auto">
+                          {backViewMode === 'diff' ? (
+                            card.metadata?.rawDiff ? (
+                              <CodeDiffBlock diffContent={card.metadata.rawDiff} highlightStrings={card.highlights} />
+                            ) : (
+                              <div className="p-6 text-slate-500 text-sm">코드 변경 내용이 없습니다. 파일 보기에서 확인하세요.</div>
+                            )
+                          ) : fileLoading ? (
+                            <div className="p-6 text-slate-500 text-sm">파일 내용을 불러오는 중...</div>
+                          ) : fileError ? (
+                            <div className="p-6 text-[#cf222e] text-sm">{fileError}</div>
+                          ) : fileContent !== null ? (
+                            <FileContentBlock content={fileContent} filename={currentFilename} highlightStrings={card.highlights} />
+                          ) : (
+                            <div className="p-6 text-slate-500 text-sm">파일 정보가 없습니다.</div>
+                          )}
+                        </div>
                       </div>
                       {/* 하단 플로팅: Diff/파일 보기 토글과 무관하게 항상 노출 */}
                       <AIAnswerFloatingBlock answer={card.answer} />
