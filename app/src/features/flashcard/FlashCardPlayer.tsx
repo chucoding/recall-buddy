@@ -4,6 +4,7 @@ import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import FileContentBlock from '../../templates/FileContentBlock';
 import { getFileContent, getMarkdown } from '../../api/github-api';
 import { formatFileErrorForUser } from '../../lib/formatError';
+import { useScrollPriorityTouch } from '../../lib/useScrollPriorityTouch';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
 import { Sparkles, Folder, GitCompare, FileText, WifiOff, RefreshCw } from 'lucide-react';
@@ -71,6 +72,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   const [fileFetchTrigger, setFileFetchTrigger] = useState(0);
   const lastFetchedUrlRef = useRef<string | null>(null);
   const sliderRef = useRef<Slider>(null);
+  const { onTouchStartCapture, onTouchMoveCapture } = useScrollPriorityTouch();
 
   const next = () => {
     setFlipped(false);
@@ -205,6 +207,10 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
           to { opacity: 1; transform: translateY(0); }
         }
         .fc-player .slick-list { z-index: 1; overflow: visible; }
+        /* 스크롤 영역에서 가로 스크롤 우선: 터치 시 스와이프 대신 스크롤 처리 (모바일) */
+        .fc-scroll-area,
+        .fc-card .overflow-x-auto,
+        .fc-card pre { touch-action: pan-x pan-y; }
         .fc-player .slick-track { display: flex; align-items: center; }
         .fc-player .slick-dots { position: relative; bottom: -28px; }
         .fc-player .slick-dots li { margin: 0 6px; }
@@ -420,7 +426,11 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             )}
                           </div>
                         )}
-                        <div className="flex-1 min-h-0 overflow-auto">
+                        <div
+                          className="fc-scroll-area flex-1 min-h-0 overflow-auto"
+                          onTouchStartCapture={onTouchStartCapture}
+                          onTouchMoveCapture={onTouchMoveCapture}
+                        >
                           {backViewMode === 'diff' ? (
                             card.metadata?.rawDiff ? (
                               <CodeDiffBlock diffContent={card.metadata.rawDiff} highlightStrings={card.highlights} />
