@@ -3,9 +3,10 @@ import Slider from 'react-slick';
 import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import FileContentBlock from '../../templates/FileContentBlock';
 import { getFileContent, getMarkdown } from '../../api/github-api';
+import { formatFileErrorForUser } from '../../lib/formatError';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
-import { Sparkles, Folder, GitCompare, FileText } from 'lucide-react';
+import { Sparkles, Folder, GitCompare, FileText, WifiOff, RefreshCw } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -67,6 +68,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [fileFetchTrigger, setFileFetchTrigger] = useState(0);
   const lastFetchedUrlRef = useRef<string | null>(null);
   const sliderRef = useRef<Slider>(null);
 
@@ -169,7 +171,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
       })
       .catch((err) => {
         if (!cancelled) {
-          setFileError(err?.message ?? '파일을 불러올 수 없습니다.');
+          const rawMsg = err?.message ?? '파일을 불러올 수 없습니다.';
+          setFileError(formatFileErrorForUser(rawMsg));
           setFileContent(null);
         }
       })
@@ -179,7 +182,14 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [flipped, currentSlide, backViewMode, safeFileIndex, cards, hasFiles, fileContent, currentFilename, currentRawUrl]);
+  }, [flipped, currentSlide, backViewMode, safeFileIndex, cards, hasFiles, fileContent, currentFilename, currentRawUrl, fileFetchTrigger]);
+
+  const handleFileRetry = () => {
+    lastFetchedUrlRef.current = null;
+    setFileError(null);
+    setFileContent(null);
+    setFileFetchTrigger((t) => t + 1);
+  };
 
   if (cards.length === 0) return null;
 
@@ -420,7 +430,25 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                           ) : fileLoading ? (
                             <div className="p-6 text-slate-500 text-sm">파일 내용을 불러오는 중...</div>
                           ) : fileError ? (
-                            <div className="p-6 text-[#cf222e] text-sm">{fileError}</div>
+                            <div
+                              className="flex flex-col items-center justify-center gap-4 p-6 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                              role="alert"
+                            >
+                              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-600" aria-hidden>
+                                <WifiOff className="w-6 h-6" aria-hidden />
+                              </div>
+                              <p className="text-sm text-slate-700 leading-relaxed">{fileError}</p>
+                              <button
+                                type="button"
+                                onClick={handleFileRetry}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 cursor-pointer"
+                                aria-label="다시 시도"
+                              >
+                                <RefreshCw className="w-4 h-4 shrink-0" aria-hidden />
+                                다시 시도
+                              </button>
+                            </div>
                           ) : fileContent !== null ? (
                             <FileContentBlock content={fileContent} filename={currentFilename} highlightStrings={card.highlights} />
                           ) : (
