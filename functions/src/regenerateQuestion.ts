@@ -83,9 +83,10 @@ export const regenerateCardQuestion = onRequest(
         existingAnswer?: string;
         flashcardDate?: string;
         demoDeviceId?: string;
+        otherQuestions?: string[];
       };
 
-      const {rawDiff, existingQuestion, existingAnswer, flashcardDate: _flashcardDate, demoDeviceId} = body;
+      const {rawDiff, existingQuestion, existingAnswer, flashcardDate: _flashcardDate, demoDeviceId, otherQuestions} = body;
 
       if (!rawDiff || typeof existingQuestion !== "string" || typeof existingAnswer !== "string") {
         res.status(400).json({error: "rawDiff, existingQuestion, existingAnswer are required"});
@@ -127,7 +128,13 @@ export const regenerateCardQuestion = onRequest(
         }
 
         const systemPrompt = getRegenerateQuestionPrompt();
-        const userContent = `${rawDiff}\n\n---\n[질문 재생성]\n기존 질문: ${existingQuestion}\n기존 답변: ${existingAnswer}\n\n위 원문과 답변에 맞는, 기존 질문과 다른 새로운 면접 질문 1개를 작성해주세요. (답변은 그대로 두고, 질문과 하이라이트만 새로 작성)`;
+        const otherList = Array.isArray(otherQuestions)
+          ? otherQuestions.filter((q): q is string => typeof q === "string").slice(0, 10)
+          : [];
+        const otherSection = otherList.length > 0
+          ? `\n\n덱의 다른 질문들(이들과도 겹치지 않아야 함):\n${otherList.map((q, i) => `${i + 1}. ${q}`).join("\n")}`
+          : "";
+        const userContent = `${rawDiff}\n\n---\n[질문 재생성]\n기존 질문: ${existingQuestion}\n기존 답변: ${existingAnswer}${otherSection}\n\n위 원문과 답변에 맞는, 기존 질문${otherList.length > 0 ? " 및 덱의 다른 질문들과도 다른" : "과 다른"} 새로운 면접 질문 1개를 작성해주세요. (답변은 그대로 두고, 질문과 하이라이트만 새로 작성)`;
 
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
@@ -211,7 +218,13 @@ export const regenerateCardQuestion = onRequest(
         }
 
         const systemPrompt = getRegenerateQuestionPrompt();
-        const userContent = `${rawDiff}\n\n---\n[질문 재생성]\n기존 질문: ${existingQuestion}\n기존 답변: ${existingAnswer}\n\n위 원문과 답변에 맞는, 기존 질문과 다른 새로운 면접 질문 1개를 작성해주세요. (답변은 그대로 두고, 질문과 하이라이트만 새로 작성)`;
+        const otherList = Array.isArray(otherQuestions)
+          ? otherQuestions.filter((q): q is string => typeof q === "string").slice(0, 10)
+          : [];
+        const otherSection = otherList.length > 0
+          ? `\n\n덱의 다른 질문들(이들과도 겹치지 않아야 함):\n${otherList.map((q, i) => `${i + 1}. ${q}`).join("\n")}`
+          : "";
+        const userContent = `${rawDiff}\n\n---\n[질문 재생성]\n기존 질문: ${existingQuestion}\n기존 답변: ${existingAnswer}${otherSection}\n\n위 원문과 답변에 맞는, 기존 질문${otherList.length > 0 ? " 및 덱의 다른 질문들과도 다른" : "과 다른"} 새로운 면접 질문 1개를 작성해주세요. (답변은 그대로 두고, 질문과 하이라이트만 새로 작성)`;
 
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",

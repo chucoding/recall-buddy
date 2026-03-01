@@ -132,11 +132,17 @@ const FlashCardViewer: React.FC = () => {
 
       setRegeneratingIndex(index);
       try {
+        const otherQuestions = cards
+          .filter((_, i) => i !== index)
+          .map((c) => c.question)
+          .filter(Boolean)
+          .slice(0, 10);
         const { question, highlights } = await regenerateCardQuestion({
           rawDiff: card.metadata.rawDiff,
           existingQuestion: card.question,
           existingAnswer: card.answer,
           flashcardDate: getCurrentDate(),
+          otherQuestions,
         });
         const newCards = cards.map((c, i) =>
           i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c

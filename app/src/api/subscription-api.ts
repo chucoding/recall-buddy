@@ -21,6 +21,8 @@ export interface RegenerateCardQuestionParams {
   existingQuestion: string;
   existingAnswer: string;
   flashcardDate: string;
+  /** 덱의 다른 질문들 (최대 10개, 중복 방지용) */
+  otherQuestions?: string[];
 }
 
 export interface RegenerateCardQuestionDemoParams {
@@ -28,6 +30,8 @@ export interface RegenerateCardQuestionDemoParams {
   existingQuestion: string;
   existingAnswer: string;
   demoDeviceId: string;
+  /** 덱의 다른 질문들 (최대 10개, 중복 방지용) */
+  otherQuestions?: string[];
 }
 
 export interface RegenerateCardQuestionResult {

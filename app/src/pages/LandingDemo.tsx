@@ -71,11 +71,17 @@ const LandingDemo: React.FC = () => {
 
       setRegeneratingIndex(index);
       try {
+        const otherQuestions = cards
+          .filter((_, i) => i !== index)
+          .map((c) => c.question)
+          .filter(Boolean)
+          .slice(0, 10);
         const { question, highlights } = await regenerateCardQuestionDemo({
           rawDiff: card.metadata.rawDiff,
           existingQuestion: card.question,
           existingAnswer: card.answer,
           demoDeviceId,
+          otherQuestions,
         });
         const newCards = cards.map((c, i) =>
           i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
