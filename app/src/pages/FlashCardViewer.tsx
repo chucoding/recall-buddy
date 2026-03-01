@@ -143,6 +143,11 @@ const FlashCardViewer: React.FC = () => {
         );
         setCards(newCards);
         toast('질문이 재생성되었습니다');
+        trackEvent('flashcard_regenerate_question', {
+          card_index: index + 1,
+          total_cards: cards.length,
+          tier,
+        });
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', getCurrentDate());
         await setDoc(flashcardDocRef, { data: newCards });
       } catch (e: unknown) {

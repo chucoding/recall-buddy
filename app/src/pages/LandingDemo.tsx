@@ -35,13 +35,20 @@ const LandingDemo: React.FC = () => {
   const cardSectionRef = useRef<HTMLDivElement>(null);
   const demoDeviceId = useMemo(getOrCreateDemoDeviceId, []);
 
-  const handleDeleteCard = useCallback((index: number, _method: DeleteMethod) => {
+  const handleDeleteCard = useCallback((index: number, method: DeleteMethod) => {
     const deletedCard = cards[index];
     const newCards = cards.filter((_, i) => i !== index);
     const newSlide = index >= newCards.length ? Math.max(0, newCards.length - 1) : index;
 
     setCards(newCards);
     setSyncSlideIndex(newSlide);
+
+    trackEvent('landing_demo_delete_card', {
+      method,
+      card_index: index + 1,
+      total_before: cards.length,
+      total_after: newCards.length,
+    });
 
     toast('카드가 제거되었습니다', {
       action: {
@@ -75,6 +82,10 @@ const LandingDemo: React.FC = () => {
         );
         setCards(newCards);
         toast('질문이 재생성되었습니다');
+        trackEvent('landing_demo_regenerate_question', {
+          card_index: index + 1,
+          total_cards: cards.length,
+        });
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : '재생성에 실패했습니다.';
         if (msg.includes('한도') || msg.includes('limit')) {

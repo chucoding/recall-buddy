@@ -120,6 +120,12 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
         );
         setCards(newCards);
         toast('질문이 재생성되었습니다');
+        trackEvent('flashcard_regenerate_question', {
+          card_index: index + 1,
+          total_cards: cards.length,
+          tier,
+          context: 'past_date',
+        });
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', date);
         await setDoc(flashcardDocRef, { data: newCards });
       } catch (e: unknown) {
