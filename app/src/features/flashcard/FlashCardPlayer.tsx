@@ -328,48 +328,56 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   {isFlipped ? (
                     <div className="fc-card-back w-full h-full flex flex-col min-h-0">
                       <div
-                        className="fc-back-header flex flex-wrap items-center gap-1 p-2 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-3xl"
+                        className="fc-back-header flex items-center justify-between gap-2 p-2 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-3xl"
                         onClick={(e) => e.stopPropagation()}
-                        role="tablist"
-                        aria-label="뒷면 보기 모드"
                       >
-                        {card.metadata?.repositoryFullName && (
+                        {card.metadata?.repositoryFullName ? (
                           <a
                             href={`https://github.com/${card.metadata.repositoryFullName}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 mr-2 px-2 py-1 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:bg-slate-100 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                            className="min-w-0 flex-1 overflow-hidden inline-flex items-center gap-1.5 h-9 mr-2 px-2 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:bg-slate-100 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                             onClick={(e) => e.stopPropagation()}
+                            aria-label={`GitHub에서 ${card.metadata.repositoryFullName} 레포지토리 열기`}
+                            title={`GitHub에서 레포지토리 열기 (${card.metadata.repositoryFullName})`}
                           >
-                            <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />
-                            <span className="truncate max-w-[140px] sm:max-w-[200px]" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
+                            <img src="/github-mark.svg" alt="" width={14} height={14} className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                            <span className="min-w-0 truncate">{card.metadata.repositoryFullName}</span>
                           </a>
+                        ) : (
+                          <div className="min-w-0 flex-1" />
                         )}
-                        <button
-                          type="button"
-                          role="tab"
-                          aria-selected={backViewMode === 'diff'}
-                          aria-label="Diff 보기"
-                          title="Diff 보기"
-                          className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'}`}
-                          onClick={() => setBackViewMode('diff')}
+                        <div
+                          className="flex shrink-0 items-center gap-1"
+                          role="tablist"
+                          aria-label="뒷면 보기 모드"
                         >
-                          <GitCompare className="w-4 h-4 shrink-0" aria-hidden />
-                          <span className="hidden sm:inline">Diff 보기</span>
-                        </button>
-                        <button
-                          type="button"
-                          role="tab"
-                          aria-selected={backViewMode === 'file'}
-                          aria-label="파일 보기"
-                          title="파일 보기"
-                          disabled={!hasFileView}
-                          className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'} ${hasFileView ? 'cursor-pointer' : ''}`}
-                          onClick={() => hasFileView && setBackViewMode('file')}
-                        >
-                          <FileText className="w-4 h-4 shrink-0" aria-hidden />
-                          <span className="hidden sm:inline">파일 보기</span>
-                        </button>
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-selected={backViewMode === 'diff'}
+                            aria-label="Diff 보기"
+                            title="Diff 보기"
+                            className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'}`}
+                            onClick={() => setBackViewMode('diff')}
+                          >
+                            <GitCompare className="w-4 h-4 shrink-0" aria-hidden />
+                            <span className="hidden sm:inline">Diff 보기</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-selected={backViewMode === 'file'}
+                            aria-label="파일 보기"
+                            title="파일 보기"
+                            disabled={!hasFileView}
+                            className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'} ${hasFileView ? 'cursor-pointer' : ''}`}
+                            onClick={() => hasFileView && setBackViewMode('file')}
+                          >
+                            <FileText className="w-4 h-4 shrink-0" aria-hidden />
+                            <span className="hidden sm:inline">파일 보기</span>
+                          </button>
+                        </div>
                       </div>
                       <div
                         className="fc-highlight-guide flex items-center gap-1.5 px-3 py-1.5 border-b border-slate-100 bg-amber-50/60 text-slate-600 text-[11px] shrink-0"
@@ -391,9 +399,11 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:text-slate-800 hover:underline"
+                                aria-label={`GitHub에서 ${card.metadata.repositoryFullName} 레포지토리 열기`}
+                                title={`GitHub에서 레포지토리 열기 (${card.metadata.repositoryFullName})`}
                               >
-                                <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />
-                                <span className="truncate max-w-full" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
+                                <img src="/github-mark.svg" alt="" width={14} height={14} className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                                <span className="truncate max-w-full">{card.metadata.repositoryFullName}</span>
                               </a>
                             )}
                             {hasFilesArray && effectiveFiles.length > 1 ? (
