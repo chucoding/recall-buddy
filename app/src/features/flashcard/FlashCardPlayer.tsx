@@ -26,7 +26,6 @@ function AIAnswerFloatingBlock({ answer }: { answer: string }) {
   return (
     <div
       className="fc-answer-floating shrink-0 border-t border-slate-200 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
-      onClick={(e) => e.stopPropagation()}
       role="region"
       aria-label="예시 답변"
     >
