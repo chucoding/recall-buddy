@@ -440,7 +440,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                               disabled={regeneratingIndex === i}
                               className="flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 bg-transparent text-slate-800 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
-                              <RefreshCw className={`w-4 h-4 shrink-0 ${regeneratingIndex === i ? 'animate-spin' : ''}`} aria-hidden />
+                              <Sparkles className={`w-4 h-4 shrink-0 ${regeneratingIndex === i ? 'animate-spin' : ''}`} aria-hidden />
                               <span className="hidden sm:inline">질문 재생성</span>
                             </button>
                           )}
