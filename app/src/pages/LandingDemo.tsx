@@ -78,16 +78,31 @@ const LandingDemo: React.FC = () => {
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : '재생성에 실패했습니다.';
         if (msg.includes('한도') || msg.includes('limit')) {
-          toast('재생성 3회 모두 사용했어요. 무료 가입하면 매일 3회까지 사용할 수 있어요.', {
-            action: {
-              label: '무료로 시작하기',
-              onClick: () => {
-                trackEvent('landing_demo_cta_limit_exceeded', {});
-                window.location.href = '/app';
-              },
-            },
-            duration: 8000,
-          });
+          toast(
+            () => (
+              <div className="flex flex-col gap-2 w-full min-w-0 text-center">
+                <p className="font-semibold text-sm text-neutral-900">재생성 2회 모두 사용했어요</p>
+                <p className="text-neutral-600 text-xs leading-relaxed">
+                  무료 가입하면 매일 3회까지 사용할 수 있어요.
+                </p>
+                <button
+                  type="button"
+                  className="mt-1 w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:opacity-95 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  onClick={() => {
+                    trackEvent('landing_demo_cta_limit_exceeded', {});
+                    window.location.href = '/app';
+                  }}
+                >
+                  무료로 시작하기
+                </button>
+              </div>
+            ),
+            {
+              duration: 8000,
+              closeButton: false,
+              style: { padding: '14px 16px', width: '100%' },
+            }
+          );
         } else {
           toast.error(msg);
         }

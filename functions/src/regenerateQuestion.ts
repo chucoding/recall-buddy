@@ -8,6 +8,7 @@ const db = getFirestore();
 const OPENAI_MODEL = "gpt-4o-mini";
 const LIMIT_FREE = 3;
 const LIMIT_PRO = 20;
+const LIMIT_DEMO = 1;
 
 /** KST 오늘 날짜 YYYY-MM-DD */
 function getTodayKST(): string {
@@ -194,11 +195,11 @@ export const regenerateCardQuestion = onRequest(
         const lastDate = demoData?.date as string | undefined;
 
         if (lastDate !== today) count = 0;
-        if (count >= LIMIT_FREE) {
+        if (count >= LIMIT_DEMO) {
           res.status(429).json({
             error: "Daily regenerate limit reached",
             code: "LIMIT_EXCEEDED",
-            limit: LIMIT_FREE,
+            limit: LIMIT_DEMO,
           });
           return;
         }
