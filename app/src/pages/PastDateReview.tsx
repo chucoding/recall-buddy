@@ -119,9 +119,9 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
           i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
         );
         setCards(newCards);
+        toast('질문이 재생성되었습니다');
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', date);
         await setDoc(flashcardDocRef, { data: newCards });
-        toast('질문이 재생성되었습니다');
       } catch (e: unknown) {
         const err = e as { response?: { status?: number; data?: { error?: string } } };
         const msg =

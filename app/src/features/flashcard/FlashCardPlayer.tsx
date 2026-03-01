@@ -179,6 +179,18 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
     }
   }, [slideIndex]);
 
+  // 질문 재생성 시 새 질문 확인을 위해 질문면으로 플립 (토스트가 먼저 보이도록 약간 지연)
+  const prevQuestionRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const q = cards[currentSlide]?.question;
+    if (prevQuestionRef.current !== undefined && prevQuestionRef.current !== q) {
+      const t = setTimeout(() => setFlipped(false), 180);
+      prevQuestionRef.current = q;
+      return () => clearTimeout(t);
+    }
+    prevQuestionRef.current = q;
+  }, [cards, currentSlide]);
+
   const card = cards[currentSlide];
   const metadata = card?.metadata;
   const files = metadata?.files ?? [];
