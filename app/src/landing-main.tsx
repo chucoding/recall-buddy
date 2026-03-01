@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
+import { Toaster } from 'sonner';
 import Clarity from '@microsoft/clarity';
 import './index.css';
 import LandingDemo from './pages/LandingDemo';
@@ -16,6 +17,7 @@ const demoRoot = document.getElementById('demo-root');
 if (demoRoot) {
   ReactDOM.createRoot(demoRoot).render(
     <React.StrictMode>
+      <Toaster position="bottom-center" richColors closeButton />
       <LandingDemo />
     </React.StrictMode>
   );

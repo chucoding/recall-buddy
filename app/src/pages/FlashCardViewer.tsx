@@ -25,6 +25,7 @@ import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate, shuffleArray } from '../modules/utils';
 import { Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FlashCardKeyboardIndicator } from '@/components/FlashCardKeyboardIndicator';
 
 /**
  * 로그인 사용자 전용 플래시카드 뷰어
@@ -114,17 +115,7 @@ const FlashCardViewer: React.FC = () => {
       <div className="flex flex-col max-[768px]:flex-shrink-0 max-[768px]:w-full">
         {/* 데스크톱: 키보드 안내 + 셔플 | 모바일: 인디케이터 + 셔플 한 줄 (설정 버튼은 App nav에 있음) */}
         <div className="flex flex-wrap justify-center gap-3 mb-2 relative z-[100] max-[768px]:gap-2 max-[768px]:justify-between max-[768px]:items-center max-[768px]:mb-3 shrink-0">
-          <div className="inline-flex bg-surface/90 px-5 py-2.5 rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-[0.85rem] text-text-light backdrop-blur-sm gap-4 items-center border border-border animate-fade-in max-[768px]:hidden">
-            <div className="flex items-center gap-1.5">
-              <kbd className="bg-surface-light border border-border-medium rounded px-2 py-0.5 font-mono text-[0.75rem] text-text shadow-[0_1px_2px_rgba(0,0,0,0.2)]">&larr;</kbd>
-              <kbd className="bg-surface-light border border-border-medium rounded px-2 py-0.5 font-mono text-[0.75rem] text-text shadow-[0_1px_2px_rgba(0,0,0,0.2)]">&rarr;</kbd>
-              <span>이동</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <kbd className="bg-surface-light border border-border-medium rounded px-2 py-0.5 font-mono text-[0.75rem] text-text shadow-[0_1px_2px_rgba(0,0,0,0.2)]">Space</kbd>
-              <span>뒤집기</span>
-            </div>
-          </div>
+          <FlashCardKeyboardIndicator showDelete />
           {/* 모바일만: 인디케이터 + 셔플 한 줄 (동일 pill 스타일로 조화). 데스크톱에서는 hidden만 적용되도록 inline-flex는 768 이하에서만 */}
           <span className={`hidden max-[768px]:inline-flex max-[768px]:order-first ${indicatorPillClass}`} aria-live="polite">
             {currentSlide + 1} / {cards.length}
