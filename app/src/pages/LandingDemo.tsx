@@ -1,11 +1,24 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard, DeleteMethod } from '../features/flashcard';
 import { generateDemoFlashcards } from '../lib/demoFlashcards';
+import { regenerateCardQuestionDemo } from '../api/subscription-api';
 import { trackEvent } from '../analytics';
 import { FlashCardKeyboardIndicator } from '../components/FlashCardKeyboardIndicator';
 import { Info } from 'lucide-react';
+
+const DEMO_DEVICE_ID_KEY = 'demo_device_id';
+
+function getOrCreateDemoDeviceId(): string {
+  if (typeof window === 'undefined') return '';
+  let id = localStorage.getItem(DEMO_DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEMO_DEVICE_ID_KEY, id);
+  }
+  return id;
+}
 
 /**
  * 랜딩 데모 페이지
@@ -18,7 +31,9 @@ const LandingDemo: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [syncSlideIndex, setSyncSlideIndex] = useState<number | null>(null);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const cardSectionRef = useRef<HTMLDivElement>(null);
+  const demoDeviceId = useMemo(getOrCreateDemoDeviceId, []);
 
   const handleDeleteCard = useCallback((index: number, _method: DeleteMethod) => {
     const deletedCard = cards[index];
@@ -41,6 +56,47 @@ const LandingDemo: React.FC = () => {
       duration: 5000,
     });
   }, [cards]);
+
+  const handleRegenerateQuestion = useCallback(
+    async (index: number) => {
+      const card = cards[index];
+      if (!card?.metadata?.rawDiff || !demoDeviceId) return;
+
+      setRegeneratingIndex(index);
+      try {
+        const { question, highlights } = await regenerateCardQuestionDemo({
+          rawDiff: card.metadata.rawDiff,
+          existingQuestion: card.question,
+          existingAnswer: card.answer,
+          demoDeviceId,
+        });
+        const newCards = cards.map((c, i) =>
+          i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
+        );
+        setCards(newCards);
+        toast('질문이 재생성되었습니다');
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : '재생성에 실패했습니다.';
+        if (msg.includes('한도') || msg.includes('limit')) {
+          toast('재생성 3회 모두 사용했어요. 무료 가입하면 매일 3회까지 사용할 수 있어요.', {
+            action: {
+              label: '무료로 시작하기',
+              onClick: () => {
+                trackEvent('landing_demo_cta_limit_exceeded', {});
+                window.location.href = '/app';
+              },
+            },
+            duration: 8000,
+          });
+        } else {
+          toast.error(msg);
+        }
+      } finally {
+        setRegeneratingIndex(null);
+      }
+    },
+    [cards, demoDeviceId]
+  );
 
   const runSubmit = async (url: string, source: 'form' | 'example') => {
     setError('');
@@ -144,6 +200,8 @@ const LandingDemo: React.FC = () => {
             onSlideChange={() => setSyncSlideIndex(null)}
             onDeleteCard={handleDeleteCard}
             slideIndex={syncSlideIndex ?? undefined}
+            onRegenerateQuestion={handleRegenerateQuestion}
+            regeneratingIndex={regeneratingIndex}
             renderHeader={() => (
               <div className="text-center mb-10 animate-fade-up">
                 <h3 className="text-2xl font-bold text-text mb-2 max-[480px]:text-xl">AI-Generated Flashcards</h3>

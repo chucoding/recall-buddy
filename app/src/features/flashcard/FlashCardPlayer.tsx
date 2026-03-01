@@ -58,6 +58,10 @@ export interface FlashCardPlayerProps {
   onDeleteCard?: (index: number, method: DeleteMethod) => void;
   /** 삭제 후 부모가 동기화할 슬라이드 인덱스 */
   slideIndex?: number;
+  /** 질문 재생성 (index). 제공 시 재생성 버튼 표시 (rawDiff 있을 때만) */
+  onRegenerateQuestion?: (index: number) => void | Promise<void>;
+  /** 재생성 중인 카드 인덱스 (버튼 비활성화용) */
+  regeneratingIndex?: number | null;
 }
 
 const MOBILE_BREAKPOINT = 768;
@@ -71,6 +75,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   renderIndicator,
   onDeleteCard,
   slideIndex,
+  onRegenerateQuestion,
+  regeneratingIndex,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [flipped, setFlipped] = useState(false);
@@ -425,6 +431,19 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             <FileText className="w-4 h-4 shrink-0" aria-hidden />
                             <span className="hidden sm:inline">파일 보기</span>
                           </button>
+                          {onRegenerateQuestion && card.metadata?.rawDiff && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onRegenerateQuestion(i); }}
+                              aria-label="질문 재생성"
+                              title="질문 재생성"
+                              disabled={regeneratingIndex === i}
+                              className="flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 bg-transparent text-slate-800 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              <RefreshCw className={`w-4 h-4 shrink-0 ${regeneratingIndex === i ? 'animate-spin' : ''}`} aria-hidden />
+                              <span className="hidden sm:inline">질문 재생성</span>
+                            </button>
+                          )}
                           {onDeleteCard && (
                             <button
                               type="button"

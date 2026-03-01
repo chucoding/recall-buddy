@@ -1,11 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard, DeleteMethod } from '../features/flashcard';
 import { auth, store } from '../firebase';
 import { trackEvent } from '../analytics';
 import { useNavigationStore } from '../stores/navigationStore';
+import { useSubscription } from '../hooks/useSubscription';
+import {
+  regenerateCardQuestion,
+  REGENERATE_QUESTION_LIMIT_FREE,
+  REGENERATE_QUESTION_LIMIT_PRO,
+} from '../api/subscription-api';
+import { getCurrentDate } from '../modules/utils';
 import { Button } from '@/components/ui/button';
 
 interface PastDateReviewProps {
@@ -13,11 +21,18 @@ interface PastDateReviewProps {
 }
 
 const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
+  const [user, setUser] = useState(auth.currentUser);
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [, setCurrentSlide] = useState(0);
   const [syncSlideIndex, setSyncSlideIndex] = useState<number | null>(null);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const setSelectedPastDate = useNavigationStore((s) => s.setSelectedPastDate);
+  const { subscription } = useSubscription(user);
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, setUser);
+  }, []);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -78,6 +93,49 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
     });
   }, [cards, date]);
 
+  const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
+  const limit = tier === 'pro' ? REGENERATE_QUESTION_LIMIT_PRO : REGENERATE_QUESTION_LIMIT_FREE;
+  const todayStr = getCurrentDate();
+  const count =
+    subscription?.lastRegenerateDate === todayStr
+      ? (subscription?.regenerateCountToday ?? 0)
+      : 0;
+  const canRegenerateQuestion = count < limit;
+
+  const handleRegenerateQuestion = useCallback(
+    async (index: number) => {
+      const card = cards[index];
+      if (!card?.metadata?.rawDiff || !canRegenerateQuestion || !user) return;
+
+      setRegeneratingIndex(index);
+      try {
+        const { question, highlights } = await regenerateCardQuestion({
+          rawDiff: card.metadata.rawDiff,
+          existingQuestion: card.question,
+          existingAnswer: card.answer,
+          flashcardDate: date,
+        });
+        const newCards = cards.map((c, i) =>
+          i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
+        );
+        setCards(newCards);
+        const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', date);
+        await setDoc(flashcardDocRef, { data: newCards });
+        toast('질문이 재생성되었습니다');
+      } catch (e: unknown) {
+        const err = e as { response?: { status?: number; data?: { error?: string } } };
+        const msg =
+          err.response?.status === 429
+            ? '오늘 질문 재생성 한도를 모두 사용했습니다.'
+            : (err.response?.data?.error || (e instanceof Error ? e.message : '재생성에 실패했습니다.'));
+        toast.error(msg);
+      } finally {
+        setRegeneratingIndex(null);
+      }
+    },
+    [cards, canRegenerateQuestion, user, date]
+  );
+
   if (cards.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-5 text-center">
@@ -110,6 +168,8 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
         onSlideChange={(n) => { setCurrentSlide(n); setSyncSlideIndex(null); }}
         onDeleteCard={handleDeleteCard}
         slideIndex={syncSlideIndex ?? undefined}
+        onRegenerateQuestion={handleRegenerateQuestion}
+        regeneratingIndex={regeneratingIndex}
       />
     </div>
   );

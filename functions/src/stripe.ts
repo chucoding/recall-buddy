@@ -15,13 +15,6 @@ function getStripe(): Stripe {
 
 const db = getFirestore();
 
-/** KST 오늘 날짜 YYYY-MM-DD */
-function getTodayKST(): string {
-  const now = new Date();
-  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return kst.toISOString().split("T")[0];
-}
-
 /**
  * Firebase ID Token 검증 후 uid 반환
  */
@@ -192,63 +185,3 @@ async function setFree(uid: string): Promise<void> {
   );
 }
 
-/**
- * 수동 재생성 (Pro 전용, 일 3회 한도)
- * POST. 인증 필수.
- */
-export const regenerateTodayFlashcards = onRequest(
-  {cors: true, region: "asia-northeast3", invoker: "public"},
-  async (req, res) => {
-    if (req.method !== "POST") {
-      res.status(405).json({error: "Method not allowed"});
-      return;
-    }
-    try {
-      const uid = await getUidFromRequest(req);
-      const userRef = db.collection("users").doc(uid);
-      const userSnap = await userRef.get();
-      if (!userSnap.exists) {
-        res.status(404).json({error: "User not found"});
-        return;
-      }
-      const data = userSnap.data()!;
-      const tier = data.subscriptionTier || "free";
-      if (tier !== "pro") {
-        res.status(403).json({error: "Pro subscription required"});
-        return;
-      }
-
-      const today = getTodayKST();
-      let regenerateCountToday = typeof data.regenerateCountToday === "number" ? data.regenerateCountToday : 0;
-      const lastRegenerateDate = data.lastRegenerateDate as string | undefined;
-
-      if (lastRegenerateDate !== today) {
-        regenerateCountToday = 0;
-      }
-      if (regenerateCountToday >= 3) {
-        res.status(429).json({error: "Daily regenerate limit reached", limit: 3});
-        return;
-      }
-
-      const flashcardRef = db.collection("users").doc(uid).collection("flashcards").doc(today);
-      await flashcardRef.delete();
-      await userRef.set(
-        {
-          regenerateCountToday: regenerateCountToday + 1,
-          lastRegenerateDate: today,
-          updatedAt: new Date().toISOString(),
-        },
-        {merge: true}
-      );
-      res.status(200).json({ok: true});
-    } catch (e: unknown) {
-      if (e instanceof HttpsError) {
-        const status = e.code === "unauthenticated" ? 401 : 403;
-        res.status(status).json({error: e.message});
-        return;
-      }
-      console.error("regenerateTodayFlashcards error:", e);
-      res.status(500).json({error: "Regenerate failed"});
-    }
-  }
-);

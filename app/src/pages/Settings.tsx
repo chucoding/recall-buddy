@@ -3,7 +3,6 @@ import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getD
 import { reauthenticateWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, app, store, githubProvider } from '../firebase';
 import { getRepositories, getBranches } from '../api/github-api';
-import { regenerateTodayFlashcards } from '../api/subscription-api';
 import { Repository, UserRepository } from '../types';
 import { useSubscription } from '../hooks/useSubscription';
 import { useNavigationStore } from '../stores/navigationStore';
@@ -58,7 +57,6 @@ const Settings: React.FC = () => {
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushUpdating, setPushUpdating] = useState<boolean>(false);
   const [preferredPushHour, setPreferredPushHour] = useState<number>(8);
-  const [regenerating, setRegenerating] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selectedReposRef = useRef<UserRepository[]>([]);
@@ -74,12 +72,6 @@ const Settings: React.FC = () => {
   const [pastDateInput, setPastDateInput] = useState('');
   const [pastDatePopoverOpen, setPastDatePopoverOpen] = useState(false);
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
-  const todayStr = getCurrentDate();
-  const canRegenerate = tier === 'pro' && (
-    (subscription?.lastRegenerateDate !== todayStr) ||
-    (typeof subscription?.regenerateCountToday === 'number' && subscription.regenerateCountToday < 3)
-  );
-  const regenerateCount = subscription?.lastRegenerateDate === todayStr ? (subscription?.regenerateCountToday ?? 0) : 0;
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -756,44 +748,6 @@ const Settings: React.FC = () => {
               />
             </div>
           </div>
-
-          {tier === 'pro' && (
-            <div className="flex flex-col gap-2">
-              <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">플래시카드 재생성</h2>
-              <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
-                오늘 분 플래시카드를 다시 만들 수 있어요. (일 3회까지)
-              </p>
-              <div className="flex flex-wrap items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={regenerating || !canRegenerate}
-                  onClick={async () => {
-                    setRegenerating(true);
-                    setMessage(null);
-                    try {
-                      await regenerateTodayFlashcards();
-                      setMessage({ type: 'success', text: '오늘 플래시카드를 삭제했습니다. 잠시 후 카드가 다시 생성됩니다.' });
-                      setTimeout(() => window.location.reload(), 800);
-                    } catch (e: unknown) {
-                      const err = e as { response?: { data?: { error?: string }; status?: number } };
-                      const msg = err.response?.status === 429
-                        ? '오늘 재생성 한도(3회)를 모두 사용했습니다.'
-                        : (err.response?.data?.error || '재생성에 실패했습니다.');
-                      setMessage({ type: 'error', text: msg });
-                    } finally {
-                      setRegenerating(false);
-                    }
-                  }}
-                >
-                  {regenerating ? '처리 중...' : '지금 다시 만들기'}
-                </Button>
-                <span className="text-muted-foreground text-[0.85rem]">
-                  오늘 {regenerateCount}/3회 사용
-                </span>
-              </div>
-            </div>
-          )}
 
           {tier === 'pro' && (
             <div className="flex flex-col gap-2">
