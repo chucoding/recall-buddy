@@ -54,9 +54,9 @@ const Pricing: React.FC = () => {
                 <td className="py-2.5 pl-4">30일·90일</td>
               </tr>
               <tr className="border-b border-border">
-                <td className="py-2.5 pr-4">수동 재생성</td>
-                <td className="py-2.5 px-4">—</td>
-                <td className="py-2.5 pl-4">3회/일</td>
+                <td className="py-2.5 pr-4">질문 재생성</td>
+                <td className="py-2.5 px-4">3회/일</td>
+                <td className="py-2.5 pl-4">20회/일</td>
               </tr>
               <tr className="border-b border-border">
                 <td className="py-2.5 pr-4">알림 시간</td>

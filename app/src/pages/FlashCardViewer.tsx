@@ -14,6 +14,7 @@ function useIsMobile() {
   return isMobile;
 }
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'sonner';
 
 import { FlashCardPlayer } from '../features/flashcard';
@@ -22,7 +23,13 @@ import type { FlashCard } from '../features/flashcard';
 import { auth, store } from '../firebase';
 import { trackEvent } from '../analytics';
 import { useNavigationStore } from '../stores/navigationStore';
+import { useSubscription } from '../hooks/useSubscription';
 import { getCurrentDate, shuffleArray } from '../modules/utils';
+import {
+  regenerateCardQuestion,
+  REGENERATE_QUESTION_LIMIT_FREE,
+  REGENERATE_QUESTION_LIMIT_PRO,
+} from '../api/subscription-api';
 import { Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FlashCardKeyboardIndicator } from '@/components/FlashCardKeyboardIndicator';
@@ -33,12 +40,19 @@ import { FlashCardKeyboardIndicator } from '@/components/FlashCardKeyboardIndica
  * 진입 시 1회 셔플, "덱 셔플" 버튼으로 순서 재섞기.
  */
 const FlashCardViewer: React.FC = () => {
+  const [user, setUser] = useState(auth.currentUser);
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [shuffleKey, setShuffleKey] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [syncSlideIndex, setSyncSlideIndex] = useState<number | null>(null);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const flashcardReloadTrigger = useNavigationStore((s) => s.flashcardReloadTrigger);
+  const { subscription } = useSubscription(user);
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, setUser);
+  }, []);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -102,6 +116,60 @@ const FlashCardViewer: React.FC = () => {
     });
   }, [cards]);
 
+  const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
+  const limit = tier === 'pro' ? REGENERATE_QUESTION_LIMIT_PRO : REGENERATE_QUESTION_LIMIT_FREE;
+  const todayStr = getCurrentDate();
+  const count =
+    subscription?.lastRegenerateDate === todayStr
+      ? (subscription?.regenerateCountToday ?? 0)
+      : 0;
+  const canRegenerateQuestion = count < limit;
+
+  const handleRegenerateQuestion = useCallback(
+    async (index: number) => {
+      const card = cards[index];
+      if (!card?.metadata?.rawDiff || !canRegenerateQuestion || !user) return;
+
+      setRegeneratingIndex(index);
+      try {
+        const otherQuestions = cards
+          .filter((_, i) => i !== index)
+          .map((c) => c.question)
+          .filter(Boolean)
+          .slice(0, 10);
+        const { question, highlights } = await regenerateCardQuestion({
+          rawDiff: card.metadata.rawDiff,
+          existingQuestion: card.question,
+          existingAnswer: card.answer,
+          flashcardDate: getCurrentDate(),
+          otherQuestions,
+        });
+        const newCards = cards.map((c, i) =>
+          i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
+        );
+        setCards(newCards);
+        toast('질문이 재생성되었습니다');
+        trackEvent('flashcard_regenerate_question', {
+          card_index: index + 1,
+          total_cards: cards.length,
+          tier,
+        });
+        const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', getCurrentDate());
+        await setDoc(flashcardDocRef, { data: newCards });
+      } catch (e: unknown) {
+        const err = e as { response?: { status?: number; data?: { error?: string } } };
+        const msg =
+          err.response?.status === 429
+            ? '오늘 질문 재생성 한도를 모두 사용했습니다.'
+            : (err.response?.data?.error || (e instanceof Error ? e.message : '재생성에 실패했습니다.'));
+        toast.error(msg);
+      } finally {
+        setRegeneratingIndex(null);
+      }
+    },
+    [cards, canRegenerateQuestion, user]
+  );
+
   if (cards.length === 0) {
     return null;
   }
@@ -141,6 +209,8 @@ const FlashCardViewer: React.FC = () => {
           onDeleteCard={handleDeleteCard}
           slideIndex={syncSlideIndex ?? undefined}
           renderIndicator={isMobile ? () => null : undefined}
+          onRegenerateQuestion={handleRegenerateQuestion}
+          regeneratingIndex={regeneratingIndex}
         />
       </div>
     </div>

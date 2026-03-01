@@ -17,7 +17,7 @@ const demoRoot = document.getElementById('demo-root');
 if (demoRoot) {
   ReactDOM.createRoot(demoRoot).render(
     <React.StrictMode>
-      <Toaster position="bottom-center" richColors closeButton />
+      <Toaster position="bottom-center" richColors closeButton offset="12px" />
       <LandingDemo />
     </React.StrictMode>
   );

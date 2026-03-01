@@ -1,11 +1,24 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard, DeleteMethod } from '../features/flashcard';
 import { generateDemoFlashcards } from '../lib/demoFlashcards';
+import { regenerateCardQuestionDemo } from '../api/subscription-api';
 import { trackEvent } from '../analytics';
 import { FlashCardKeyboardIndicator } from '../components/FlashCardKeyboardIndicator';
 import { Info } from 'lucide-react';
+
+const DEMO_DEVICE_ID_KEY = 'demo_device_id';
+
+function getOrCreateDemoDeviceId(): string {
+  if (typeof window === 'undefined') return '';
+  let id = localStorage.getItem(DEMO_DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEMO_DEVICE_ID_KEY, id);
+  }
+  return id;
+}
 
 /**
  * 랜딩 데모 페이지
@@ -18,15 +31,24 @@ const LandingDemo: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [syncSlideIndex, setSyncSlideIndex] = useState<number | null>(null);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const cardSectionRef = useRef<HTMLDivElement>(null);
+  const demoDeviceId = useMemo(getOrCreateDemoDeviceId, []);
 
-  const handleDeleteCard = useCallback((index: number, _method: DeleteMethod) => {
+  const handleDeleteCard = useCallback((index: number, method: DeleteMethod) => {
     const deletedCard = cards[index];
     const newCards = cards.filter((_, i) => i !== index);
     const newSlide = index >= newCards.length ? Math.max(0, newCards.length - 1) : index;
 
     setCards(newCards);
     setSyncSlideIndex(newSlide);
+
+    trackEvent('landing_demo_delete_card', {
+      method,
+      card_index: index + 1,
+      total_before: cards.length,
+      total_after: newCards.length,
+    });
 
     toast('카드가 제거되었습니다', {
       action: {
@@ -41,6 +63,72 @@ const LandingDemo: React.FC = () => {
       duration: 5000,
     });
   }, [cards]);
+
+  const handleRegenerateQuestion = useCallback(
+    async (index: number) => {
+      const card = cards[index];
+      if (!card?.metadata?.rawDiff || !demoDeviceId) return;
+
+      setRegeneratingIndex(index);
+      try {
+        const otherQuestions = cards
+          .filter((_, i) => i !== index)
+          .map((c) => c.question)
+          .filter(Boolean)
+          .slice(0, 10);
+        const { question, highlights } = await regenerateCardQuestionDemo({
+          rawDiff: card.metadata.rawDiff,
+          existingQuestion: card.question,
+          existingAnswer: card.answer,
+          demoDeviceId,
+          otherQuestions,
+        });
+        const newCards = cards.map((c, i) =>
+          i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
+        );
+        setCards(newCards);
+        toast('질문이 재생성되었습니다');
+        trackEvent('landing_demo_regenerate_question', {
+          card_index: index + 1,
+          total_cards: cards.length,
+        });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : '재생성에 실패했습니다.';
+        if (msg.includes('한도') || msg.includes('limit')) {
+          toast(
+            () => (
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold text-sm text-neutral-900">재생성은 한번만 사용할 수 있어요.</p>
+                <p className="text-neutral-600 text-xs leading-relaxed">
+                  무료 가입하면 매일 3회까지 사용할 수 있어요.
+                </p>
+                <button
+                  type="button"
+                  className="mt-1 w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:opacity-95 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  onClick={() => {
+                    trackEvent('landing_demo_cta_limit_exceeded', {});
+                    window.location.href = '/app';
+                  }}
+                >
+                  무료로 시작하기
+                </button>
+              </div>
+            ),
+            {
+              duration: 8000,
+              closeButton: false,
+              style: { padding: '14px 16px', width: '290px' }, //TODO : 토스트 기본 width 없애는 방법 찾아보기
+            }
+          );
+        } else {
+          toast.error(msg);
+        }
+      } finally {
+        setRegeneratingIndex(null);
+      }
+    },
+    [cards, demoDeviceId]
+  );
 
   const runSubmit = async (url: string, source: 'form' | 'example') => {
     setError('');
@@ -144,6 +232,8 @@ const LandingDemo: React.FC = () => {
             onSlideChange={() => setSyncSlideIndex(null)}
             onDeleteCard={handleDeleteCard}
             slideIndex={syncSlideIndex ?? undefined}
+            onRegenerateQuestion={handleRegenerateQuestion}
+            regeneratingIndex={regeneratingIndex}
             renderHeader={() => (
               <div className="text-center mb-10 animate-fade-up">
                 <h3 className="text-2xl font-bold text-text mb-2 max-[480px]:text-xl">AI-Generated Flashcards</h3>

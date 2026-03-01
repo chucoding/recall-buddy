@@ -58,6 +58,10 @@ export interface FlashCardPlayerProps {
   onDeleteCard?: (index: number, method: DeleteMethod) => void;
   /** 삭제 후 부모가 동기화할 슬라이드 인덱스 */
   slideIndex?: number;
+  /** 질문 재생성 (index). 제공 시 재생성 버튼 표시 (rawDiff 있을 때만) */
+  onRegenerateQuestion?: (index: number) => void | Promise<void>;
+  /** 재생성 중인 카드 인덱스 (버튼 비활성화용) */
+  regeneratingIndex?: number | null;
 }
 
 const MOBILE_BREAKPOINT = 768;
@@ -71,6 +75,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   renderIndicator,
   onDeleteCard,
   slideIndex,
+  onRegenerateQuestion,
+  regeneratingIndex,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [flipped, setFlipped] = useState(false);
@@ -87,9 +93,10 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
 
   const handleDelete = useCallback(
     (method: DeleteMethod) => {
+      if (regeneratingIndex === currentSlide) return;
       onDeleteCard?.(currentSlide, method);
     },
-    [onDeleteCard, currentSlide]
+    [onDeleteCard, currentSlide, regeneratingIndex]
   );
 
   const swipeHandlers = useSwipeUpToDelete(() => handleDelete('swipe'), Boolean(onDeleteCard && isMobile));
@@ -128,6 +135,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
     if (!keyboardShortcuts) return;
 
     const handleKeyPress = (e: KeyboardEvent) => {
+      const isOnRegeneratingCard = regeneratingIndex === currentSlide;
       const target = e.target instanceof HTMLElement ? e.target : null;
       if (
         target instanceof HTMLInputElement ||
@@ -149,11 +157,13 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
         case 'ArrowUp':
         case 'ArrowDown':
         case ' ':
+          if (isOnRegeneratingCard) return;
           e.preventDefault();
           flipCard();
           break;
         case 'Delete':
         case 'Backspace':
+          if (isOnRegeneratingCard) return;
           if (onDeleteCard && cards.length > 0) {
             e.preventDefault();
             onDeleteCard(currentSlide, 'keyboard');
@@ -164,7 +174,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [keyboardShortcuts, currentSlide, cards.length, flipped, onDeleteCard]);
+  }, [keyboardShortcuts, currentSlide, cards.length, flipped, onDeleteCard, regeneratingIndex]);
 
   useEffect(() => {
     if (slideIndex != null && slideIndex !== currentSlide) {
@@ -172,6 +182,18 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
       setCurrentSlide(slideIndex);
     }
   }, [slideIndex]);
+
+  // 질문 재생성 시 새 질문 확인을 위해 질문면으로 플립 (토스트가 먼저 보이도록 약간 지연)
+  const prevQuestionRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const q = cards[currentSlide]?.question;
+    if (prevQuestionRef.current !== undefined && prevQuestionRef.current !== q) {
+      const t = setTimeout(() => setFlipped(false), 180);
+      prevQuestionRef.current = q;
+      return () => clearTimeout(t);
+    }
+    prevQuestionRef.current = q;
+  }, [cards, currentSlide]);
 
   const card = cards[currentSlide];
   const metadata = card?.metadata;
@@ -357,9 +379,14 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   role="button"
                   tabIndex={0}
                   aria-label={isFlipped ? '카드 앞면 보기 (클릭 또는 Space)' : '카드 뒷면 보기 (클릭 또는 Space)'}
+                  aria-busy={regeneratingIndex === i}
                   className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(34,197,94,0.25)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,197,94,0.3)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
-                  onClick={flipCard}
+                  onClick={() => {
+                    if (regeneratingIndex === i) return;
+                    flipCard();
+                  }}
                   onKeyDown={(e) => {
+                    if (regeneratingIndex === i) return;
                     if (e.key === ' ' || e.key === 'Enter') {
                       e.preventDefault();
                       e.stopPropagation();
@@ -368,6 +395,23 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   }}
                   {...(!isFlipped && onDeleteCard ? { onTouchStart: swipeHandlers.onTouchStart, onTouchEnd: swipeHandlers.onTouchEnd } : {})}
                 >
+                  {regeneratingIndex === i && (
+                    <div
+                      className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/90 backdrop-blur-sm animate-pulse motion-reduce:animate-none"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                      role="status"
+                      aria-live="polite"
+                      aria-label="질문 재생성 중"
+                    >
+                      <div className="flex flex-col items-center gap-3 text-slate-700">
+                        <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 text-primary">
+                          <Sparkles className="w-6 h-6" aria-hidden />
+                        </span>
+                        <span className="text-sm font-medium">질문 재생성 중...</span>
+                      </div>
+                    </div>
+                  )}
                   {isFlipped ? (
                     <div className="fc-card-back w-full h-full flex flex-col min-h-0">
                       <div
@@ -425,6 +469,19 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             <FileText className="w-4 h-4 shrink-0" aria-hidden />
                             <span className="hidden sm:inline">파일 보기</span>
                           </button>
+                          {onRegenerateQuestion && card.metadata?.rawDiff && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onRegenerateQuestion(i); }}
+                              aria-label="질문 재생성"
+                              title="질문 재생성"
+                              disabled={regeneratingIndex === i}
+                              className="flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 bg-transparent text-slate-800 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              <Sparkles className="w-4 h-4 shrink-0" aria-hidden />
+                              <span className="hidden sm:inline">질문 재생성</span>
+                            </button>
+                          )}
                           {onDeleteCard && (
                             <button
                               type="button"
