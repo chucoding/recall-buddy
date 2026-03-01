@@ -13,11 +13,14 @@ function useIsMobile() {
   }, []);
   return isMobile;
 }
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { toast } from 'sonner';
 
 import { FlashCardPlayer } from '../features/flashcard';
+import type { DeleteMethod } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
 import { auth, store } from '../firebase';
+import { trackEvent } from '../analytics';
 import { useNavigationStore } from '../stores/navigationStore';
 import { getCurrentDate, shuffleArray } from '../modules/utils';
 import { Shuffle } from 'lucide-react';
@@ -32,6 +35,7 @@ const FlashCardViewer: React.FC = () => {
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [shuffleKey, setShuffleKey] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [syncSlideIndex, setSyncSlideIndex] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const flashcardReloadTrigger = useNavigationStore((s) => s.flashcardReloadTrigger);
 
@@ -57,6 +61,45 @@ const FlashCardViewer: React.FC = () => {
     setCards((prev) => shuffleArray(prev));
     setShuffleKey((k) => k + 1);
   }, []);
+
+  const handleDeleteCard = useCallback((index: number, method: DeleteMethod) => {
+    const deletedCard = cards[index];
+    const newCards = cards.filter((_, i) => i !== index);
+    const newSlide = index >= newCards.length ? Math.max(0, newCards.length - 1) : index;
+
+    setCards(newCards);
+    setCurrentSlide(newSlide);
+    setSyncSlideIndex(newSlide);
+
+    const user = auth.currentUser;
+    if (user) {
+      const todayDate = getCurrentDate();
+      const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
+      setDoc(flashcardDocRef, { data: newCards });
+
+      toast('카드가 제거되었습니다', {
+        action: {
+          label: '실행 취소',
+          onClick: () => {
+            const restored = [...newCards];
+            restored.splice(index, 0, deletedCard);
+            setCards(restored);
+            setCurrentSlide(index);
+            setSyncSlideIndex(index);
+            setDoc(flashcardDocRef, { data: restored });
+          },
+        },
+        duration: 5000,
+      });
+    }
+
+    trackEvent('flashcard_delete', {
+      method,
+      card_index: index + 1,
+      total_before: cards.length,
+      total_after: newCards.length,
+    });
+  }, [cards]);
 
   if (cards.length === 0) {
     return null;
@@ -103,7 +146,9 @@ const FlashCardViewer: React.FC = () => {
           key={shuffleKey}
           cards={cards}
           keyboardShortcuts
-          onSlideChange={setCurrentSlide}
+          onSlideChange={(n) => { setCurrentSlide(n); setSyncSlideIndex(null); }}
+          onDeleteCard={handleDeleteCard}
+          slideIndex={syncSlideIndex ?? undefined}
           renderIndicator={isMobile ? () => null : undefined}
         />
       </div>
