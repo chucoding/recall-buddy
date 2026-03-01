@@ -80,8 +80,8 @@ const LandingDemo: React.FC = () => {
         if (msg.includes('한도') || msg.includes('limit')) {
           toast(
             () => (
-              <div className="flex flex-col gap-2 w-full min-w-0 text-center">
-                <p className="font-semibold text-sm text-neutral-900">재생성 2회 모두 사용했어요</p>
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold text-sm text-neutral-900">재생성은 한번만 사용할 수 있어요.</p>
                 <p className="text-neutral-600 text-xs leading-relaxed">
                   무료 가입하면 매일 3회까지 사용할 수 있어요.
                 </p>
@@ -100,7 +100,7 @@ const LandingDemo: React.FC = () => {
             {
               duration: 8000,
               closeButton: false,
-              style: { padding: '14px 16px', width: '100%' },
+              style: { padding: '14px 16px', width: '290px' }, //TODO : 토스트 기본 width 없애는 방법 찾아보기
             }
           );
         } else {
