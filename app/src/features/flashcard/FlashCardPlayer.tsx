@@ -1,13 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Slider from 'react-slick';
 import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import FileContentBlock from '../../templates/FileContentBlock';
 import { getFileContent, getMarkdown } from '../../api/github-api';
 import { formatFileErrorForUser } from '../../lib/formatError';
 import { useScrollPriorityTouch } from '../../lib/useScrollPriorityTouch';
+import { useSwipeUpToDelete } from '../../lib/useSwipeUpToDelete';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
-import { Sparkles, Folder, GitCompare, FileText, WifiOff, RefreshCw } from 'lucide-react';
+import { Sparkles, Folder, GitCompare, FileText, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -42,6 +43,8 @@ function AIAnswerFloatingBlock({ answer }: { answer: string }) {
   );
 }
 
+export type DeleteMethod = 'button' | 'swipe' | 'keyboard';
+
 export interface FlashCardPlayerProps {
   cards: FlashCard[];
   keyboardShortcuts?: boolean;
@@ -51,7 +54,13 @@ export interface FlashCardPlayerProps {
   onSlideChange?: (index: number) => void;
   /** 제공 시 기본 인디케이터 대신 사용 (모바일에서 뷰어와 한 줄로 묶을 때) */
   renderIndicator?: (current: number, total: number) => React.ReactNode;
+  /** 현재 카드 삭제 (index, method). 제공 시 삭제 버튼·스와이프·키보드 활성화 */
+  onDeleteCard?: (index: number, method: DeleteMethod) => void;
+  /** 삭제 후 부모가 동기화할 슬라이드 인덱스 */
+  slideIndex?: number;
 }
+
+const MOBILE_BREAKPOINT = 768;
 
 const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   cards,
@@ -60,10 +69,30 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   renderFooter,
   onSlideChange,
   renderIndicator,
+  onDeleteCard,
+  slideIndex,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [backViewMode, setBackViewMode] = useState<BackViewMode>('diff');
+
+  useEffect(() => {
+    const m = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+    setIsMobile(m.matches);
+    const h = () => setIsMobile(m.matches);
+    m.addEventListener('change', h);
+    return () => m.removeEventListener('change', h);
+  }, []);
+
+  const handleDelete = useCallback(
+    (method: DeleteMethod) => {
+      onDeleteCard?.(currentSlide, method);
+    },
+    [onDeleteCard, currentSlide]
+  );
+
+  const swipeHandlers = useSwipeUpToDelete(() => handleDelete('swipe'), Boolean(onDeleteCard && isMobile));
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
@@ -123,12 +152,26 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
           e.preventDefault();
           flipCard();
           break;
+        case 'Delete':
+        case 'Backspace':
+          if (onDeleteCard && cards.length > 0) {
+            e.preventDefault();
+            onDeleteCard(currentSlide, 'keyboard');
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [keyboardShortcuts, currentSlide, cards.length, flipped]);
+  }, [keyboardShortcuts, currentSlide, cards.length, flipped, onDeleteCard]);
+
+  useEffect(() => {
+    if (slideIndex != null && slideIndex !== currentSlide) {
+      sliderRef.current?.slickGoTo(slideIndex);
+      setCurrentSlide(slideIndex);
+    }
+  }, [slideIndex]);
 
   const card = cards[currentSlide];
   const metadata = card?.metadata;
@@ -323,11 +366,17 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       flipCard();
                     }
                   }}
+                  {...(!isFlipped && onDeleteCard ? { onTouchStart: swipeHandlers.onTouchStart, onTouchEnd: swipeHandlers.onTouchEnd } : {})}
                 >
                   {isFlipped ? (
                     <div className="fc-card-back w-full h-full flex flex-col min-h-0">
                       <div
-                        className="fc-back-header flex items-center justify-between gap-2 p-2 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-3xl"
+                        className="shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                        {...(onDeleteCard && isMobile ? { onTouchStart: swipeHandlers.onTouchStart, onTouchEnd: swipeHandlers.onTouchEnd } : {})}
+                      >
+                      <div
+                        className="fc-back-header flex items-center justify-between gap-2 p-2 border-b border-slate-200 bg-slate-50 rounded-t-3xl"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {card.metadata?.repositoryFullName ? (
@@ -376,6 +425,17 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             <FileText className="w-4 h-4 shrink-0" aria-hidden />
                             <span className="hidden sm:inline">파일 보기</span>
                           </button>
+                          {onDeleteCard && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onDeleteCard(i, 'button'); }}
+                              aria-label="카드 제거"
+                              title="카드 제거"
+                              className="flex items-center justify-center min-w-[44px] min-h-[44px] w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                            >
+                              <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div
@@ -385,6 +445,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       >
                         <span className="inline-block w-3 h-3 rounded-sm bg-amber-100/90 border border-amber-200/80" />
                         <span>밝은 배경은 이 질문과 연결된 부분이에요. 카드에 따라 표시가 없을 수도 있어요.</span>
+                      </div>
                       </div>
                       <div className="fc-back-content flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
                         {backViewMode === 'file' && hasFileView && (
@@ -479,7 +540,18 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       <AIAnswerFloatingBlock answer={card.answer} />
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center w-full p-4 text-center">
+                    <div className="flex flex-col items-center justify-center w-full p-4 text-center relative">
+                      {onDeleteCard && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onDeleteCard(i, 'button'); }}
+                          aria-label="카드 제거"
+                          title="카드 제거"
+                          className="absolute top-3 right-3 flex items-center justify-center min-w-[44px] min-h-[44px] w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 z-10"
+                        >
+                          <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
+                        </button>
+                      )}
                       {card.metadata?.repositoryFullName && (
                         <span className="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[0.75rem] font-mono text-slate-600">
                           <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />

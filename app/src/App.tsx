@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Toaster } from 'sonner';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -181,6 +182,7 @@ const App: React.FC = () => {
   // 메인 앱 렌더링
   return (
     <>
+      <Toaster position="bottom-center" richColors closeButton />
       <main>
         {/* 플로팅 navbar: transparent 영역은 pointer-events-none으로 아래 콘텐츠 클릭 통과, 버튼만 pointer-events-auto (ui-ux-pro-max: Content padding, Floating navbar) */}
         <nav className={`fixed top-4 left-4 right-4 max-[768px]:top-2 max-[768px]:left-2 max-[768px]:right-2 bg-transparent z-[1000] px-5 py-3 max-[768px]:py-2 max-[768px]:px-3 flex justify-between items-center transition-all duration-300 ease-in-out pointer-events-none ${isScrollAtTop ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>

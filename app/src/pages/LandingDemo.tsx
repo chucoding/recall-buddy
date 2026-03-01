@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
-import type { FlashCard } from '../features/flashcard';
+import type { FlashCard, DeleteMethod } from '../features/flashcard';
 import { generateDemoFlashcards } from '../lib/demoFlashcards';
 import { trackEvent } from '../analytics';
+import { FlashCardKeyboardIndicator } from '../components/FlashCardKeyboardIndicator';
 import { Info } from 'lucide-react';
 
 /**
@@ -15,7 +17,30 @@ const LandingDemo: React.FC = () => {
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [syncSlideIndex, setSyncSlideIndex] = useState<number | null>(null);
   const cardSectionRef = useRef<HTMLDivElement>(null);
+
+  const handleDeleteCard = useCallback((index: number, _method: DeleteMethod) => {
+    const deletedCard = cards[index];
+    const newCards = cards.filter((_, i) => i !== index);
+    const newSlide = index >= newCards.length ? Math.max(0, newCards.length - 1) : index;
+
+    setCards(newCards);
+    setSyncSlideIndex(newSlide);
+
+    toast('카드가 제거되었습니다', {
+      action: {
+        label: '실행 취소',
+        onClick: () => {
+          const restored = [...newCards];
+          restored.splice(index, 0, deletedCard);
+          setCards(restored);
+          setSyncSlideIndex(index);
+        },
+      },
+      duration: 5000,
+    });
+  }, [cards]);
 
   const runSubmit = async (url: string, source: 'form' | 'example') => {
     setError('');
@@ -115,10 +140,17 @@ const LandingDemo: React.FC = () => {
         <div className="mt-14 w-full max-w-full min-w-0 overflow-x-hidden" ref={cardSectionRef}>
           <FlashCardPlayer
             cards={cards}
+            keyboardShortcuts
+            onSlideChange={() => setSyncSlideIndex(null)}
+            onDeleteCard={handleDeleteCard}
+            slideIndex={syncSlideIndex ?? undefined}
             renderHeader={() => (
               <div className="text-center mb-10 animate-fade-up">
                 <h3 className="text-2xl font-bold text-text mb-2 max-[480px]:text-xl">AI-Generated Flashcards</h3>
-                <p className="text-text-light text-sm">카드를 클릭하면 답변을 확인할 수 있습니다</p>
+                <p className="text-text-light text-sm mb-4">카드를 클릭하면 답변을 확인할 수 있습니다</p>
+                <div className="flex justify-center">
+                  <FlashCardKeyboardIndicator showDelete />
+                </div>
               </div>
             )}
             renderFooter={() => (
