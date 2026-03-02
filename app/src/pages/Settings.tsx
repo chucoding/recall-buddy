@@ -896,9 +896,9 @@ const Settings: React.FC = () => {
 
         {/* 이용약관 링크 */}
         <div className="border-t border-border text-center mt-4 pt-4">
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">{t('settings.terms')}</a>
+          <a href={i18n.language.startsWith('ko') ? '/terms' : '/terms-en.html'} target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">{t('settings.terms')}</a>
           {' · '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">{t('settings.privacy')}</a>
+          <a href={i18n.language.startsWith('ko') ? '/privacy' : '/privacy-en.html'} target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">{t('settings.privacy')}</a>
         </div>
       </div>
 
