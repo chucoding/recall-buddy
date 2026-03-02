@@ -129,7 +129,7 @@ const Settings: React.FC = () => {
   useEffect(() => {
     const hash = window.location.hash || '';
     if (hash.includes('subscription=success')) {
-      setMessage({ type: 'success', text: 'Pro 구독이 완료되었습니다. 감사합니다!' });
+      setMessage({ type: 'success', text: t('settings.proSubSuccess') });
       window.history.replaceState(null, '', window.location.pathname + (window.location.search || ''));
     }
   }, []);
@@ -168,7 +168,7 @@ const Settings: React.FC = () => {
     } catch (error) {
       console.error('리포지토리 불러오기 실패:', error);
       setReposFetchError(true);
-      setMessage({ type: 'error', text: '리포지토리 목록을 불러오는데 실패했습니다.' });
+      setMessage({ type: 'error', text: t('settings.reposLoadError') });
     } finally {
       setLoadingRepos(false);
     }
@@ -206,7 +206,7 @@ const Settings: React.FC = () => {
       } catch (error) {
         console.error('설정 불러오기 실패:', error);
         if (mounted) {
-          setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
+          setMessage({ type: 'error', text: t('settings.settingsLoadError') });
         }
       } finally {
         if (mounted) {
@@ -236,7 +236,7 @@ const Settings: React.FC = () => {
     setIsDropdownOpen(false);
     setMessage(null);
     if (selectedRepos.length >= MAX_REPOS_PRO) {
-      setMessage({ type: 'error', text: `Pro는 최대 ${MAX_REPOS_PRO}개까지 연결할 수 있어요.` });
+      setMessage({ type: 'error', text: t('settings.proMaxRepos', { max: MAX_REPOS_PRO }) });
       return;
     }
     if (selectedRepos.some((r) => r.fullName === repo.full_name)) return;
@@ -261,12 +261,12 @@ const Settings: React.FC = () => {
     const user = auth.currentUser;
 
     if (!user) {
-      setMessage({ type: 'error', text: '로그인이 필요합니다.' });
+      setMessage({ type: 'error', text: t('settings.loginRequired') });
       return;
     }
 
     if (selectedRepos.length === 0) {
-      setMessage({ type: 'error', text: '리포지토리를 1개 이상 선택해주세요.' });
+      setMessage({ type: 'error', text: t('settings.selectOneRepo') });
       return;
     }
 
@@ -274,7 +274,7 @@ const Settings: React.FC = () => {
       ({ fullName, url, ...(branch ? { branch } : {}) })
     );
     if (reposToSave.length !== selectedRepos.length) {
-      setMessage({ type: 'error', text: `Free는 1개, Pro는 최대 ${MAX_REPOS_PRO}개까지 가능해요.` });
+      setMessage({ type: 'error', text: t('settings.freeOneProMax', { max: MAX_REPOS_PRO }) });
       return;
     }
 
@@ -298,7 +298,7 @@ const Settings: React.FC = () => {
         const deletePromises = flashcardsSnapshot.docs.map(d => deleteDoc(d.ref));
         await Promise.all(deletePromises);
 
-        setMessage({ type: 'success', text: '설정이 저장되었습니다. 새로운 데이터를 불러옵니다...' });
+        setMessage({ type: 'success', text: t('settings.settingsSaved') });
         
         // 페이지 새로고침으로 플래시카드 새로 생성
         setTimeout(() => {
@@ -306,12 +306,12 @@ const Settings: React.FC = () => {
         }, 500);
       } catch (clearError) {
         console.error('플래시카드 데이터 삭제 실패:', clearError);
-        setMessage({ type: 'error', text: '데이터 삭제에 실패했습니다. 다시 시도해주세요.' });
+        setMessage({ type: 'error', text: t('settings.dataDeleteFailed') });
         setSaving(false);
       }
     } catch (error) {
       console.error('설정 저장 실패:', error);
-      setMessage({ type: 'error', text: '설정 저장에 실패했습니다.' });
+      setMessage({ type: 'error', text: t('settings.saveFailed') });
       setSaving(false);
     }
   };
@@ -320,7 +320,7 @@ const Settings: React.FC = () => {
   const handlePushToggle = async (nextEnabled: boolean) => {
     const user = auth.currentUser;
     if (!user) {
-      setMessage({ type: 'error', text: '로그인이 필요합니다.' });
+      setMessage({ type: 'error', text: t('settings.loginRequired') });
       return;
     }
     setPushUpdating(true);
@@ -328,7 +328,7 @@ const Settings: React.FC = () => {
     try {
       if (nextEnabled) {
         if (typeof window === 'undefined' || !('Notification' in window)) {
-          setMessage({ type: 'error', text: '이 브라우저에서는 알림을 지원하지 않습니다.' });
+          setMessage({ type: 'error', text: t('settings.notificationUnsupported') });
           setPushUpdating(false);
           return;
         }
@@ -337,7 +337,7 @@ const Settings: React.FC = () => {
           permission = await Notification.requestPermission();
         }
         if (permission !== 'granted') {
-          setMessage({ type: 'error', text: '알림을 사용하려면 브라우저 알림을 허용해 주세요.' });
+          setMessage({ type: 'error', text: t('settings.allowNotification') });
           setPushUpdating(false);
           return;
         }
@@ -346,7 +346,7 @@ const Settings: React.FC = () => {
         const vapidKey = import.meta.env.VITE_VAPID_KEY;
         const token = await getToken(messaging, vapidKey ? { vapidKey } : undefined);
         if (!token) {
-          setMessage({ type: 'error', text: '알림 토큰을 받지 못했습니다. 잠시 후 다시 시도해 주세요.' });
+          setMessage({ type: 'error', text: t('settings.notificationTokenFailed') });
           setPushUpdating(false);
           return;
         }
@@ -372,7 +372,7 @@ const Settings: React.FC = () => {
       console.error('PUSH 알림 설정 실패:', err);
       setMessage({
         type: 'error',
-        text: err instanceof Error ? err.message : '알림 설정에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+        text: err instanceof Error ? err.message : t('settings.notificationSettingsFailed'),
       });
     } finally {
       setPushUpdating(false);
@@ -392,7 +392,7 @@ const Settings: React.FC = () => {
       await auth.signOut();
     } catch (error) {
       console.error('로그아웃 실패:', error);
-      setMessage({ type: 'error', text: '로그아웃에 실패했습니다.' });
+      setMessage({ type: 'error', text: t('settings.logoutFailed') });
     }
   };
 
@@ -401,12 +401,13 @@ const Settings: React.FC = () => {
     const user = auth.currentUser;
     
     if (!user) {
-      setMessage({ type: 'error', text: '로그인이 필요합니다.' });
+      setMessage({ type: 'error', text: t('settings.loginRequired') });
       return;
     }
 
-    if (deleteConfirmText !== '회원탈퇴') {
-      setMessage({ type: 'error', text: '"회원탈퇴"를 정확히 입력해주세요.' });
+    const confirmText = t('settings.deleteAccountPlaceholder');
+    if (deleteConfirmText !== confirmText) {
+      setMessage({ type: 'error', text: t('settings.deleteConfirmRequired', { confirmText }) });
       return;
     }
 
@@ -446,13 +447,13 @@ const Settings: React.FC = () => {
           // 자동으로 재인증 시도
           setMessage({ 
             type: 'error', 
-            text: '보안을 위해 재인증이 필요합니다. 팝업에서 GitHub 로그인을 진행해주세요.' 
+            text: t('settings.reauthRequired') 
           });
           
           await reauthenticateWithPopup(user, githubProvider);
 
           // 재인증 후 다시 계정 삭제 시도
-          setMessage({ type: 'error', text: '재인증되었습니다. 다시 탈퇴를 시도합니다...' });
+          setMessage({ type: 'error', text: t('settings.reauthSuccess') });
           
           // 1. 탈퇴 기록 생성
           await setDoc(doc(store, 'deletedUsers', user.uid), {
@@ -478,18 +479,18 @@ const Settings: React.FC = () => {
           if (reauthError.code === 'auth/popup-closed-by-user') {
             setMessage({ 
               type: 'error', 
-              text: '재인증이 취소되었습니다. 탈퇴를 계속하려면 다시 시도해주세요.' 
+              text: t('settings.reauthCanceled') 
             });
           } else {
             setMessage({ 
               type: 'error', 
-              text: '재인증에 실패했습니다. 잠시 후 다시 시도해주세요.' 
+              text: t('settings.reauthFailed') 
             });
           }
           setDeleting(false);
         }
       } else {
-        setMessage({ type: 'error', text: '회원탈퇴에 실패했습니다.' });
+        setMessage({ type: 'error', text: t('settings.deleteAccountFailed') });
         setDeleting(false);
       }
     }
@@ -500,7 +501,7 @@ const Settings: React.FC = () => {
       <div className="min-h-screen flex justify-center items-start bg-bg pt-20 px-5 pb-5">
         <div className="bg-surface rounded-2xl p-10 max-w-[600px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-center">
           <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-body">설정을 불러오는 중...</p>
+          <p className="text-text-body">{t('settings.loadingSettings')}</p>
         </div>
       </div>
     );
@@ -542,12 +543,12 @@ const Settings: React.FC = () => {
         {/* 구독 */}
         <div className="flex flex-col gap-2 mb-8">
           <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2">
-            구독
+            {t('settings.subscription')}
           </h2>
           <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg">
             <span className="font-semibold text-text">
               {tier === 'pro' ? (
-                <>Pro {subscription?.subscriptionPeriodEnd && <span className="text-text-light text-[0.85rem] font-normal">(만료: {new Date(subscription.subscriptionPeriodEnd).toLocaleDateString('ko-KR')})</span>}</>
+                <>Pro {subscription?.subscriptionPeriodEnd && <span className="text-text-light text-[0.85rem] font-normal">({t('settings.expiresAt')}: {new Date(subscription.subscriptionPeriodEnd).toLocaleDateString(i18n.language.startsWith('ko') ? 'ko-KR' : 'en-US')})</span>}</>
               ) : (
                 'Free'
               )}
@@ -557,9 +558,9 @@ const Settings: React.FC = () => {
               <Button
                 type="button"
                 size="sm"
-                onClick={() => alert('Pro 업그레이드는 준비 중이에요. 조금만 기다려 주세요.')}
+                onClick={() => alert(t('settings.upgradePreparing'))}
               >
-                Pro로 업그레이드
+                {t('settings.upgradeToPro')}
               </Button>
             )}
           </div>
@@ -569,30 +570,30 @@ const Settings: React.FC = () => {
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center gap-3">
               <label htmlFor="repository" className="font-semibold text-text text-[0.95rem] block m-0 uppercase-none">
-                GitHub 리포지토리
+                {t('settings.githubRepo')}
                 <span className="text-error ml-1">*</span>
                 {tier === 'pro' && (
-                  <span className="text-text-light font-normal text-[0.8rem] ml-2">(최대 {MAX_REPOS_PRO}개)</span>
+                  <span className="text-text-light font-normal text-[0.8rem] ml-2">{t('settings.repoMaxHint', { count: MAX_REPOS_PRO })}</span>
                 )}
               </label>
             </div>
 
             <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
               {repositories.length > 0
-                ? `총 ${repositories.length}개의 리포지토리를 찾았습니다`
-                : '접근 가능한 리포지토리가 없습니다'}
+                ? t('settings.repoCountFound', { count: repositories.length })
+                : t('settings.noAccessibleRepos')}
             </p>
 
             {loadingRepos ? (
               <div className="flex items-center gap-3 p-4 bg-surface-light border-2 border-border rounded-lg text-text-body text-[0.95rem]">
                 <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
-                <span>리포지토리 목록을 불러오는 중...</span>
+                <span>{t('settings.loadingRepos')}</span>
               </div>
             ) : reposFetchError ? (
               <div className="flex items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg text-foreground text-[0.95rem]">
-                <span>리포지토리를 불러오지 못했습니다.</span>
+                <span>{t('settings.reposLoadFailed')}</span>
                 <Button variant="outline" size="sm" className="ml-2" onClick={() => fetchRepositories()}>
-                  다시 시도
+                  {t('settings.retry')}
                 </Button>
               </div>
             ) : (
@@ -625,7 +626,7 @@ const Settings: React.FC = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                aria-label={`${r.fullName} 제거`}
+                                aria-label={t('settings.removeRepo', { fullName: r.fullName })}
                                 className="shrink-0 hover:bg-destructive/10 hover:border-destructive hover:text-destructive"
                                 onClick={() => handleRemoveRepository(r.fullName)}
                               >
@@ -639,7 +640,7 @@ const Settings: React.FC = () => {
                           <div className="flex flex-col gap-2 min-w-0">
                             <Label htmlFor={`branch-${r.fullName.replace('/', '-')}`} className="text-[0.85rem] text-text-light font-medium flex items-center gap-1.5">
                               <GitBranch className="w-4 h-4 shrink-0" aria-hidden />
-                              브랜치 (선택사항)
+                              {t('settings.branchOptional')}
                             </Label>
                             <Select
                               value={r.branch || '__default__'}
@@ -647,17 +648,17 @@ const Settings: React.FC = () => {
                               disabled={branchData?.loading || saving}
                             >
                               <SelectTrigger id={`branch-${r.fullName.replace('/', '-')}`} className="min-w-0 w-full max-w-[280px]">
-                                <SelectValue placeholder="기본 브랜치 (main)" />
+                                <SelectValue placeholder={t('settings.defaultBranch')} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="__default__">기본 브랜치 (main)</SelectItem>
+                                <SelectItem value="__default__">{t('settings.defaultBranch')}</SelectItem>
                                 {branchData?.list.map((b) => (
                                   <SelectItem key={b.name} value={b.name}>{b.name}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                             {branchData?.loading && (
-                              <span className="text-[0.75rem] text-text-muted">로딩 중...</span>
+                              <span className="text-[0.75rem] text-text-muted">{t('settings.loading')}</span>
                             )}
                           </div>
                         </li>
@@ -678,13 +679,13 @@ const Settings: React.FC = () => {
                     {saving ? (
                       <div className="flex items-center gap-3 flex-1">
                         <div className="w-5 h-5 border-[3px] border-border border-t-primary rounded-full animate-spin shrink-0"></div>
-                        <span className="font-mono font-medium text-text">저장 중...</span>
+                        <span className="font-mono font-medium text-text">{t('settings.saving')}</span>
                       </div>
                     ) : tier === 'pro' ? (
-                      <span className="text-text-muted">레포 추가 (최대 {MAX_REPOS_PRO}개)</span>
+                      <span className="text-text-muted">{t('settings.addRepo', { max: MAX_REPOS_PRO })}</span>
                     ) : (
                       <span className={selectedRepos.length ? 'font-mono font-medium text-text' : 'text-text-muted'}>
-                        {selectedRepos.length ? selectedRepos[0].fullName : '리포지토리를 선택하세요'}
+                        {selectedRepos.length ? selectedRepos[0].fullName : t('settings.selectRepo')}
                       </span>
                     )}
                     {isDropdownOpen ? <ChevronUp className="w-4 h-4 text-text-light shrink-0" aria-hidden /> : <ChevronDown className="w-4 h-4 text-text-light shrink-0" aria-hidden />}
@@ -708,7 +709,7 @@ const Settings: React.FC = () => {
                         </div>
                       ))}
                       {tier === 'pro' && availableReposForDropdown.length === 0 && (
-                        <div className="px-4 py-3 text-text-muted text-[0.9rem]">추가할 레포가 없거나 이미 최대 개수입니다.</div>
+                        <div className="px-4 py-3 text-text-muted text-[0.9rem]">{t('settings.noMoreRepos')}</div>
                       )}
                     </div>
                   )}
@@ -723,15 +724,15 @@ const Settings: React.FC = () => {
               <span className="inline-flex shrink-0" aria-hidden="true">
                 <Bell className="w-5 h-5 text-text-light" aria-hidden />
               </span>
-              알림
+              {t('settings.notifications')}
             </h2>
             <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
-              {tier === 'pro' ? '원하는 시각에 복습 리마인더를 보내드려요.' : '매일 오전 8시에 복습 리마인더를 보내드려요.'}
+              {tier === 'pro' ? t('settings.notifyDescPro') : t('settings.notifyDescFree')}
             </p>
             {tier === 'pro' && (
               <div className="flex items-center justify-between gap-4 p-4 bg-muted border-2 border-border rounded-lg mb-3">
                 <Label htmlFor="push-hour" className="font-semibold text-[0.95rem]">
-                  알림 희망 시 (내 시간대)
+                  {t('settings.preferredTime')}
                 </Label>
                 <Select
                   value={String(preferredPushHour)}
@@ -749,7 +750,7 @@ const Settings: React.FC = () => {
                       });
                     } catch (err) {
                       console.error('preferredPushHour 저장 실패:', err);
-                      setMessage({ type: 'error', text: '알림 시간 저장에 실패했습니다.' });
+                      setMessage({ type: 'error', text: t('settings.pushHourSaveFailed') });
                     }
                   }}
                 >
@@ -758,7 +759,7 @@ const Settings: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {Array.from({ length: 24 }, (_, i) => (
-                      <SelectItem key={i} value={String(i)}>{i}시</SelectItem>
+                      <SelectItem key={i} value={String(i)}>{i}{t('settings.hourSuffix')}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -766,23 +767,23 @@ const Settings: React.FC = () => {
             )}
             <div className="flex items-center justify-between gap-4 p-4 bg-muted border-2 border-border rounded-lg">
               <Label htmlFor="push-toggle" className="font-semibold text-[0.95rem] cursor-pointer flex-1">
-                PUSH 알림
+                {t('settings.pushNotification')}
               </Label>
               <Switch
                 id="push-toggle"
                 checked={pushEnabled}
                 disabled={pushUpdating}
                 onCheckedChange={(checked) => handlePushToggle(checked)}
-                aria-label={pushEnabled ? 'PUSH 알림 끄기' : 'PUSH 알림 켜기'}
+                aria-label={pushEnabled ? t('settings.pushOff') : t('settings.pushOn')}
               />
             </div>
           </div>
 
           {tier === 'pro' && (
             <div className="flex flex-col gap-2">
-              <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">과거 날짜 복습</h2>
+              <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem]">{t('settings.pastDateReview')}</h2>
               <p className="m-0 mb-3 text-[0.85rem] text-text-light font-medium">
-                저장된 날짜의 플래시카드를 다시 볼 수 있어요.
+                {t('settings.pastDateDesc')}
               </p>
               <div className="flex flex-wrap items-center gap-3 p-4 bg-muted border-2 border-border rounded-lg">
                 <Popover open={pastDatePopoverOpen} onOpenChange={setPastDatePopoverOpen}>
@@ -795,7 +796,7 @@ const Settings: React.FC = () => {
                       <CalendarIcon className="mr-2 size-4" />
                       {pastDateInput
                         ? format(new Date(pastDateInput + 'T12:00:00'), 'PPP', { locale: dateLocale })
-                        : '날짜 선택'}
+                        : t('settings.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -826,7 +827,7 @@ const Settings: React.FC = () => {
                     }
                   }}
                 >
-                  해당 날짜 카드 보기
+                  {t('settings.viewDateCards')}
                 </Button>
               </div>
             </div>
@@ -845,23 +846,23 @@ const Settings: React.FC = () => {
               onClick={handleSaveSettings}
               disabled={saving}
             >
-              {saving ? '저장 중...' : '설정 저장'}
+              {saving ? t('settings.saving') : t('settings.saveSettings')}
             </Button>
           )}
         </div>
         <p className="m-0 mb-2 text-[0.85rem] text-text-light text-left leading-relaxed flex items-center gap-2">
           <Info className="w-4 h-4 shrink-0" aria-hidden />
-          GitHub OAuth로 로그인하여 접근 가능한 모든 리포지토리가 표시됩니다.
+          {t('settings.oauthHint')}
         </p>
         <p className="m-0 text-[0.85rem] text-text-light text-left leading-relaxed flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1"><Lock className="w-4 h-4 shrink-0" aria-hidden /> = Private 리포지토리</span>, <span className="inline-flex items-center gap-1"><Globe className="w-4 h-4 shrink-0" aria-hidden /> = Public 리포지토리</span>
+          <span className="inline-flex items-center gap-1"><Lock className="w-4 h-4 shrink-0" aria-hidden /> = {t('settings.privateRepo')}</span>, <span className="inline-flex items-center gap-1"><Globe className="w-4 h-4 shrink-0" aria-hidden /> = {t('settings.publicRepo')}</span>
         </p>
 
         {/* 릴리즈 노트 */}
         <div className="border-t border-border text-left mt-8 pt-5 max-[768px]:pt-4">
-          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2"><FileText className="w-5 h-5 shrink-0" aria-hidden />릴리즈 노트</h2>
+          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2"><FileText className="w-5 h-5 shrink-0" aria-hidden />{t('settings.releaseNotes')}</h2>
           <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
-            새로운 기능과 개선사항을 확인하세요
+            {t('settings.releaseNotesDesc')}
           </p>
           <Button asChild>
             <a
@@ -871,33 +872,33 @@ const Settings: React.FC = () => {
               className="inline-flex items-center gap-1.5 no-underline max-[768px]:text-[0.9rem] max-[768px]:px-5 max-[768px]:py-2.5"
             >
               <ClipboardList className="w-5 h-5 shrink-0" aria-hidden />
-              릴리즈 노트 보기
+              {t('settings.viewReleaseNotes')}
             </a>
           </Button>
         </div>
 
         {/* 계정 관리 */}
         <div className="border-t border-border text-left mt-4 pt-5 max-[768px]:pt-4">
-          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2"><User className="w-5 h-5 shrink-0" aria-hidden />계정 관리</h2>
+          <h2 className="m-0 mb-2 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2"><User className="w-5 h-5 shrink-0" aria-hidden />{t('settings.accountManage')}</h2>
           <p className="m-0 mb-4 text-text-light text-[0.9rem] leading-relaxed max-[768px]:text-[0.85rem]">
-            계정 로그아웃 또는 서비스 탈퇴를 진행할 수 있습니다.
+            {t('settings.accountManageDesc')}
           </p>
           <div className="flex gap-3 mt-4 max-[768px]:flex-col">
             <Button type="button" className="flex-1 max-[768px]:w-full" onClick={handleLogout}>
               <LogOut className="w-5 h-5 shrink-0 inline-block align-middle mr-1.5" aria-hidden />
-              로그아웃
+              {t('settings.logout')}
             </Button>
             <Button type="button" variant="outline" className="flex-1 max-[768px]:w-full" onClick={() => setShowDeleteDialog(true)}>
-              서비스 탈퇴
+              {t('settings.deleteAccount')}
             </Button>
           </div>
         </div>
 
         {/* 이용약관 링크 */}
         <div className="border-t border-border text-center mt-4 pt-4">
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">이용약관</a>
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">{t('settings.terms')}</a>
           {' · '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">개인정보처리방침</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-text-muted no-underline text-[0.8rem] transition-colors duration-200 hover:text-primary hover:underline">{t('settings.privacy')}</a>
         </div>
       </div>
 
@@ -907,31 +908,31 @@ const Settings: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl max-[768px]:text-xl">
               <UserX className="w-7 h-7 shrink-0" aria-hidden />
-              서비스 탈퇴
+              {t('settings.deleteAccountTitle')}
             </DialogTitle>
           </DialogHeader>
           <p className="m-0 mb-5 text-muted-foreground text-base leading-relaxed">
-            정말 탈퇴하시겠어요? 걱정하지 마세요, 언제든 다시 돌아올 수 있습니다.
+            {t('settings.deleteAccountConfirm')}
           </p>
           <div className="m-0 mb-6 p-4 bg-muted border border-border rounded-lg">
-            <p className="m-0 mb-3 text-foreground text-[0.95rem] font-semibold flex items-center gap-2"><Sparkles className="w-5 h-5 shrink-0" aria-hidden />탈퇴 시 안내사항</p>
+            <p className="m-0 mb-3 text-foreground text-[0.95rem] font-semibold flex items-center gap-2"><Sparkles className="w-5 h-5 shrink-0" aria-hidden />{t('settings.deleteAccountNotice')}</p>
             <ul className="m-0 pl-5 text-muted-foreground">
-              <li className="my-2 leading-relaxed text-[0.9rem]">저장된 모든 데이터가 삭제됩니다</li>
-              <li className="my-2 leading-relaxed text-[0.9rem]">탈퇴 시 다음날부터 재가입할 수 있습니다</li>
-              <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border flex items-center gap-2"><Lightbulb className="w-4 h-4 shrink-0" aria-hidden />보안을 위해 GitHub 재인증 팝업이 표시될 수 있습니다</li>
+              <li className="my-2 leading-relaxed text-[0.9rem]">{t('settings.deleteAccountNotice1')}</li>
+              <li className="my-2 leading-relaxed text-[0.9rem]">{t('settings.deleteAccountNotice2')}</li>
+              <li className="my-2 leading-relaxed text-[0.9rem] text-primary font-medium mt-3 pt-3 border-t border-dashed border-border flex items-center gap-2"><Lightbulb className="w-4 h-4 shrink-0" aria-hidden />{t('settings.deleteAccountNotice3')}</li>
             </ul>
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="confirmText" className="text-[0.95rem]">
-              확인을 위해 <strong>"회원탈퇴"</strong>를 입력해주세요:
+              {t('settings.deleteAccountInputHint', { confirmText: t('settings.deleteAccountPlaceholder') })}
             </Label>
             <Input
               id="confirmText"
               type="text"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="회원탈퇴"
+              placeholder={t('settings.deleteAccountPlaceholder')}
               disabled={deleting}
               className="py-3"
             />
@@ -955,16 +956,16 @@ const Settings: React.FC = () => {
               }}
               disabled={deleting}
             >
-              취소
+              {t('common.cancel')}
             </Button>
             <Button
               type="button"
               variant="secondary"
               className="min-w-[100px] max-[768px]:w-full bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/90"
               onClick={handleDeleteAccount}
-              disabled={deleting || deleteConfirmText !== '회원탈퇴'}
+              disabled={deleting || deleteConfirmText !== t('settings.deleteAccountPlaceholder')}
             >
-              {deleting ? '탈퇴 처리 중...' : '탈퇴하기'}
+              {deleting ? t('settings.deleting') : t('settings.deleteAccountBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>

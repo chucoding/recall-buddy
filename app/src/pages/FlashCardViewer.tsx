@@ -197,11 +197,11 @@ const FlashCardViewer: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleShuffleDeck}
-            aria-label="덱 순서 섞기"
+            aria-label={t('flashcard.deckShuffleAria')}
             className="inline-flex items-center gap-2 rounded-[20px] bg-card/90 backdrop-blur-sm max-[768px]:order-last"
           >
             <Shuffle className="w-5 h-5 shrink-0" aria-hidden />
-            <span>덱 셔플</span>
+            <span>{t('flashcard.deckShuffle')}</span>
           </Button>
         </div>
 
