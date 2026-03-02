@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import Slider from 'react-slick';
 import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import FileContentBlock from '../../templates/FileContentBlock';
@@ -24,17 +25,18 @@ type BackViewMode = 'diff' | 'file';
 
 /** AI 답변 플로팅 블록: 하단 고정, 코드/파일 토글과 무관하게 항상 노출 */
 function AIAnswerFloatingBlock({ answer }: { answer: string }) {
+  const { t } = useTranslation();
   return (
     <div
       className="fc-answer-floating shrink-0 border-t border-slate-200 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
       role="region"
-      aria-label="예시 답변"
+      aria-label={t('flashcard.exampleAnswer')}
     >
       <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200">
         <span className="flex items-center justify-center w-6 h-6 rounded-xl bg-primary/10 text-primary" aria-hidden>
           <Sparkles className="w-3.5 h-3.5" aria-hidden />
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">예시 답변</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{t('flashcard.exampleAnswer')}</span>
       </div>
       <div className="fc-answer-body px-4 py-3 text-sm text-slate-700 leading-relaxed whitespace-pre-line max-h-[140px] overflow-y-auto">
         {answer}

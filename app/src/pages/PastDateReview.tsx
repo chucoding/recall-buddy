@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'sonner';
@@ -21,6 +22,7 @@ interface PastDateReviewProps {
 }
 
 const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState(auth.currentUser);
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,9 +71,9 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
       const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', date);
       setDoc(flashcardDocRef, { data: newCards });
 
-      toast('카드가 제거되었습니다', {
+      toast(t('flashcard.cardRemoved'), {
         action: {
-          label: '실행 취소',
+          label: t('flashcard.undo'),
           onClick: () => {
             const restored = [...newCards];
             restored.splice(index, 0, deletedCard);
@@ -91,7 +93,7 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
       total_before: cards.length,
       total_after: newCards.length,
     });
-  }, [cards, date]);
+  }, [cards, date, t]);
 
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const limit = tier === 'pro' ? REGENERATE_QUESTION_LIMIT_PRO : REGENERATE_QUESTION_LIMIT_FREE;
@@ -114,18 +116,20 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
           .map((c) => c.question)
           .filter(Boolean)
           .slice(0, 10);
+        const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
         const { question, highlights } = await regenerateCardQuestion({
           rawDiff: card.metadata.rawDiff,
           existingQuestion: card.question,
           existingAnswer: card.answer,
           flashcardDate: date,
           otherQuestions,
+          lang,
         });
         const newCards = cards.map((c, i) =>
           i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
         );
         setCards(newCards);
-        toast('질문이 재생성되었습니다');
+        toast(t('flashcard.questionRegenerated'));
         trackEvent('flashcard_regenerate_question', {
           card_index: index + 1,
           total_cards: cards.length,
@@ -138,14 +142,14 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
         const err = e as { response?: { status?: number; data?: { error?: string } } };
         const msg =
           err.response?.status === 429
-            ? '오늘 질문 재생성 한도를 모두 사용했습니다.'
-            : (err.response?.data?.error || (e instanceof Error ? e.message : '재생성에 실패했습니다.'));
+            ? t('flashcard.regenLimitReached')
+            : (err.response?.data?.error || (e instanceof Error ? e.message : t('errors.regenFailed')));
         toast.error(msg);
       } finally {
         setRegeneratingIndex(null);
       }
     },
-    [cards, canRegenerateQuestion, user, date]
+    [cards, canRegenerateQuestion, user, date, t, i18n.language]
   );
 
   if (cards.length === 0) {

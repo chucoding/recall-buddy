@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { reauthenticateWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, app, store, githubProvider } from '../firebase';
@@ -34,12 +35,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { ko, enUS } from 'date-fns/locale';
 
 const MAX_REPOS_FREE = 1;
 const MAX_REPOS_PRO = 5;
 
 const Settings: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language.startsWith('ko') ? ko : enUS;
   /** 사용자가 선택한 레포 목록 (Firestore repositories와 동기화). Free 1개, Pro 최대 5개 */
   const [selectedRepos, setSelectedRepos] = useState<UserRepository[]>([]);
   /** GitHub API로 불러온 전체 레포 목록 (드롭다운용) */
@@ -53,7 +56,6 @@ const Settings: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>('');
   const [deleting, setDeleting] = useState<boolean>(false);
-  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushUpdating, setPushUpdating] = useState<boolean>(false);
   const [preferredPushHour, setPreferredPushHour] = useState<number>(8);
@@ -132,15 +134,14 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  // Firestore config/notice 단일 문서에서 공지 메시지 실시간 구독 (message 하나만 사용)
+  // Firestore config/notice: message_ko, message_en 지원. 없으면 message fallback
+  const [noticeData, setNoticeData] = useState<{ message?: string; message_ko?: string; message_en?: string } | null>(null);
   useEffect(() => {
     const noticeRef = doc(store, 'config', 'notice');
     const unsubscribe = onSnapshot(
       noticeRef,
       (snapshot) => {
-        const msg = (snapshot.exists() ? snapshot.data()?.message : undefined) ?? '';
-        const trimmed = typeof msg === 'string' ? msg.trim() : '';
-        setNoticeMessage(trimmed || null);
+        setNoticeData(snapshot.exists() ? (snapshot.data() as { message?: string; message_ko?: string; message_en?: string }) : null);
       },
       (error) => {
         console.error('공지사항 가져오기 실패:', error);
@@ -148,6 +149,14 @@ const Settings: React.FC = () => {
     );
     return () => unsubscribe();
   }, []);
+
+  const noticeMessage = (() => {
+    if (!noticeData) return null;
+    const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+    const msg = (lang === 'en' ? noticeData.message_en ?? noticeData.message_ko ?? noticeData.message : noticeData.message_ko ?? noticeData.message_en ?? noticeData.message) ?? '';
+    const trimmed = typeof msg === 'string' ? msg.trim() : '';
+    return trimmed || null;
+  })();
 
   // GitHub 리포지토리 목록 불러오기
   const fetchRepositories = useCallback(async () => {
@@ -510,6 +519,26 @@ const Settings: React.FC = () => {
           </div>
         )}
 
+        {/* 언어 */}
+        <div className="flex flex-col gap-2 mb-8">
+          <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2">
+            <Globe className="w-5 h-5 shrink-0" aria-hidden />
+            {t('settings.language')}
+          </h2>
+          <Select
+            value={i18n.language.startsWith('ko') ? 'ko' : 'en'}
+            onValueChange={(v: 'ko' | 'en') => i18n.changeLanguage(v)}
+          >
+            <SelectTrigger className="max-w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ko">{t('settings.languageKo')}</SelectItem>
+              <SelectItem value="en">{t('settings.languageEn')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* 구독 */}
         <div className="flex flex-col gap-2 mb-8">
           <h2 className="m-0 text-text-body text-base font-semibold max-[768px]:text-[0.95rem] flex items-center gap-2">
@@ -765,13 +794,14 @@ const Settings: React.FC = () => {
                     >
                       <CalendarIcon className="mr-2 size-4" />
                       {pastDateInput
-                        ? format(new Date(pastDateInput + 'T12:00:00'), 'PPP', { locale: ko })
+                        ? format(new Date(pastDateInput + 'T12:00:00'), 'PPP', { locale: dateLocale })
                         : '날짜 선택'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
+                      locale={dateLocale}
                       selected={pastDateInput ? new Date(pastDateInput + 'T12:00:00') : undefined}
                       onSelect={(date) => {
                         if (date) {

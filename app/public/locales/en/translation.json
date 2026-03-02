@@ -1,0 +1,62 @@
+{
+  "common": {
+    "back": "Back",
+    "settings": "Settings",
+    "loading": "Please wait...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "app": {
+    "loadingAuth": "Please wait...",
+    "loadingFlashcards": "Preparing flashcards",
+    "analysingCommits": "Analyzing recent commits from GitHub...",
+    "analysingCommitsShort": "Analyzing commits...",
+    "waitPatiently": "Please wait...",
+    "mayTakeTime": "This may take a moment depending on the amount of data"
+  },
+  "flashcard": {
+    "move": "Navigate",
+    "flip": "Flip",
+    "delete": "Delete",
+    "cardRemoved": "Card removed",
+    "questionRegenerated": "Question regenerated",
+    "exampleAnswer": "Example Answer",
+    "undo": "Undo",
+    "regenLimitReached": "You have used all question regeneration limits for today."
+  },
+  "login": {
+    "loggingIn": "Signing in...",
+    "titleLine1": "Review your learning history",
+    "titleLine2": "from GitHub as flashcards",
+    "button": "Sign in with GitHub",
+    "footer": "Signing in grants access to your public GitHub information",
+    "terms": "Terms",
+    "privacy": "Privacy Policy",
+    "errorCanceled": "Sign-in was canceled.",
+    "errorPopupBlocked": "Popup was blocked. Please allow popups.",
+    "errorFailed": "Sign-in failed. Please try again.",
+    "errorRejoin": "You can rejoin the day after account deletion."
+  },
+  "noData": {
+    "title": "No flashcards",
+    "subtitle": "No learning content found in recent commits",
+    "hint": "Try a different repository or branch in settings",
+    "goToSettings": "Go to Settings"
+  },
+  "settings": {
+    "language": "Language",
+    "languageKo": "한국어",
+    "languageEn": "English"
+  },
+  "errors": {
+    "network": "Please check your internet connection.",
+    "timeout": "The request took too long. Please try again later.",
+    "notFound": "File not found.",
+    "forbidden": "Access denied.",
+    "serverError": "Temporary server issue. Please try again later.",
+    "repoNotFound": "Repository not found.",
+    "generic": "An error occurred. Please try again.",
+    "fileLoadFailed": "Failed to load file. Please try again.",
+    "regenFailed": "Regeneration failed."
+  }
+}

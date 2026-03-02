@@ -1,3 +1,4 @@
+import './i18n';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import Clarity from '@microsoft/clarity';
@@ -23,6 +24,8 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <App />
+    <React.Suspense fallback={null}>
+      <App />
+    </React.Suspense>
   </React.StrictMode>
 );

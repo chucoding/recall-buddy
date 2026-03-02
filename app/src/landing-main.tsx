@@ -1,9 +1,10 @@
+import './i18n';
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Toaster } from 'sonner';
 import Clarity from '@microsoft/clarity';
 import './index.css';
-import LandingDemo from './pages/LandingDemo';
+import LandingPage from './pages/LandingPage';
 import { trackEvent, trackScreen } from './analytics';
 
 // Microsoft Clarity (랜딩 우선): 히트맵·세션 녹화
@@ -12,15 +13,25 @@ if (typeof clarityId === 'string' && clarityId.trim()) {
   Clarity.init(clarityId.trim());
 }
 
-const demoRoot = document.getElementById('demo-root');
+const root = document.getElementById('root');
 
-if (demoRoot) {
-  ReactDOM.createRoot(demoRoot).render(
+if (root) {
+  ReactDOM.createRoot(root).render(
     <React.StrictMode>
-      <Toaster position="bottom-center" richColors closeButton offset="12px" />
-      <LandingDemo />
+      <React.Suspense fallback={null}>
+        <Toaster position="bottom-center" richColors closeButton offset="12px" />
+        <LandingPageWithPrerenderReady />
+      </React.Suspense>
     </React.StrictMode>
   );
+}
+
+/** i18n·React 렌더 완료 후 prerender-ready 이벤트 dispatch (vite-plugin-prerender) */
+function LandingPageWithPrerenderReady() {
+  useEffect(() => {
+    document.dispatchEvent(new Event('prerender-ready'));
+  }, []);
+  return <LandingPage />;
 }
 
 /**
@@ -89,7 +100,7 @@ function LandingWithAnalytics() {
 }
 
 // analytics 훅은 React 트리 안에서 실행되어야 하므로 루트에 주입
-if (demoRoot) {
+if (root) {
   const analyticsRoot = document.createElement('div');
   analyticsRoot.id = 'landing-analytics-root';
   document.body.appendChild(analyticsRoot);

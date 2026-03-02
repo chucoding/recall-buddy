@@ -7,7 +7,7 @@ const FUNCTIONS_URL = import.meta.env.PROD
 /**
  * CLOVA Studio - Firebase Functions를 통해 호출
  */
-export async function chatCompletions(text: string): Promise<ChatCompletionResponse> {
+export async function chatCompletions(text: string, options?: { lang?: 'ko' | 'en' }): Promise<ChatCompletionResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
@@ -16,7 +16,7 @@ export async function chatCompletions(text: string): Promise<ChatCompletionRespo
     response = await fetch(`${FUNCTIONS_URL}/chatCompletions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, lang: options?.lang }),
       signal: controller.signal,
     });
   } catch (err) {

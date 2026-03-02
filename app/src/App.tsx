@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Toaster } from 'sonner';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -20,6 +21,7 @@ import { useNavigationStore } from './stores/navigationStore';
 import { BookOpen, ArrowLeft, Settings as SettingsIcon, Clock } from 'lucide-react';
 
 const App: React.FC = () => {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [isScrollAtTop, setIsScrollAtTop] = useState<boolean>(true);
@@ -133,7 +135,7 @@ const App: React.FC = () => {
         <div className="w-[50px] h-[50px] max-[768px]:w-10 max-[768px]:h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4 max-[768px]:mb-3" aria-hidden />
         <h2 className="text-xl max-[768px]:text-lg flex items-center justify-center gap-2 whitespace-nowrap">
           <BookOpen className="w-6 h-6 max-[768px]:w-5 max-[768px]:h-5 shrink-0" aria-hidden />
-          잠시만 기다려주세요
+          {t('app.loadingAuth')}
         </h2>
       </Card>
     );
@@ -146,16 +148,16 @@ const App: React.FC = () => {
         <div className="w-[50px] h-[50px] max-[768px]:w-10 max-[768px]:h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4 max-[768px]:mb-3" aria-hidden />
         <h2 className="mb-2.5 text-xl max-[768px]:text-lg flex items-center justify-center gap-2">
           <BookOpen className="w-6 h-6 max-[768px]:w-5 max-[768px]:h-5 shrink-0" aria-hidden />
-          플래시카드 준비 중
+          {t('app.loadingFlashcards')}
         </h2>
         <p className="text-base max-[768px]:text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-          <span className="hidden md:inline">GitHub에서 최근 커밋을 분석하고 있습니다...</span>
-          <span className="md:hidden">커밋 분석 중...</span>
+          <span className="hidden md:inline">{t('app.analysingCommits')}</span>
+          <span className="md:hidden">{t('app.analysingCommitsShort')}</span>
         </p>
         <p className="mt-2.5 text-[0.9rem] max-[768px]:text-xs opacity-80 flex items-center justify-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
           <Clock className="w-4 h-4 max-[768px]:w-3 max-[768px]:h-3 shrink-0" aria-hidden />
-          <span className="hidden md:inline">데이터 양에 따라 시간이 조금 걸릴 수 있습니다</span>
-          <span className="md:hidden">잠시만 기다려주세요</span>
+          <span className="hidden md:inline">{t('app.mayTakeTime')}</span>
+          <span className="md:hidden">{t('app.waitPatiently')}</span>
         </p>
       </Card>
     );
@@ -194,7 +196,7 @@ const App: React.FC = () => {
                 className="bg-card/95 border-border shadow-[0_2px_8px_rgba(0,0,0,0.3)] gap-1.5 backdrop-blur-sm hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               >
                 <ArrowLeft className="w-5 h-5 shrink-0" aria-hidden />
-                뒤로가기
+                {t('common.back')}
               </Button>
             )}
           </div>
@@ -204,7 +206,7 @@ const App: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={navigateToSettings}
-                title="설정"
+                title={t('common.settings')}
                 size="icon"
                 className="text-[1.2rem] bg-card/95 border-border shadow-[0_2px_8px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
               >

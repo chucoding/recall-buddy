@@ -1,0 +1,62 @@
+{
+  "common": {
+    "back": "뒤로가기",
+    "settings": "설정",
+    "loading": "잠시만 기다려주세요",
+    "save": "저장",
+    "cancel": "취소"
+  },
+  "app": {
+    "loadingAuth": "잠시만 기다려주세요",
+    "loadingFlashcards": "플래시카드 준비 중",
+    "analysingCommits": "GitHub에서 최근 커밋을 분석하고 있습니다...",
+    "analysingCommitsShort": "커밋 분석 중...",
+    "waitPatiently": "잠시만 기다려주세요",
+    "mayTakeTime": "데이터 양에 따라 시간이 조금 걸릴 수 있습니다"
+  },
+  "flashcard": {
+    "move": "이동",
+    "flip": "뒤집기",
+    "delete": "삭제",
+    "cardRemoved": "카드가 제거되었습니다",
+    "questionRegenerated": "질문이 재생성되었습니다",
+    "exampleAnswer": "예시 답변",
+    "undo": "실행 취소",
+    "regenLimitReached": "오늘 질문 재생성 한도를 모두 사용했습니다."
+  },
+  "login": {
+    "loggingIn": "로그인 중...",
+    "titleLine1": "GitHub에 남긴 학습 기록을",
+    "titleLine2": "플래시카드로 복습하세요",
+    "button": "GitHub로 로그인",
+    "footer": "로그인하면 GitHub의 공개 정보에 접근할 수 있습니다",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "errorCanceled": "로그인이 취소되었습니다.",
+    "errorPopupBlocked": "팝업이 차단되었습니다. 팝업 차단을 해제해주세요.",
+    "errorFailed": "로그인에 실패했습니다. 다시 시도해주세요.",
+    "errorRejoin": "회원탈퇴 후에는 다음날부터 재가입할 수 있습니다."
+  },
+  "noData": {
+    "title": "플래시카드가 없습니다",
+    "subtitle": "최근 커밋에서 학습할 내용을 찾지 못했습니다",
+    "hint": "설정에서 다른 리포지토리나 브랜치를 시도해보세요",
+    "goToSettings": "설정으로 이동"
+  },
+  "settings": {
+    "language": "언어",
+    "languageKo": "한국어",
+    "languageEn": "English"
+  },
+  "errors": {
+    "network": "인터넷 연결을 확인해주세요.",
+    "timeout": "요청이 너무 오래 걸렸어요. 잠시 후 다시 시도해주세요.",
+    "notFound": "파일을 찾을 수 없어요.",
+    "forbidden": "접근 권한이 없어요.",
+    "serverError": "서버에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요.",
+    "repoNotFound": "리포지토리를 찾을 수 없습니다.",
+    "generic": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "fileLoadFailed": "파일을 불러오지 못했어요. 다시 시도해주세요.",
+    "regenFailed": "재생성에 실패했습니다."
+  }
+}

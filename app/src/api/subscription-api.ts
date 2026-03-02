@@ -23,6 +23,8 @@ export interface RegenerateCardQuestionParams {
   flashcardDate: string;
   /** 덱의 다른 질문들 (최대 10개, 중복 방지용) */
   otherQuestions?: string[];
+  /** 출력 언어 (ko | en) */
+  lang?: 'ko' | 'en';
 }
 
 export interface RegenerateCardQuestionDemoParams {
@@ -32,6 +34,8 @@ export interface RegenerateCardQuestionDemoParams {
   demoDeviceId: string;
   /** 덱의 다른 질문들 (최대 10개, 중복 방지용) */
   otherQuestions?: string[];
+  /** 출력 언어 (ko | en) */
+  lang?: 'ko' | 'en';
 }
 
 export interface RegenerateCardQuestionResult {

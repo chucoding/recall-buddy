@@ -83,8 +83,8 @@ function buildFallbackAnswer(commit: DemoCommitData): string {
 }
 
 /** 데모 전용: AI에서 질문·답변 1쌍 생성 (items[0].question, items[0].answer). 예시 답변은 평문으로 표시되므로 answer 사용 */
-async function fetchDemoFlashcardFromAI(answerContent: string): Promise<{ question: string; answer: string } | null> {
-  const result = await chatCompletions(answerContent);
+async function fetchDemoFlashcardFromAI(answerContent: string, lang?: 'ko' | 'en'): Promise<{ question: string; answer: string } | null> {
+  const result = await chatCompletions(answerContent, { lang });
   const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
   const first = parsed?.items?.[0];
   if (first && typeof first.question === 'string' && typeof first.answer === 'string') {
@@ -141,8 +141,9 @@ export type GenerateDemoFlashcardsResult =
 /**
  * 랜딩 데모용 플래시카드 생성 (Firebase 미사용, AI에서 바로 생성)
  * @param repoUrl - GitHub 리포지토리 URL 또는 "owner/repo"
+ * @param lang - 출력 언어 (ko | en)
  */
-export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateDemoFlashcardsResult> {
+export async function generateDemoFlashcards(repoUrl: string, lang?: 'ko' | 'en'): Promise<GenerateDemoFlashcardsResult> {
   const parsed = parseGitHubUrl(repoUrl);
   if (!parsed) {
     return { ok: false, error: '올바른 GitHub 리포지토리 URL을 입력해주세요. (예: https://github.com/owner/repo)' };
@@ -184,7 +185,7 @@ export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateD
   const aiPairs = await Promise.all(
     answerContents.map(async (content, i) => {
       try {
-        const pair = await fetchDemoFlashcardFromAI(content);
+        const pair = await fetchDemoFlashcardFromAI(content, lang);
         if (pair) return pair;
       } catch {
         // fallback

@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard, DeleteMethod } from '../features/flashcard';
@@ -26,6 +27,7 @@ function getOrCreateDemoDeviceId(): string {
  * Firebase/Firestore 미사용. 로그인 후 앱 플래시카드는 Firestore에서 로드.
  */
 const LandingDemo: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [repoUrl, setRepoUrl] = useState('');
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,9 +52,9 @@ const LandingDemo: React.FC = () => {
       total_after: newCards.length,
     });
 
-    toast('카드가 제거되었습니다', {
+    toast(t('flashcard.cardRemoved'), {
       action: {
-        label: '실행 취소',
+        label: t('flashcard.undo'),
         onClick: () => {
           const restored = [...newCards];
           restored.splice(index, 0, deletedCard);
@@ -62,7 +64,7 @@ const LandingDemo: React.FC = () => {
       },
       duration: 5000,
     });
-  }, [cards]);
+  }, [cards, t]);
 
   const handleRegenerateQuestion = useCallback(
     async (index: number) => {
@@ -76,24 +78,26 @@ const LandingDemo: React.FC = () => {
           .map((c) => c.question)
           .filter(Boolean)
           .slice(0, 10);
+        const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
         const { question, highlights } = await regenerateCardQuestionDemo({
           rawDiff: card.metadata.rawDiff,
           existingQuestion: card.question,
           existingAnswer: card.answer,
           demoDeviceId,
           otherQuestions,
+          lang,
         });
         const newCards = cards.map((c, i) =>
           i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
         );
         setCards(newCards);
-        toast('질문이 재생성되었습니다');
+        toast(t('flashcard.questionRegenerated'));
         trackEvent('landing_demo_regenerate_question', {
           card_index: index + 1,
           total_cards: cards.length,
         });
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : '재생성에 실패했습니다.';
+        const msg = e instanceof Error ? e.message : t('errors.regenFailed');
         if (msg.includes('한도') || msg.includes('limit')) {
           toast(
             () => (
@@ -127,7 +131,7 @@ const LandingDemo: React.FC = () => {
         setRegeneratingIndex(null);
       }
     },
-    [cards, demoDeviceId]
+    [cards, demoDeviceId, t]
   );
 
   const runSubmit = async (url: string, source: 'form' | 'example') => {
@@ -140,7 +144,8 @@ const LandingDemo: React.FC = () => {
       trackEvent('landing_demo_example_repo', { repo_url: url.slice(0, 80) });
     }
     try {
-      const result = await generateDemoFlashcards(url);
+      const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+      const result = await generateDemoFlashcards(url, lang);
       if (result.ok) {
         setCards(result.cards);
         setTimeout(() => {

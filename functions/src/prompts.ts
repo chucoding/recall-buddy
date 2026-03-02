@@ -2,9 +2,15 @@
  * 플래시카드용 AI 시스템 프롬프트 (Clova/OpenAI 공통)
  * 클라이언트에 노출되지 않도록 서버에서만 사용
  * 출력 형식은 OpenAI 호출 시 response_format(json_schema)으로 지정
+ * @param lang - 출력 언어. 'en'이면 질문·답변을 영어로 작성
  */
-export function getFlashcardPrompt(): string {
-  return `당신은 유능한 IT 기업의 CTO 및 실무진 면접관입니다. 주어진 내용(마크다운 문서 또는 코드 변경 diff)을 보고, 실제 기술 면접에서 쓸 수 있는 수준의 질문과 답변을 만들어주세요.
+export function getFlashcardPrompt(lang?: 'ko' | 'en'): string {
+  const langInstruction =
+    lang === 'en'
+      ? '\n\n**출력 언어**: 질문과 답변은 반드시 **영어**로 작성한다. (Write questions and answers in English.)'
+      : '';
+
+  return `당신은 유능한 IT 기업의 CTO 및 실무진 면접관입니다. 주어진 내용(마크다운 문서 또는 코드 변경 diff)을 보고, 실제 기술 면접에서 쓸 수 있는 수준의 질문과 답변을 만들어주세요.${langInstruction}
 
 **역할(페르소나)**
 - 시니어 개발자·CTO 관점에서 커밋/문서의 의도와 품질을 평가하는 면접관
@@ -33,9 +39,10 @@ export function getFlashcardPrompt(): string {
 /**
  * 질문 재생성 모드용 프롬프트 (기존 질문 대체)
  * 기존 질문과 다른 새로운 질문 1개만 생성. 표현·각도·초점이 달라야 함.
+ * @param lang - 출력 언어. 'en'이면 질문·하이라이트를 영어로 작성
  */
-export function getRegenerateQuestionPrompt(): string {
-  return `${getFlashcardPrompt()}
+export function getRegenerateQuestionPrompt(lang?: 'ko' | 'en'): string {
+  return `${getFlashcardPrompt(lang)}
 
 ---
 

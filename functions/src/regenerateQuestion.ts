@@ -84,9 +84,10 @@ export const regenerateCardQuestion = onRequest(
         flashcardDate?: string;
         demoDeviceId?: string;
         otherQuestions?: string[];
+        lang?: 'ko' | 'en';
       };
 
-      const {rawDiff, existingQuestion, existingAnswer, flashcardDate: _flashcardDate, demoDeviceId, otherQuestions} = body;
+      const {rawDiff, existingQuestion, existingAnswer, flashcardDate: _flashcardDate, demoDeviceId, otherQuestions, lang} = body;
 
       if (!rawDiff || typeof existingQuestion !== "string" || typeof existingAnswer !== "string") {
         res.status(400).json({error: "rawDiff, existingQuestion, existingAnswer are required"});
@@ -127,7 +128,7 @@ export const regenerateCardQuestion = onRequest(
           return;
         }
 
-        const systemPrompt = getRegenerateQuestionPrompt();
+        const systemPrompt = getRegenerateQuestionPrompt(lang);
         const otherList = Array.isArray(otherQuestions)
           ? otherQuestions.filter((q): q is string => typeof q === "string").slice(0, 10)
           : [];
@@ -217,7 +218,7 @@ export const regenerateCardQuestion = onRequest(
           return;
         }
 
-        const systemPrompt = getRegenerateQuestionPrompt();
+        const systemPrompt = getRegenerateQuestionPrompt(lang);
         const otherList = Array.isArray(otherQuestions)
           ? otherQuestions.filter((q): q is string => typeof q === "string").slice(0, 10)
           : [];

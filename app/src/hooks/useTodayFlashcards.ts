@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { store } from '../firebase';
@@ -35,6 +36,7 @@ export interface FlashCardData {
  * 데모(랜딩) 플래시카드는 Firebase 미사용 → lib/demoFlashcards.ts 참고
  */
 export function useTodayFlashcards(user: User | null) {
+  const { i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(true);
   const [hasData, setHasData] = useState<boolean>(false);
   const flashcardReloadTrigger = useNavigationStore((state) => state.flashcardReloadTrigger);
@@ -78,7 +80,8 @@ export function useTodayFlashcards(user: User | null) {
         }
 
         // 오늘 데이터가 없으면 새로 생성 (다중 레포 지원: 레포별·날짜별로 생성 후 합침)
-        const list = await generateFlashcards(datesAgo, repositories);
+        const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+        const list = await generateFlashcards(datesAgo, repositories, lang);
         
         // 생성된 플래시카드가 있으면 Firestore에 저장
         if (list.length > 0) {
@@ -100,7 +103,7 @@ export function useTodayFlashcards(user: User | null) {
     };
 
     loadFlashcards();
-  }, [user, flashcardReloadTrigger, tier]);
+  }, [user, flashcardReloadTrigger, tier, i18n.language]);
 
   return { loading, hasData };
 }
@@ -112,7 +115,8 @@ export function useTodayFlashcards(user: User | null) {
  */
 async function generateFlashcards(
   datesAgo: number[],
-  repositories: Array<{ fullName: string; url: string; branch?: string }>
+  repositories: Array<{ fullName: string; url: string; branch?: string }>,
+  lang?: 'ko' | 'en'
 ): Promise<FlashCardData[]> {
   const list: FlashCardData[] = [];
 
@@ -129,7 +133,7 @@ async function generateFlashcards(
 
         const { content, metadata } = githubData;
 
-        const result = await chatCompletions(content);
+        const result = await chatCompletions(content, { lang });
         const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
         const pairs =
           parsed?.items?.filter(
