@@ -62,6 +62,16 @@
     "hint": "설정에서 다른 리포지토리나 브랜치를 시도해보세요",
     "goToSettings": "설정으로 이동"
   },
+  "demo": {
+    "clickToSeeAnswer": "카드를 클릭하면 답변을 확인할 수 있습니다",
+    "basedOnCommits": "데모에서는 가장 최근 커밋 3개를 기반으로 플래시카드를 생성합니다",
+    "wantDailyFlashcards": "매일 자동으로 플래시카드를 받아보고 싶다면?",
+    "aiGeneratedTitle": "AI가 만든 플래시카드",
+    "branchGuide": "기본 브랜치(main)에 커밋이 적을 수 있어요. 다른 브랜치를 쓰려면 owner/repo@브랜치명 형식으로 다시 시도해보세요.",
+    "branchGuideLabel": "브랜치 가이드",
+    "demoNoteLabel": "데모 안내",
+    "getStartedFree": "무료로 시작하기"
+  },
   "settings": {
     "language": "언어",
     "languageKo": "한국어",

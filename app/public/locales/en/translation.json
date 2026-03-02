@@ -62,6 +62,16 @@
     "hint": "Try a different repository or branch in settings",
     "goToSettings": "Go to Settings"
   },
+  "demo": {
+    "clickToSeeAnswer": "Click the card to see the answer",
+    "basedOnCommits": "The demo generates flashcards based on the 3 most recent commits",
+    "wantDailyFlashcards": "Want to receive flashcards automatically every day?",
+    "aiGeneratedTitle": "AI-Generated Flashcards",
+    "branchGuide": "The default branch (main) may have few commits. Use owner/repo@branch to try a different branch.",
+    "branchGuideLabel": "Branch guide",
+    "demoNoteLabel": "Demo info",
+    "getStartedFree": "Get Started Free"
+  },
   "settings": {
     "language": "Language",
     "languageKo": "한국어",

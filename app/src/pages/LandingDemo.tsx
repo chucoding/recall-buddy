@@ -241,8 +241,8 @@ const LandingDemo: React.FC = () => {
             regeneratingIndex={regeneratingIndex}
             renderHeader={() => (
               <div className="text-center mb-10 animate-fade-up">
-                <h3 className="text-2xl font-bold text-text mb-2 max-[480px]:text-xl">AI-Generated Flashcards</h3>
-                <p className="text-text-light text-sm mb-4">카드를 클릭하면 답변을 확인할 수 있습니다</p>
+                <h3 className="text-2xl font-bold text-text mb-2 max-[480px]:text-xl">{t('demo.aiGeneratedTitle')}</h3>
+                <p className="text-text-light text-sm mb-4">{t('demo.clickToSeeAnswer')}</p>
                 <div className="flex justify-center">
                   <FlashCardKeyboardIndicator showDelete />
                 </div>
@@ -254,22 +254,22 @@ const LandingDemo: React.FC = () => {
                   <p
                     className="mb-6 mx-auto max-w-xl text-center text-xs text-text-muted leading-relaxed flex items-center justify-center gap-1.5 flex-wrap animate-fade-in"
                     role="note"
-                    aria-label="브랜치 가이드"
+                    aria-label={t('demo.branchGuideLabel')}
                   >
                     <Info className="w-3.5 h-3.5 shrink-0 text-text-muted" aria-hidden />
-                    <span>기본 브랜치(main)에 커밋이 적을 수 있어요. 다른 브랜치를 쓰려면 owner/repo@브랜치명 형식으로 다시 시도해보세요.</span>
+                    <span>{t('demo.branchGuide')}</span>
                   </p>
                 )}
                 <p
                   className="mb-8 mx-auto max-w-xl text-center text-xs text-text-muted leading-relaxed flex items-center justify-center gap-1.5 flex-wrap"
                   role="note"
-                  aria-label="데모 안내"
+                  aria-label={t('demo.demoNoteLabel')}
                 >
                   <Info className="w-3.5 h-3.5 shrink-0 text-text-muted" aria-hidden />
-                  <span>데모에서는 가장 최근 커밋 3개를 기반으로 플래시카드를 생성합니다</span>
+                  <span>{t('demo.basedOnCommits')}</span>
                 </p>
                 <p className="text-text-body text-lg mb-5">
-                  매일 자동으로 플래시카드를 받아보고 싶다면?
+                  {t('demo.wantDailyFlashcards')}
                 </p>
                 <a
                   href="/app"
@@ -277,7 +277,7 @@ const LandingDemo: React.FC = () => {
                   className="inline-flex items-center gap-2.5 py-3.5 px-8 bg-primary text-bg rounded-xl text-base font-bold no-underline transition-all duration-300 shadow-[0_8px_24px_rgba(7,166,107,0.2)] hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-[0_12px_36px_rgba(7,166,107,0.3)]"
                   onClick={() => trackEvent('landing_demo_get_started_free', { from: 'after_demo' })}
                 >
-                  Get Started Free
+                  {t('demo.getStartedFree')}
                 </a>
               </div>
             )}
