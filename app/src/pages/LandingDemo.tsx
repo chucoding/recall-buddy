@@ -102,9 +102,9 @@ const LandingDemo: React.FC = () => {
           toast(
             () => (
               <div className="flex flex-col gap-2">
-                <p className="font-semibold text-sm text-neutral-900">재생성은 한번만 사용할 수 있어요.</p>
+                <p className="font-semibold text-sm text-neutral-900">{t('flashcard.demoRegenOnce')}</p>
                 <p className="text-neutral-600 text-xs leading-relaxed">
-                  무료 가입하면 매일 3회까지 사용할 수 있어요.
+                  {t('flashcard.demoRegenLimitHint')}
                 </p>
                 <button
                   type="button"
@@ -114,7 +114,7 @@ const LandingDemo: React.FC = () => {
                     window.location.href = '/app';
                   }}
                 >
-                  무료로 시작하기
+                  {t('flashcard.demoRegenCta')}
                 </button>
               </div>
             ),
