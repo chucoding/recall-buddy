@@ -72,7 +72,15 @@
     "branchGuide": "The default branch (main) may have few commits. Use owner/repo@branch to try a different branch.",
     "branchGuideLabel": "Branch guide",
     "demoNoteLabel": "Demo info",
-    "getStartedFree": "Get Started Free"
+    "getStartedFree": "Get Started Free",
+    "invalidRepoUrl": "Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo)",
+    "repoNotFound": "Repository not found. Please check that it is a public repository.",
+    "githubApiFailed": "GitHub API call failed. Please try again later.",
+    "noCommits": "This repository has no commits.",
+    "fallbackQuestionSuffix": "What changed in this commit?",
+    "fallbackAnswerCommit": "Commit message:",
+    "fallbackAnswerFiles": "Changed files:",
+    "noFileInfo": "No file info"
   },
   "settings": {
     "language": "Language",
