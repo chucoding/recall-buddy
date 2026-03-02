@@ -3,10 +3,8 @@ import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import vitePrerender from 'vite-plugin-prerender';
-import Renderer from '@prerenderer/renderer-puppeteer';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const functionsUrl = mode === 'production'
     ? env.VITE_FUNCTIONS_URL_PROD : env.VITE_FUNCTIONS_URL_LOCAL;
@@ -43,7 +41,11 @@ export default defineConfig(({ mode }) => {
   ];
 
   if (mode === 'production') {
-    const prerender = vitePrerender({
+    const [vitePrerender, { default: Renderer }] = await Promise.all([
+      import('vite-plugin-prerender'),
+      import('@prerenderer/renderer-puppeteer'),
+    ]);
+    const prerender = vitePrerender.default({
       staticDir: resolve(__dirname, 'dist'),
       routes: ['/'],
       renderer: new Renderer({
