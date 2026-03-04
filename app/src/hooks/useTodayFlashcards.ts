@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { store } from '../firebase';
 import { chatCompletions } from '../api/ai-api';
+import { translateFlashcards as translateFlashcardsApi } from '../api/translate-api';
 import type { FlashcardStructuredOutput } from '../types';
 import type { SubscriptionTier } from '../types';
 import { getCommits, getFilename, type CommitDetail, type FileChange } from '../api/github-api';
@@ -26,12 +27,23 @@ export interface FlashCardData {
   };
 }
 
+/** docData에서 lang에 해당하는 덱 반환 (data_ko / data_en만 사용) */
+function getDeckByLang(
+  docData: Record<string, unknown> | undefined,
+  lang: 'ko' | 'en'
+): FlashCardData[] | undefined {
+  if (!docData) return undefined;
+  const arr = lang === 'ko' ? docData.data_ko : docData.data_en;
+  if (Array.isArray(arr) && arr.length > 0) return arr as FlashCardData[];
+  return undefined;
+}
+
 /**
  * 로그인 사용자 전용: 오늘의 플래시카드 로드
  *
  * 데이터 소스: Firestore (users/{uid}/flashcards/{date})
- * - 이미 있으면 Firestore에서만 읽어서 사용
- * - 없으면 AI로 생성 후 Firestore에 저장
+ * - data_ko/data_en: 언어별 캐시. 한쪽이라도 있으면 없으면 AI 번역으로 보완
+ * - 양쪽 모두 없으면 AI로 생성 후 저장
  *
  * 데모(랜딩) 플래시카드는 Firebase 미사용 → lib/demoFlashcards.ts 참고
  */
@@ -57,8 +69,7 @@ export function useTodayFlashcards(user: User | null) {
         setLoading(true);
         const todayDate = getCurrentDate();
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
-        
-        // 사용자 레포 목록 (repositories만 사용)
+
         const userDocRef = doc(store, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         const repositories = userDoc.exists() ? (userDoc.data()?.repositories as Array<{ fullName: string; url: string; branch?: string }> | undefined) : undefined;
@@ -69,30 +80,43 @@ export function useTodayFlashcards(user: User | null) {
           return;
         }
 
-        // Firestore에서 오늘 날짜의 데이터 확인
+        const currentLang = i18n.language.startsWith('ko') ? 'ko' : 'en';
         const todayDoc = await getDoc(flashcardDocRef);
-        if (todayDoc.exists()) {
-          const docData = todayDoc.data();
+        const docData = todayDoc.exists() ? todayDoc.data() : undefined;
+
+        const currentDeck = getDeckByLang(docData, currentLang);
+        if (currentDeck && currentDeck.length > 0) {
           setLastLoadedDateKey(todayDate);
           setLoading(false);
-          setHasData(docData.data && docData.data.length > 0);
+          setHasData(true);
           return;
         }
 
-        // 오늘 데이터가 없으면 새로 생성 (다중 레포 지원: 레포별·날짜별로 생성 후 합침)
-        const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
-        const list = await generateFlashcards(datesAgo, repositories, lang);
-        
-        // 생성된 플래시카드가 있으면 Firestore에 저장
+        const otherLang = currentLang === 'ko' ? 'en' : 'ko';
+        const otherDeck = getDeckByLang(docData, otherLang);
+        if (otherDeck && otherDeck.length > 0) {
+          const translated = await translateFlashcardsApi(otherDeck, currentLang);
+          if (translated.length > 0) {
+            await setDoc(flashcardDocRef, { [`data_${currentLang}`]: translated }, { merge: true });
+            setLastLoadedDateKey(todayDate);
+            setHasData(true);
+          } else {
+            setLastLoadedDateKey(null);
+            setHasData(false);
+          }
+          setLoading(false);
+          return;
+        }
+
+        const list = await generateFlashcards(datesAgo, repositories, currentLang);
         if (list.length > 0) {
-          await setDoc(flashcardDocRef, { data: list });
+          await setDoc(flashcardDocRef, { [`data_${currentLang}`]: list }, { merge: true });
           setLastLoadedDateKey(todayDate);
           setHasData(true);
         } else {
           setLastLoadedDateKey(null);
           setHasData(false);
         }
-        
         setLoading(false);
       } catch (error) {
         console.error('Error loading flashcards:', error);

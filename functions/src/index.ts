@@ -12,5 +12,6 @@ export * from "./schedule.js";
 export * from "./clova.js";
 export * from "./openai.js";
 export * from "./regenerateQuestion.js";
+export * from "./translateFlashcards.js";
 // TODO: Stripe 연동 시 아래 주석 해제
 // export * from "./stripe.js";

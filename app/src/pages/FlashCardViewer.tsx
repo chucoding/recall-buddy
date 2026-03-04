@@ -62,17 +62,18 @@ const FlashCardViewer: React.FC = () => {
 
     const todayDate = getCurrentDate();
     const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
+    const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
 
     getDoc(flashcardDocRef).then((snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data();
-        const raw = (data?.data || []) as FlashCard[];
-        setCards(shuffleArray(raw));
+        const d = snapshot.data();
+        const raw = (lang === 'ko' ? d?.data_ko : d?.data_en) as FlashCard[] | undefined;
+        setCards(Array.isArray(raw) && raw.length > 0 ? shuffleArray(raw) : []);
       } else {
         setCards([]);
       }
     });
-  }, [flashcardReloadTrigger]);
+  }, [flashcardReloadTrigger, i18n.language]);
 
   const handleShuffleDeck = useCallback(() => {
     setCards((prev) => shuffleArray(prev));
@@ -92,7 +93,8 @@ const FlashCardViewer: React.FC = () => {
     if (user) {
       const todayDate = getCurrentDate();
       const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
-      setDoc(flashcardDocRef, { data: newCards });
+      const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+      setDoc(flashcardDocRef, { [`data_${lang}`]: newCards }, { merge: true });
 
       toast(t('flashcard.cardRemoved'), {
         action: {
@@ -103,7 +105,8 @@ const FlashCardViewer: React.FC = () => {
             setCards(restored);
             setCurrentSlide(index);
             setSyncSlideIndex(index);
-            setDoc(flashcardDocRef, { data: restored });
+            const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+            setDoc(flashcardDocRef, { [`data_${lang}`]: restored }, { merge: true });
           },
         },
         duration: 5000,
@@ -116,7 +119,7 @@ const FlashCardViewer: React.FC = () => {
       total_before: cards.length,
       total_after: newCards.length,
     });
-  }, [cards, t]);
+  }, [cards, t, i18n.language]);
 
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const limit = tier === 'pro' ? REGENERATE_QUESTION_LIMIT_PRO : REGENERATE_QUESTION_LIMIT_FREE;
@@ -159,7 +162,7 @@ const FlashCardViewer: React.FC = () => {
           tier,
         });
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', getCurrentDate());
-        await setDoc(flashcardDocRef, { data: newCards });
+        await setDoc(flashcardDocRef, { [`data_${lang}`]: newCards }, { merge: true });
       } catch (e: unknown) {
         const err = e as { response?: { status?: number; data?: { error?: string } } };
         const msg =
@@ -171,7 +174,7 @@ const FlashCardViewer: React.FC = () => {
         setRegeneratingIndex(null);
       }
     },
-    [cards, canRegenerateQuestion, user, t]
+    [cards, canRegenerateQuestion, user, t, i18n.language]
   );
 
   if (cards.length === 0) {

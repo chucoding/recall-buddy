@@ -43,11 +43,18 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
       return;
     }
     const ref = doc(store, 'users', user.uid, 'flashcards', date);
+    const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
     getDoc(ref).then((snap) => {
-      setCards(snap.exists() ? (snap.data().data || []) : []);
+      if (!snap.exists()) {
+        setCards([]);
+      } else {
+        const d = snap.data();
+        const raw = (lang === 'ko' ? d?.data_ko : d?.data_en) as FlashCard[] | undefined;
+        setCards(Array.isArray(raw) && raw.length > 0 ? raw : []);
+      }
       setLoading(false);
     });
-  }, [date]);
+  }, [date, i18n.language]);
 
   if (loading) {
     return (
@@ -69,7 +76,8 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
     const user = auth.currentUser;
     if (user) {
       const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', date);
-      setDoc(flashcardDocRef, { data: newCards });
+      const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+      setDoc(flashcardDocRef, { [`data_${lang}`]: newCards }, { merge: true });
 
       toast(t('flashcard.cardRemoved'), {
         action: {
@@ -80,7 +88,7 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
             setCards(restored);
             setCurrentSlide(index);
             setSyncSlideIndex(index);
-            setDoc(flashcardDocRef, { data: restored });
+            setDoc(flashcardDocRef, { [`data_${lang}`]: restored }, { merge: true });
           },
         },
         duration: 5000,
@@ -93,7 +101,7 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
       total_before: cards.length,
       total_after: newCards.length,
     });
-  }, [cards, date, t]);
+  }, [cards, date, t, i18n.language]);
 
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const limit = tier === 'pro' ? REGENERATE_QUESTION_LIMIT_PRO : REGENERATE_QUESTION_LIMIT_FREE;
@@ -137,7 +145,7 @@ const PastDateReview: React.FC<PastDateReviewProps> = ({ date }) => {
           context: 'past_date',
         });
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', date);
-        await setDoc(flashcardDocRef, { data: newCards });
+        await setDoc(flashcardDocRef, { [`data_${lang}`]: newCards }, { merge: true });
       } catch (e: unknown) {
         const err = e as { response?: { status?: number; data?: { error?: string } } };
         const msg =

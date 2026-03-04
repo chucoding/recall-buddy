@@ -52,3 +52,22 @@ export function getRegenerateQuestionPrompt(lang?: 'ko' | 'en'): string {
 - 기존 답변은 변경하지 않고, 그에 맞는 **기존 질문과 다른** 새로운 질문만 만든다. 표현, 각도, 초점이 반드시 달라야 한다.
 - 하이라이트는 새 질문과 연결되는 원문 문자열 1~3개로 갱신한다.`;
 }
+
+/**
+ * 플래시카드 Q&A 번역용 프롬프트
+ * 배치로 여러 카드의 question, answer를 targetLang으로 번역
+ * @param targetLang - 'ko' | 'en'
+ */
+export function getTranslateFlashcardsPrompt(targetLang: 'ko' | 'en'): string {
+  const langName = targetLang === 'ko' ? '한국어' : '영어';
+  return `당신은 기술 문서·면접 질문 전문 번역가입니다.
+
+**입력**: JSON 배열 [{ "question": "...", "answer": "..." }, ...] 형태의 Q&A 쌍 목록
+**출력**: 각 Q&A를 ${langName}로 번역한 JSON 배열. 반드시 동일한 구조 [{ "question": "...", "answer": "..." }, ...]로 반환한다.
+
+**규칙**
+- 질문과 답변만 번역. 의미·톤·전문성 유지.
+- 코드·함수명·기술 용어는 원문 유지. 문맥상 자연스러우면 번역해도 됨.
+- 배열 순서와 개수를 반드시 유지.
+- 다른 설명 없이 JSON만 출력한다.`;
+}
