@@ -20,18 +20,10 @@ if (root) {
     <React.StrictMode>
       <React.Suspense fallback={null}>
         <Toaster position="bottom-center" richColors closeButton offset="12px" />
-        <LandingPageWithPrerenderReady />
+        <LandingPage />
       </React.Suspense>
     </React.StrictMode>
   );
-}
-
-/** i18n·React 렌더 완료 후 prerender-ready 이벤트 dispatch (vite-plugin-prerender) */
-function LandingPageWithPrerenderReady() {
-  useEffect(() => {
-    document.dispatchEvent(new Event('prerender-ready'));
-  }, []);
-  return <LandingPage />;
 }
 
 /**
