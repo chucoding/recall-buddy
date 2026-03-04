@@ -10,9 +10,9 @@ const provider = import.meta.env.VITE_AI_PROVIDER ?? 'openai';
  *
  * 사용처: (1) 로그인 플래시카드 생성 useTodayFlashcards (2) 랜딩 데모 lib/demoFlashcards
  */
-export async function chatCompletions(text: string): Promise<ChatCompletionResponse> {
+export async function chatCompletions(text: string, options?: { lang?: 'ko' | 'en' }): Promise<ChatCompletionResponse> {
   if (provider === 'clova') {
-    return clovaChatCompletions(text);
+    return clovaChatCompletions(text, options);
   }
-  return openaiChatCompletions(text);
+  return openaiChatCompletions(text, options);
 }

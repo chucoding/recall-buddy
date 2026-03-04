@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -40,6 +41,7 @@ import { FlashCardKeyboardIndicator } from '@/components/FlashCardKeyboardIndica
  * 진입 시 1회 셔플, "덱 셔플" 버튼으로 순서 재섞기.
  */
 const FlashCardViewer: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState(auth.currentUser);
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [shuffleKey, setShuffleKey] = useState(0);
@@ -60,17 +62,18 @@ const FlashCardViewer: React.FC = () => {
 
     const todayDate = getCurrentDate();
     const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
+    const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
 
     getDoc(flashcardDocRef).then((snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data();
-        const raw = (data?.data || []) as FlashCard[];
-        setCards(shuffleArray(raw));
+        const d = snapshot.data();
+        const raw = (lang === 'ko' ? d?.data_ko : d?.data_en) as FlashCard[] | undefined;
+        setCards(Array.isArray(raw) && raw.length > 0 ? shuffleArray(raw) : []);
       } else {
         setCards([]);
       }
     });
-  }, [flashcardReloadTrigger]);
+  }, [flashcardReloadTrigger, i18n.language]);
 
   const handleShuffleDeck = useCallback(() => {
     setCards((prev) => shuffleArray(prev));
@@ -90,18 +93,20 @@ const FlashCardViewer: React.FC = () => {
     if (user) {
       const todayDate = getCurrentDate();
       const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', todayDate);
-      setDoc(flashcardDocRef, { data: newCards });
+      const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+      setDoc(flashcardDocRef, { [`data_${lang}`]: newCards }, { merge: true });
 
-      toast('카드가 제거되었습니다', {
+      toast(t('flashcard.cardRemoved'), {
         action: {
-          label: '실행 취소',
+          label: t('flashcard.undo'),
           onClick: () => {
             const restored = [...newCards];
             restored.splice(index, 0, deletedCard);
             setCards(restored);
             setCurrentSlide(index);
             setSyncSlideIndex(index);
-            setDoc(flashcardDocRef, { data: restored });
+            const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
+            setDoc(flashcardDocRef, { [`data_${lang}`]: restored }, { merge: true });
           },
         },
         duration: 5000,
@@ -114,7 +119,7 @@ const FlashCardViewer: React.FC = () => {
       total_before: cards.length,
       total_after: newCards.length,
     });
-  }, [cards]);
+  }, [cards, t, i18n.language]);
 
   const tier = subscription?.subscriptionTier === 'pro' ? 'pro' : 'free';
   const limit = tier === 'pro' ? REGENERATE_QUESTION_LIMIT_PRO : REGENERATE_QUESTION_LIMIT_FREE;
@@ -137,37 +142,39 @@ const FlashCardViewer: React.FC = () => {
           .map((c) => c.question)
           .filter(Boolean)
           .slice(0, 10);
+        const lang = i18n.language.startsWith('ko') ? 'ko' : 'en';
         const { question, highlights } = await regenerateCardQuestion({
           rawDiff: card.metadata.rawDiff,
           existingQuestion: card.question,
           existingAnswer: card.answer,
           flashcardDate: getCurrentDate(),
           otherQuestions,
+          lang,
         });
         const newCards = cards.map((c, i) =>
           i === index ? { ...c, question, highlights: highlights ?? c.highlights } : c
         );
         setCards(newCards);
-        toast('질문이 재생성되었습니다');
+        toast(t('flashcard.questionRegenerated'));
         trackEvent('flashcard_regenerate_question', {
           card_index: index + 1,
           total_cards: cards.length,
           tier,
         });
         const flashcardDocRef = doc(store, 'users', user.uid, 'flashcards', getCurrentDate());
-        await setDoc(flashcardDocRef, { data: newCards });
+        await setDoc(flashcardDocRef, { [`data_${lang}`]: newCards }, { merge: true });
       } catch (e: unknown) {
         const err = e as { response?: { status?: number; data?: { error?: string } } };
         const msg =
           err.response?.status === 429
-            ? '오늘 질문 재생성 한도를 모두 사용했습니다.'
-            : (err.response?.data?.error || (e instanceof Error ? e.message : '재생성에 실패했습니다.'));
+            ? t('flashcard.regenLimitReached')
+            : (err.response?.data?.error || (e instanceof Error ? e.message : t('errors.regenFailed')));
         toast.error(msg);
       } finally {
         setRegeneratingIndex(null);
       }
     },
-    [cards, canRegenerateQuestion, user]
+    [cards, canRegenerateQuestion, user, t, i18n.language]
   );
 
   if (cards.length === 0) {
@@ -193,11 +200,11 @@ const FlashCardViewer: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleShuffleDeck}
-            aria-label="덱 순서 섞기"
+            aria-label={t('flashcard.deckShuffleAria')}
             className="inline-flex items-center gap-2 rounded-[20px] bg-card/90 backdrop-blur-sm max-[768px]:order-last"
           >
             <Shuffle className="w-5 h-5 shrink-0" aria-hidden />
-            <span>덱 셔플</span>
+            <span>{t('flashcard.deckShuffle')}</span>
           </Button>
         </div>
 

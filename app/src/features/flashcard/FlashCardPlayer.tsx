@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import Slider from 'react-slick';
 import CodeDiffBlock from '../../templates/CodeDiffBlock';
 import FileContentBlock from '../../templates/FileContentBlock';
@@ -24,17 +25,18 @@ type BackViewMode = 'diff' | 'file';
 
 /** AI 답변 플로팅 블록: 하단 고정, 코드/파일 토글과 무관하게 항상 노출 */
 function AIAnswerFloatingBlock({ answer }: { answer: string }) {
+  const { t } = useTranslation();
   return (
     <div
       className="fc-answer-floating shrink-0 border-t border-slate-200 bg-slate-50/95 backdrop-blur-sm rounded-b-3xl"
       role="region"
-      aria-label="예시 답변"
+      aria-label={t('flashcard.exampleAnswer')}
     >
       <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200">
         <span className="flex items-center justify-center w-6 h-6 rounded-xl bg-primary/10 text-primary" aria-hidden>
           <Sparkles className="w-3.5 h-3.5" aria-hidden />
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">예시 답변</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{t('flashcard.exampleAnswer')}</span>
       </div>
       <div className="fc-answer-body px-4 py-3 text-sm text-slate-700 leading-relaxed whitespace-pre-line max-h-[140px] overflow-y-auto">
         {answer}
@@ -78,6 +80,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
   onRegenerateQuestion,
   regeneratingIndex,
 }) => {
+  const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -378,7 +381,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   key={i}
                   role="button"
                   tabIndex={0}
-                  aria-label={isFlipped ? '카드 앞면 보기 (클릭 또는 Space)' : '카드 뒷면 보기 (클릭 또는 Space)'}
+                  aria-label={isFlipped ? t('flashcard.viewFront') : t('flashcard.viewBack')}
                   aria-busy={regeneratingIndex === i}
                   className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(34,197,94,0.25)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,197,94,0.3)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
                   onClick={() => {
@@ -402,13 +405,13 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       onKeyDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
                       role="status"
                       aria-live="polite"
-                      aria-label="질문 재생성 중"
+                      aria-label={t('flashcard.regenerating')}
                     >
                       <div className="flex flex-col items-center gap-3 text-slate-700">
                         <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 text-primary">
                           <Sparkles className="w-6 h-6" aria-hidden />
                         </span>
-                        <span className="text-sm font-medium">질문 재생성 중...</span>
+                        <span className="text-sm font-medium">{t('flashcard.regenerating')}</span>
                       </div>
                     </div>
                   )}
@@ -430,8 +433,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             rel="noopener noreferrer"
                             className="min-w-0 flex-1 overflow-hidden inline-flex items-center gap-1.5 h-9 mr-2 px-2 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:bg-slate-100 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                             onClick={(e) => e.stopPropagation()}
-                            aria-label={`GitHub에서 ${card.metadata.repositoryFullName} 레포지토리 열기`}
-                            title={`GitHub에서 레포지토리 열기 (${card.metadata.repositoryFullName})`}
+                            aria-label={t('flashcard.openRepoOnGitHub', { repo: card.metadata.repositoryFullName })}
+                            title={t('flashcard.openRepoOnGitHub', { repo: card.metadata.repositoryFullName })}
                           >
                             <img src="/github-mark.svg" alt="" width={14} height={14} className="w-3.5 h-3.5 shrink-0" aria-hidden />
                             <span className="min-w-0 truncate">{card.metadata.repositoryFullName}</span>
@@ -442,52 +445,52 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         <div
                           className="flex shrink-0 items-center gap-1"
                           role="tablist"
-                          aria-label="뒷면 보기 모드"
+                          aria-label={t('flashcard.backViewMode')}
                         >
                           <button
                             type="button"
                             role="tab"
                             aria-selected={backViewMode === 'diff'}
-                            aria-label="Diff 보기"
-                            title="Diff 보기"
+                            aria-label={t('flashcard.viewDiff')}
+                            title={t('flashcard.viewDiff')}
                             className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${backViewMode === 'diff' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'}`}
                             onClick={() => setBackViewMode('diff')}
                           >
                             <GitCompare className="w-4 h-4 shrink-0" aria-hidden />
-                            <span className="hidden sm:inline">Diff 보기</span>
+                            <span className="hidden sm:inline">{t('flashcard.viewDiff')}</span>
                           </button>
                           <button
                             type="button"
                             role="tab"
                             aria-selected={backViewMode === 'file'}
-                            aria-label="파일 보기"
-                            title="파일 보기"
+                            aria-label={t('flashcard.viewFile')}
+                            title={t('flashcard.viewFile')}
                             disabled={!hasFileView}
                             className={`fc-tab flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${backViewMode === 'file' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-slate-800 hover:bg-slate-100'} ${hasFileView ? 'cursor-pointer' : ''}`}
                             onClick={() => hasFileView && setBackViewMode('file')}
                           >
                             <FileText className="w-4 h-4 shrink-0" aria-hidden />
-                            <span className="hidden sm:inline">파일 보기</span>
+                            <span className="hidden sm:inline">{t('flashcard.viewFile')}</span>
                           </button>
                           {onRegenerateQuestion && card.metadata?.rawDiff && (
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); onRegenerateQuestion(i); }}
-                              aria-label="질문 재생성"
-                              title="질문 재생성"
+                              aria-label={t('flashcard.regenerateQuestion')}
+                              title={t('flashcard.regenerateQuestion')}
                               disabled={regeneratingIndex === i}
                               className="flex items-center justify-center gap-1.5 w-9 h-9 sm:min-w-[88px] sm:w-auto sm:py-2 sm:px-3 rounded-xl text-sm font-medium transition-colors duration-200 bg-transparent text-slate-800 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                               <Sparkles className="w-4 h-4 shrink-0" aria-hidden />
-                              <span className="hidden sm:inline">질문 재생성</span>
+                              <span className="hidden sm:inline">{t('flashcard.regenerateQuestion')}</span>
                             </button>
                           )}
                           {onDeleteCard && (
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); onDeleteCard(i, 'button'); }}
-                              aria-label="카드 제거"
-                              title="카드 제거"
+                              aria-label={t('flashcard.removeCard')}
+                              title={t('flashcard.removeCard')}
                               className="flex items-center justify-center min-w-[44px] min-h-[44px] w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                             >
                               <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
@@ -501,7 +504,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         aria-hidden
                       >
                         <span className="inline-block w-3 h-3 rounded-sm bg-amber-100/90 border border-amber-200/80" />
-                        <span>밝은 배경은 이 질문과 연결된 부분이에요. 카드에 따라 표시가 없을 수도 있어요.</span>
+                        <span>{t('flashcard.highlightHint')}</span>
                       </div>
                       </div>
                       <div className="fc-back-content flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
@@ -516,8 +519,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:text-slate-800 hover:underline"
-                                aria-label={`GitHub에서 ${card.metadata.repositoryFullName} 레포지토리 열기`}
-                                title={`GitHub에서 레포지토리 열기 (${card.metadata.repositoryFullName})`}
+                                aria-label={t('flashcard.openRepoOnGitHub', { repo: card.metadata.repositoryFullName })}
+                                title={t('flashcard.openRepoOnGitHub', { repo: card.metadata.repositoryFullName })}
                               >
                                 <img src="/github-mark.svg" alt="" width={14} height={14} className="w-3.5 h-3.5 shrink-0" aria-hidden />
                                 <span className="truncate max-w-full">{card.metadata.repositoryFullName}</span>
@@ -534,7 +537,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                                 <SelectTrigger
                                   className="h-8 w-full max-w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-800 focus:ring-primary focus:ring-offset-1"
                                   onClick={(e) => e.stopPropagation()}
-                                  aria-label="파일 선택"
+                                  aria-label={t('flashcard.selectFile')}
                                 >
                                   <SelectValue />
                                 </SelectTrigger>
@@ -562,10 +565,10 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             card.metadata?.rawDiff ? (
                               <CodeDiffBlock diffContent={card.metadata.rawDiff} highlightStrings={card.highlights} />
                             ) : (
-                              <div className="p-6 text-slate-500 text-sm">코드 변경 내용이 없습니다. 파일 보기에서 확인하세요.</div>
+                              <div className="p-6 text-slate-500 text-sm">{t('flashcard.noDiffContent')}</div>
                             )
                           ) : fileLoading ? (
-                            <div className="p-6 text-slate-500 text-sm">파일 내용을 불러오는 중...</div>
+                            <div className="p-6 text-slate-500 text-sm">{t('flashcard.loadingFile')}</div>
                           ) : fileError ? (
                             <div
                               className="flex flex-col items-center justify-center gap-4 p-6 text-center"
@@ -580,16 +583,16 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                                 type="button"
                                 onClick={handleFileRetry}
                                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 cursor-pointer"
-                                aria-label="다시 시도"
+                                aria-label={t('flashcard.retry')}
                               >
                                 <RefreshCw className="w-4 h-4 shrink-0" aria-hidden />
-                                다시 시도
+                                {t('flashcard.retry')}
                               </button>
                             </div>
                           ) : fileContent !== null ? (
                             <FileContentBlock content={fileContent} filename={currentFilename} highlightStrings={card.highlights} />
                           ) : (
-                            <div className="p-6 text-slate-500 text-sm">파일 정보가 없습니다.</div>
+                            <div className="p-6 text-slate-500 text-sm">{t('flashcard.noFileInfo')}</div>
                           )}
                         </div>
                       </div>
@@ -602,8 +605,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); onDeleteCard(i, 'button'); }}
-                          aria-label="카드 제거"
-                          title="카드 제거"
+                          aria-label={t('flashcard.removeCard')}
+                          title={t('flashcard.removeCard')}
                           className="absolute top-3 right-3 flex items-center justify-center min-w-[44px] min-h-[44px] w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 z-10"
                         >
                           <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
@@ -616,7 +619,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         </span>
                       )}
                       <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        질문
+                        {t('flashcard.question')}
                       </span>
                       <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] break-words [word-break:keep-all] whitespace-pre-line max-[768px]:text-[1.3rem] max-[480px]:text-[1.15rem]">
                         {card.question}

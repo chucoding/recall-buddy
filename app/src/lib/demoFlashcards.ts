@@ -7,6 +7,7 @@
  * 반대로 로그인 사용자 플래시카드는 useTodayFlashcards + Firestore 사용.
  */
 
+import i18n from '../i18n';
 import { chatCompletions } from '../api/ai-api';
 import type { FlashcardStructuredOutput } from '../types';
 import type { FlashCard } from '../features/flashcard';
@@ -63,28 +64,33 @@ function buildRawDiff(commit: DemoCommitData): string | null {
   return parts.join('\n');
 }
 
-function buildFallbackQuestion(commit: DemoCommitData): string {
+function buildFallbackQuestion(commit: DemoCommitData, lang?: 'ko' | 'en'): string {
   const message = commit.commit.message.split('\n')[0];
-  const date = new Date(commit.commit.author.date).toLocaleDateString('ko-KR', {
+  const locale = lang === 'en' ? 'en-US' : 'ko-KR';
+  const date = new Date(commit.commit.author.date).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
-  return `${date}\n\n"${message}"\n\n이 커밋에서 어떤 변경이 있었나요?`;
+  const suffix = i18n.t('demo.fallbackQuestionSuffix', { lng: lang || 'ko' });
+  return `${date}\n\n"${message}"\n\n${suffix}`;
 }
 
 /** 예시 답변 플로팅용: AI 실패 시 보여줄 짧은 평문 (마크다운 아님) */
-function buildFallbackAnswer(commit: DemoCommitData): string {
+function buildFallbackAnswer(commit: DemoCommitData, lang?: 'ko' | 'en'): string {
   const message = commit.commit.message.split('\n')[0];
+  const lng = lang || 'ko';
   const fileList = commit.files?.length
     ? commit.files.slice(0, 5).map((f) => f.filename).join(', ')
-    : '파일 정보 없음';
-  return `커밋 메시지: ${message}\n변경된 파일: ${fileList}`;
+    : i18n.t('demo.noFileInfo', { lng });
+  const commitLabel = i18n.t('demo.fallbackAnswerCommit', { lng });
+  const filesLabel = i18n.t('demo.fallbackAnswerFiles', { lng });
+  return `${commitLabel} ${message}\n${filesLabel} ${fileList}`;
 }
 
 /** 데모 전용: AI에서 질문·답변 1쌍 생성 (items[0].question, items[0].answer). 예시 답변은 평문으로 표시되므로 answer 사용 */
-async function fetchDemoFlashcardFromAI(answerContent: string): Promise<{ question: string; answer: string } | null> {
-  const result = await chatCompletions(answerContent);
+async function fetchDemoFlashcardFromAI(answerContent: string, lang?: 'ko' | 'en'): Promise<{ question: string; answer: string } | null> {
+  const result = await chatCompletions(answerContent, { lang });
   const parsed = JSON.parse(result.result.message.content) as FlashcardStructuredOutput;
   const first = parsed?.items?.[0];
   if (first && typeof first.question === 'string' && typeof first.answer === 'string') {
@@ -141,11 +147,14 @@ export type GenerateDemoFlashcardsResult =
 /**
  * 랜딩 데모용 플래시카드 생성 (Firebase 미사용, AI에서 바로 생성)
  * @param repoUrl - GitHub 리포지토리 URL 또는 "owner/repo"
+ * @param lang - 출력 언어 (ko | en)
  */
-export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateDemoFlashcardsResult> {
+export async function generateDemoFlashcards(repoUrl: string, lang?: 'ko' | 'en'): Promise<GenerateDemoFlashcardsResult> {
+  const lng = lang || (i18n.language.startsWith('ko') ? 'ko' : 'en');
+
   const parsed = parseGitHubUrl(repoUrl);
   if (!parsed) {
-    return { ok: false, error: '올바른 GitHub 리포지토리 URL을 입력해주세요. (예: https://github.com/owner/repo)' };
+    return { ok: false, error: i18n.t('demo.invalidRepoUrl', { lng }) };
   }
 
   const shaParam = parsed.branch ? `&sha=${encodeURIComponent(parsed.branch)}` : '';
@@ -155,14 +164,14 @@ export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateD
   );
   if (!commitsRes.ok) {
     if (commitsRes.status === 404) {
-      return { ok: false, error: '리포지토리를 찾을 수 없습니다. Public 리포지토리인지 확인해주세요.' };
+      return { ok: false, error: i18n.t('demo.repoNotFound', { lng }) };
     }
-    return { ok: false, error: 'GitHub API 호출에 실패했습니다. 잠시 후 다시 시도해주세요.' };
+    return { ok: false, error: i18n.t('demo.githubApiFailed', { lng }) };
   }
 
   const commits: DemoCommitData[] = await commitsRes.json();
   if (commits.length === 0) {
-    return { ok: false, error: '커밋이 없는 리포지토리입니다.' };
+    return { ok: false, error: i18n.t('demo.noCommits', { lng }) };
   }
 
   const detailedCommits = await Promise.all(
@@ -184,15 +193,15 @@ export async function generateDemoFlashcards(repoUrl: string): Promise<GenerateD
   const aiPairs = await Promise.all(
     answerContents.map(async (content, i) => {
       try {
-        const pair = await fetchDemoFlashcardFromAI(content);
+        const pair = await fetchDemoFlashcardFromAI(content, lang);
         if (pair) return pair;
       } catch {
         // fallback
       }
       const commit = detailedCommits[i];
       return {
-        question: buildFallbackQuestion(commit),
-        answer: buildFallbackAnswer(commit),
+        question: buildFallbackQuestion(commit, lang),
+        answer: buildFallbackAnswer(commit, lang),
       };
     })
   );

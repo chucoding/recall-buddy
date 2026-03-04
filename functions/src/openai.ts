@@ -83,14 +83,14 @@ export const openaiChatCompletions = onRequest(
         return;
       }
 
-      const {text} = req.body;
+      const {text, lang} = req.body as { text?: string; lang?: 'ko' | 'en' };
 
       if (!text) {
         res.status(400).json({error: "text is required"});
         return;
       }
 
-      const prompt = getFlashcardPrompt();
+      const prompt = getFlashcardPrompt(lang);
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
