@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const functionsUrl = mode === 'production'
     ? env.VITE_FUNCTIONS_URL_PROD : env.VITE_FUNCTIONS_URL_LOCAL;
@@ -39,21 +39,6 @@ export default defineConfig(async ({ mode }) => {
       }
     }),
   ];
-
-  if (mode === 'production') {
-    const [vitePrerender, { default: Renderer }] = await Promise.all([
-      import('vite-plugin-prerender'),
-      import('@prerenderer/renderer-puppeteer'),
-    ]);
-    const prerender = vitePrerender.default({
-      staticDir: resolve(__dirname, 'dist'),
-      routes: ['/'],
-      renderer: new Renderer({
-        renderAfterDocumentEvent: 'prerender-ready',
-      }),
-    });
-    plugins.push(...(Array.isArray(prerender) ? prerender : [prerender]));
-  }
 
   return {
     resolve: {
