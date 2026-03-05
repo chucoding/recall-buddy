@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Slider from 'react-slick';
-import CodeDiffBlock from '../../templates/CodeDiffBlock';
-import FileContentBlock from '../../templates/FileContentBlock';
-import { getFileContent, getMarkdown } from '../../api/github-api';
-import { formatFileErrorForUser } from '../../lib/formatError';
-import { useScrollPriorityTouch } from '../../lib/useScrollPriorityTouch';
-import { useSwipeUpToDelete } from '../../lib/useSwipeUpToDelete';
-import type { FlashCard } from './types';
-import { trackEvent } from '../../analytics';
+import CodeDiffBlock from '@/shared/ui/CodeDiffBlock';
+import FileContentBlock from '@/shared/ui/FileContentBlock';
+import { getFileContent, getMarkdown } from '@/features/github-sync';
+import { formatFileErrorForUser } from '@/features/flashcard/lib/formatError';
+import { useScrollPriorityTouch } from '@/shared/lib/useScrollPriorityTouch';
+import { useSwipeUpToDelete } from '@/shared/lib/useSwipeUpToDelete';
+import type { FlashCard } from '@/entities/flashcard';
+import { trackEvent } from '@/shared/config/analytics';
 import { Sparkles, GitBranch, GitCompare, FileText, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
 import {
   Select,
@@ -16,7 +16,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/shared/ui/select';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';

@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { signInWithPopup, signOut, GithubAuthProvider } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { auth, githubProvider, store } from '../firebase';
-import { trackEvent } from '../analytics';
-import { getCurrentDate } from '../modules/utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { auth, githubProvider, store } from '@/shared/config/firebase';
+import { trackEvent } from '@/shared/config/analytics';
+import { getCurrentDate } from '@/shared/lib/date';
+import { Button } from '@/shared/ui/button';
+import { Card, CardContent } from '@/shared/ui/card';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
 
 const Login: React.FC = () => {
   const { t, i18n } = useTranslation();

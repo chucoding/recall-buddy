@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, store } from '../firebase';
-import { trackEvent } from '../analytics';
-import { getRepositories, getBranches } from '../api/github-api';
-import { Repository, UserRepository } from '../types';
+import { auth, store } from '@/shared/config/firebase';
+import { trackEvent } from '@/shared/config/analytics';
+import { getRepositories, getBranches } from '@/features/github-sync';
+import { Repository, UserRepository } from '@/shared/types';
 import { LayoutTemplate, TriangleAlert, CircleCheck, RefreshCw, Lightbulb, Smartphone, ChevronRight, ChevronDown, GitBranch } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/shared/ui/button';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
+import { Label } from '@/shared/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 
 interface OnboardingProps {
   onComplete: () => void;

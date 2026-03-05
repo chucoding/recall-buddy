@@ -1,11 +1,11 @@
-import './i18n';
+import '@/shared/config/i18n';
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Toaster } from 'sonner';
 import Clarity from '@microsoft/clarity';
 import './index.css';
 import LandingPage from './pages/LandingPage';
-import { trackEvent, trackScreen } from './analytics';
+import { trackEvent, trackScreen } from '@/shared/config/analytics';
 
 // Microsoft Clarity (랜딩 우선): 히트맵·세션 녹화
 const clarityId = import.meta.env.VITE_CLARITY_PROJECT_ID;

@@ -4,8 +4,8 @@ import { Toaster } from 'sonner';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-import { auth, store } from './firebase';
-import { trackScreen, trackEvent } from './analytics';
+import { auth, store } from '@/shared/config/firebase';
+import { trackScreen, trackEvent } from '@/shared/config/analytics';
 import FlashCardViewer from './pages/FlashCardViewer';
 import PastDateReview from './pages/PastDateReview';
 import Login from './pages/Login';
@@ -13,11 +13,10 @@ import Settings from './pages/Settings';
 import Pricing from './pages/Pricing';
 import NoDataView from './pages/NoDataView';
 import Onboarding from './pages/Onboarding';
-import Card from './components/Card';
-import { Button } from '@/components/ui/button';
-import { useTodayFlashcards } from './hooks/useTodayFlashcards';
-import { useVisibilityDateCheck } from './hooks/useVisibilityDateCheck';
-import { useNavigationStore } from './stores/navigationStore';
+import Card from '@/shared/ui/AppCard';
+import { Button } from '@/shared/ui/button';
+import { useTodayFlashcards, useVisibilityDateCheck } from '@/features/flashcard';
+import { useNavigationStore } from '@/shared/lib/navigationStore';
 import { BookOpen, ArrowLeft, Settings as SettingsIcon, Clock } from 'lucide-react';
 
 const App: React.FC = () => {

@@ -5,17 +5,17 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard, DeleteMethod } from '../features/flashcard';
-import { auth, store } from '../firebase';
-import { trackEvent } from '../analytics';
-import { useNavigationStore } from '../stores/navigationStore';
-import { useSubscription } from '../hooks/useSubscription';
+import { auth, store } from '@/shared/config/firebase';
+import { trackEvent } from '@/shared/config/analytics';
+import { useNavigationStore } from '@/shared/lib/navigationStore';
+import { useSubscription } from '@/features/subscription';
 import {
   regenerateCardQuestion,
   REGENERATE_QUESTION_LIMIT_FREE,
   REGENERATE_QUESTION_LIMIT_PRO,
-} from '../api/subscription-api';
-import { getCurrentDate } from '../modules/utils';
-import { Button } from '@/components/ui/button';
+} from '@/features/subscription';
+import { getCurrentDate } from '@/shared/lib/date';
+import { Button } from '@/shared/ui/button';
 
 interface PastDateReviewProps {
   date: string;

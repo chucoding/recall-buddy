@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { createCheckoutSession, type PriceId } from '../api/subscription-api';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { createCheckoutSession, type PriceId } from '@/features/subscription';
+import { Card, CardContent } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
 
 const Pricing: React.FC = () => {
   const [loading, setLoading] = useState<'monthly' | 'yearly' | null>(null);

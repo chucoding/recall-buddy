@@ -21,19 +21,19 @@ import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { DeleteMethod } from '../features/flashcard';
 import type { FlashCard } from '../features/flashcard';
-import { auth, store } from '../firebase';
-import { trackEvent } from '../analytics';
-import { useNavigationStore } from '../stores/navigationStore';
-import { useSubscription } from '../hooks/useSubscription';
-import { getCurrentDate, shuffleArray } from '../modules/utils';
+import { auth, store } from '@/shared/config/firebase';
+import { trackEvent } from '@/shared/config/analytics';
+import { useNavigationStore } from '@/shared/lib/navigationStore';
+import { useSubscription } from '@/features/subscription';
+import { getCurrentDate, shuffleArray } from '@/shared/lib/date';
 import {
   regenerateCardQuestion,
   REGENERATE_QUESTION_LIMIT_FREE,
   REGENERATE_QUESTION_LIMIT_PRO,
-} from '../api/subscription-api';
+} from '@/features/subscription';
 import { Shuffle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { FlashCardKeyboardIndicator } from '@/components/FlashCardKeyboardIndicator';
+import { Button } from '@/shared/ui/button';
+import { FlashCardKeyboardIndicator } from '@/shared/ui/FlashCardKeyboardIndicator';
 
 /**
  * 로그인 사용자 전용 플래시카드 뷰어
