@@ -183,7 +183,12 @@ async function generateFlashcards(
             question,
             answer,
             highlights: highlights?.filter((h): h is string => typeof h === "string" && h.length > 0),
-            metadata: { ...metadata, rawDiff: content, repositoryFullName: repoFullName, branch: resolvedBranch }
+            metadata: {
+              ...metadata,
+              rawDiff: content,
+              repositoryFullName: repoFullName,
+              ...(resolvedBranch ? { branch: resolvedBranch } : {}),
+            }
           });
         }
       } catch (error) {
