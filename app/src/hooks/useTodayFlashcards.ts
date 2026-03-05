@@ -87,13 +87,19 @@ export function useTodayFlashcards(user: User | null) {
 
         const currentDeck = getDeckByLang(docData, currentLang);
         if (currentDeck && currentDeck.length > 0) {
-          const branchEnriched = await enrichDeckWithResolvedBranches(currentDeck, repositories);
-          if (branchEnriched.changed) {
-            await setDoc(flashcardDocRef, { [`data_${currentLang}`]: branchEnriched.deck }, { merge: true });
-          }
           setLastLoadedDateKey(todayDate);
           setLoading(false);
           setHasData(true);
+          // Best-effort: persist branch enrichment so next load gets it. Do not block read path (Firestore write failure must not hide cached deck).
+          enrichDeckWithResolvedBranches(currentDeck, repositories)
+            .then((branchEnriched) => {
+              if (branchEnriched.changed) {
+                return setDoc(flashcardDocRef, { [`data_${currentLang}`]: branchEnriched.deck }, { merge: true });
+              }
+            })
+            .catch((err) => {
+              console.warn('Flashcard branch enrichment (best-effort) failed:', err);
+            });
           return;
         }
 
