@@ -140,6 +140,21 @@ function toFileChangeList(
   }));
 }
 
+async function getDefaultBranch(owner: string, repo: string): Promise<string | undefined> {
+  try {
+    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { Accept: 'application/vnd.github.v3+json' },
+    });
+    if (!repoRes.ok) return undefined;
+    const repoData = (await repoRes.json()) as { default_branch?: string };
+    return typeof repoData.default_branch === 'string' && repoData.default_branch.length > 0
+      ? repoData.default_branch
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export type GenerateDemoFlashcardsResult =
   | { ok: true; cards: FlashCard[] }
   | { ok: false; error: string };
@@ -157,7 +172,8 @@ export async function generateDemoFlashcards(repoUrl: string, lang?: 'ko' | 'en'
     return { ok: false, error: i18n.t('demo.invalidRepoUrl', { lng }) };
   }
 
-  const shaParam = parsed.branch ? `&sha=${encodeURIComponent(parsed.branch)}` : '';
+  const resolvedBranch = parsed.branch || await getDefaultBranch(parsed.owner, parsed.repo);
+  const shaParam = resolvedBranch ? `&sha=${encodeURIComponent(resolvedBranch)}` : '';
   const commitsRes = await fetch(
     `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=3${shaParam}`,
     { headers: { Accept: 'application/vnd.github.v3+json' } }
@@ -216,6 +232,7 @@ export async function generateDemoFlashcards(repoUrl: string, lang?: 'ko' | 'en'
       metadata: {
         commitMessage: commit.commit.message.split('\n')[0],
         repositoryFullName,
+        branch: resolvedBranch,
         ...(rawDiff && { rawDiff }),
         ...(files.length > 0 && { files }),
       },

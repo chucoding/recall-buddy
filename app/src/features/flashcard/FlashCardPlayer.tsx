@@ -9,7 +9,7 @@ import { useScrollPriorityTouch } from '../../lib/useScrollPriorityTouch';
 import { useSwipeUpToDelete } from '../../lib/useSwipeUpToDelete';
 import type { FlashCard } from './types';
 import { trackEvent } from '../../analytics';
-import { Sparkles, Folder, GitCompare, FileText, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
+import { Sparkles, GitBranch, GitCompare, FileText, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -383,7 +383,7 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                   tabIndex={0}
                   aria-label={isFlipped ? t('flashcard.viewFront') : t('flashcard.viewBack')}
                   aria-busy={regeneratingIndex === i}
-                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 p-10 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(34,197,94,0.25)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:p-6 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:p-4 max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,197,94,0.3)] p-0 overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
+                  className={`fc-card flex !flex items-center justify-center text-2xl text-center min-h-[50vh] max-h-[80vh] m-3 bg-white border-none rounded-3xl overflow-auto transition-all duration-300 shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(34,197,94,0.25)] relative antialiased cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 max-[768px]:min-h-[40vh] max-[768px]:max-h-[75vh] max-[768px]:m-2 max-[768px]:text-xl max-[768px]:rounded-[20px] max-[480px]:min-h-[35vh] max-[480px]:max-h-[70vh] max-[480px]:m-[5px] max-[480px]:text-base max-[480px]:rounded-4 ${isFlipped ? 'flipped items-start justify-start text-left shadow-[0_25px_70px_rgba(0,0,0,0.5),0_0_0_1px_rgba(34,197,94,0.3)] overflow-hidden animate-[fc-flip-in_0.3s_ease-out]' : ''}`}
                   onClick={() => {
                     if (regeneratingIndex === i) return;
                     flipCard();
@@ -426,22 +426,6 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                         className="fc-back-header flex items-center justify-between gap-2 p-2 border-b border-slate-200 bg-slate-50 rounded-t-3xl"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {card.metadata?.repositoryFullName ? (
-                          <a
-                            href={`https://github.com/${card.metadata.repositoryFullName}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="min-w-0 flex-1 overflow-hidden inline-flex items-center gap-1.5 h-9 mr-2 px-2 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600 no-underline transition-colors duration-200 hover:bg-slate-100 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label={t('flashcard.openRepoOnGitHub', { repo: card.metadata.repositoryFullName })}
-                            title={t('flashcard.openRepoOnGitHub', { repo: card.metadata.repositoryFullName })}
-                          >
-                            <img src="/github-mark.svg" alt="" width={14} height={14} className="w-3.5 h-3.5 shrink-0" aria-hidden />
-                            <span className="min-w-0 truncate">{card.metadata.repositoryFullName}</span>
-                          </a>
-                        ) : (
-                          <div className="min-w-0 flex-1" />
-                        )}
                         <div
                           className="flex shrink-0 items-center gap-1"
                           role="tablist"
@@ -472,6 +456,8 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                             <FileText className="w-4 h-4 shrink-0" aria-hidden />
                             <span className="hidden sm:inline">{t('flashcard.viewFile')}</span>
                           </button>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
                           {onRegenerateQuestion && card.metadata?.rawDiff && (
                             <button
                               type="button"
@@ -600,30 +586,49 @@ const FlashCardPlayer: React.FC<FlashCardPlayerProps> = ({
                       <AIAnswerFloatingBlock answer={card.answer} />
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center w-full p-4 text-center relative">
-                      {onDeleteCard && (
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); onDeleteCard(i, 'button'); }}
-                          aria-label={t('flashcard.removeCard')}
-                          title={t('flashcard.removeCard')}
-                          className="absolute top-3 right-3 flex items-center justify-center min-w-[44px] min-h-[44px] w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 z-10"
-                        >
-                          <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
-                        </button>
-                      )}
-                      {card.metadata?.repositoryFullName && (
-                        <span className="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[0.75rem] font-mono text-slate-600">
-                          <Folder className="w-3.5 h-3.5 shrink-0" aria-hidden />
-                          <span className="truncate max-w-[200px] sm:max-w-[280px]" title={card.metadata.repositoryFullName}>{card.metadata.repositoryFullName}</span>
+                    <div className="w-full h-full flex flex-col min-h-0">
+                      <div
+                        className="fc-front-header flex items-center justify-between gap-2 p-2 border-b border-slate-200 bg-slate-50 rounded-t-3xl"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="min-w-0 flex items-center gap-1.5 overflow-hidden">
+                          {card.metadata?.repositoryFullName && (
+                            <span className="inline-flex min-w-0 items-center gap-1.5 h-9 px-2 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600">
+                              <img src="/github-mark.svg" alt="" width={14} height={14} className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                              <span className="truncate max-w-[180px] sm:max-w-[260px]" title={card.metadata.repositoryFullName}>
+                                {card.metadata.repositoryFullName}
+                              </span>
+                            </span>
+                          )}
+                          {card.metadata?.branch && (
+                            <span className="inline-flex min-w-0 items-center gap-1.5 h-9 px-2 rounded-lg bg-white border border-slate-200 text-[0.75rem] font-mono text-slate-600">
+                              <GitBranch className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                              <span className="truncate max-w-[110px] sm:max-w-[180px]" title={card.metadata.branch}>
+                                {card.metadata.branch}
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                        {onDeleteCard && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); onDeleteCard(i, 'button'); }}
+                            aria-label={t('flashcard.removeCard')}
+                            title={t('flashcard.removeCard')}
+                            className="flex shrink-0 items-center justify-center min-w-[44px] min-h-[44px] w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                          >
+                            <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full p-4 sm:p-8 text-center">
+                        <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          {t('flashcard.question')}
                         </span>
-                      )}
-                      <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        {t('flashcard.question')}
-                      </span>
-                      <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] break-words [word-break:keep-all] whitespace-pre-line max-[768px]:text-[1.3rem] max-[480px]:text-[1.15rem]">
-                        {card.question}
-                      </p>
+                        <p className="text-[1.6rem] font-semibold text-[#1D232B] leading-[1.7] break-words [word-break:keep-all] whitespace-pre-line max-[768px]:text-[1.3rem] max-[480px]:text-[1.15rem]">
+                          {card.question}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
