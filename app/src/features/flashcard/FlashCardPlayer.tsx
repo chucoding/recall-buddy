@@ -7,7 +7,7 @@ import { getFileContent, getMarkdown } from '@/features/github-sync';
 import { formatFileErrorForUser } from '@/features/flashcard/lib/formatError';
 import { useScrollPriorityTouch } from '@/shared/lib/useScrollPriorityTouch';
 import { useSwipeUpToDelete } from '@/shared/lib/useSwipeUpToDelete';
-import type { FlashCard } from './types';
+import type { FlashCard } from '@/entities/flashcard';
 import { trackEvent } from '@/shared/config/analytics';
 import { Sparkles, GitBranch, GitCompare, FileText, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
 import {
