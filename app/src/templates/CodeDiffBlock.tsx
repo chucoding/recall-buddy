@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { highlightText } from '../modules/highlightText';
+import { highlightText } from '@/shared/lib/highlightText';
 import { FileText } from 'lucide-react';
 import 'github-markdown-css/github-markdown.css';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card as ShadcnCard, CardContent } from '@/components/ui/card';
+import { Card as ShadcnCard, CardContent } from '@/shared/ui/card';
 
 interface CardProps {
   children: React.ReactNode;

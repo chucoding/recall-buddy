@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { FlashCardPlayer } from '../features/flashcard';
 import type { FlashCard, DeleteMethod } from '../features/flashcard';
-import { generateDemoFlashcards } from '../lib/demoFlashcards';
-import { regenerateCardQuestionDemo } from '../api/subscription-api';
-import { trackEvent } from '../analytics';
-import { FlashCardKeyboardIndicator } from '../components/FlashCardKeyboardIndicator';
+import { generateDemoFlashcards } from '@/features/flashcard';
+import { regenerateCardQuestionDemo } from '@/features/subscription';
+import { trackEvent } from '@/shared/config/analytics';
+import { FlashCardKeyboardIndicator } from '@/shared/ui/FlashCardKeyboardIndicator';
 import { Info } from 'lucide-react';
 
 const DEMO_DEVICE_ID_KEY = 'demo_device_id';

@@ -1,4 +1,4 @@
-import i18n from '../i18n';
+import i18n from '@/shared/config/i18n';
 
 /**
  * 기술적 에러 메시지를 유저 친화적으로 변환 (i18n 적용)

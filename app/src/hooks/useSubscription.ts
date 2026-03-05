@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { store } from '../firebase';
-import type { UserSubscription, SubscriptionTier } from '../types';
+import { store } from '@/shared/config/firebase';
+import type { UserSubscription, SubscriptionTier } from '@/shared/types';
 
 const DEFAULT_TIER: SubscriptionTier = 'free';
 

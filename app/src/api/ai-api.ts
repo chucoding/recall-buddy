@@ -1,4 +1,4 @@
-import type { ChatCompletionResponse } from '../types';
+import type { ChatCompletionResponse } from '@/shared/types';
 import { chatCompletions as clovaChatCompletions } from './clova-api';
 import { chatCompletions as openaiChatCompletions } from './openai-api';
 

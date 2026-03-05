@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { highlightText, injectHighlightMarkup, HIGHLIGHT_CLASS } from '../modules/highlightText';
+import { highlightText, injectHighlightMarkup, HIGHLIGHT_CLASS } from '@/shared/lib/highlightText';
 import 'github-markdown-css/github-markdown.css';
 
 const EXT_TO_LANG: Record<string, string> = {

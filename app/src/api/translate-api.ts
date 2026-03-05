@@ -1,4 +1,4 @@
-import type { FlashCardData } from '../hooks/useTodayFlashcards';
+import type { FlashCardData } from '@/entities/flashcard';
 
 const FUNCTIONS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_FUNCTIONS_URL_PROD

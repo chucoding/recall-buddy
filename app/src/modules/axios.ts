@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { auth } from '../firebase';
+import { auth } from '@/shared/config/firebase';
 
 // Firebase Functions URL 설정
 const FUNCTIONS_URL = import.meta.env.PROD 

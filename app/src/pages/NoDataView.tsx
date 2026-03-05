@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigationStore } from '../stores/navigationStore';
-import Card from '../components/Card';
-import { Button } from '@/components/ui/button';
+import { useNavigationStore } from '@/shared/lib/navigationStore';
+import Card from '@/shared/ui/AppCard';
+import { Button } from '@/shared/ui/button';
 import { ClipboardList, Settings } from 'lucide-react';
 
 const NoDataView: React.FC = () => {

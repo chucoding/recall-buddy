@@ -1,5 +1,5 @@
-import { apiClient } from '../modules/axios';
-import type { Repository } from '../types';
+import { apiClient } from '@/shared/api/apiClient';
+import type { Repository } from '@/shared/types';
 
 interface Commit {
   sha: string;

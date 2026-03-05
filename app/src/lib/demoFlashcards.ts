@@ -7,11 +7,11 @@
  * 반대로 로그인 사용자 플래시카드는 useTodayFlashcards + Firestore 사용.
  */
 
-import i18n from '../i18n';
-import { chatCompletions } from '../api/ai-api';
-import type { FlashcardStructuredOutput } from '../types';
-import type { FlashCard } from '../features/flashcard';
-import type { FileChange } from '../api/github-api';
+import i18n from '@/shared/config/i18n';
+import { chatCompletions } from '@/features/ai-generation';
+import type { FlashcardStructuredOutput } from '@/shared/types';
+import type { FlashCard } from '@/entities/flashcard';
+import type { FileChange } from '@/entities/repository';
 
 /** GitHub Commits API 응답의 커밋 한 건 (public API) */
 export interface DemoCommitData {

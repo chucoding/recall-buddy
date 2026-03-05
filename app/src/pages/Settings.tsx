@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { reauthenticateWithPopup, onAuthStateChanged } from 'firebase/auth';
-import { auth, app, store, githubProvider } from '../firebase';
-import { getRepositories, getBranches } from '../api/github-api';
-import { Repository, UserRepository } from '../types';
-import { useSubscription } from '../hooks/useSubscription';
-import { useNavigationStore } from '../stores/navigationStore';
-import { getCurrentDate } from '../modules/utils';
+import { auth, app, store, githubProvider } from '@/shared/config/firebase';
+import { getRepositories, getBranches } from '@/features/github-sync';
+import { Repository, UserRepository } from '@/shared/types';
+import { useSubscription } from '@/features/subscription';
+import { useNavigationStore } from '@/shared/lib/navigationStore';
+import { getCurrentDate } from '@/shared/lib/date';
 import { X, Bell, Megaphone, ChevronUp, ChevronDown, Info, Lock, Globe, FileText, ClipboardList, User, LogOut, UserX, Sparkles, Lightbulb, CalendarIcon, GitBranch } from 'lucide-react';
 import {
   Dialog,
@@ -15,25 +15,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Switch } from '@/components/ui/switch';
+} from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
+import { Switch } from '@/shared/ui/switch';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
+} from '@/shared/ui/select';
+import { Calendar } from '@/shared/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/shared/ui/popover';
 import { format } from 'date-fns';
 import { ko, enUS } from 'date-fns/locale';
 

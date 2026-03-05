@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useNavigationStore } from '../stores/navigationStore';
-import { getCurrentDate } from '../modules/utils';
+import { useNavigationStore } from '@/shared/lib/navigationStore';
+import { getCurrentDate } from '@/shared/lib/date';
 
 const DEBOUNCE_MS = 250;
 

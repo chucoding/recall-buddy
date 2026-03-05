@@ -1,4 +1,4 @@
-import type { ChatCompletionResponse } from '../types';
+import type { ChatCompletionResponse } from '@/shared/types';
 
 const FUNCTIONS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_FUNCTIONS_URL_PROD

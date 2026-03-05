@@ -1,4 +1,4 @@
-import type { FileChange } from '../../api/github-api';
+import type { FileChange } from '@/entities/repository';
 
 export interface FlashCard {
   question: string;

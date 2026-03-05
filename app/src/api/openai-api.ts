@@ -1,4 +1,4 @@
-import type { ChatCompletionResponse, FlashcardStructuredOutput } from '../types';
+import type { ChatCompletionResponse, FlashcardStructuredOutput } from '@/shared/types';
 
 const FUNCTIONS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_FUNCTIONS_URL_PROD

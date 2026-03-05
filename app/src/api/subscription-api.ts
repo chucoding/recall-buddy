@@ -1,4 +1,4 @@
-import { apiClient } from '../modules/axios';
+import { apiClient } from '@/shared/api/apiClient';
 
 export type PriceId = 'monthly' | 'yearly';
 
