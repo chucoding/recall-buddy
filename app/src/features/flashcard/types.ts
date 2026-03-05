@@ -14,5 +14,7 @@ export interface FlashCard {
     filename?: string;
     /** 카드 출처 레포 (owner/repo). 다중 레포 시 표시용 */
     repositoryFullName?: string;
+    /** 카드 출처 브랜치 (없으면 default branch) */
+    branch?: string;
   };
 }

@@ -7,7 +7,7 @@ import { chatCompletions } from '../api/ai-api';
 import { translateFlashcards as translateFlashcardsApi } from '../api/translate-api';
 import type { FlashcardStructuredOutput } from '../types';
 import type { SubscriptionTier } from '../types';
-import { getCommits, getFilename, type CommitDetail, type FileChange } from '../api/github-api';
+import { getCommits, getFilename, getRepositories, type CommitDetail, type FileChange } from '../api/github-api';
 import { getCurrentDate } from '../modules/utils';
 import { useNavigationStore } from '../stores/navigationStore';
 import { useSubscription } from './useSubscription';
@@ -24,6 +24,7 @@ export interface FlashCardData {
     rawDiff?: string;
     files?: FileChange[];
     repositoryFullName?: string;
+    branch?: string;
   };
 }
 
@@ -89,6 +90,16 @@ export function useTodayFlashcards(user: User | null) {
           setLastLoadedDateKey(todayDate);
           setLoading(false);
           setHasData(true);
+          // Best-effort: persist branch enrichment so next load gets it. Do not block read path (Firestore write failure must not hide cached deck).
+          enrichDeckWithResolvedBranches(currentDeck, repositories)
+            .then((branchEnriched) => {
+              if (branchEnriched.changed) {
+                return setDoc(flashcardDocRef, { [`data_${currentLang}`]: branchEnriched.deck }, { merge: true });
+              }
+            })
+            .catch((err) => {
+              console.warn('Flashcard branch enrichment (best-effort) failed:', err);
+            });
           return;
         }
 
@@ -143,13 +154,15 @@ async function generateFlashcards(
   lang?: 'ko' | 'en'
 ): Promise<FlashCardData[]> {
   const list: FlashCardData[] = [];
+  const resolvedBranchByRepo = await resolveBranchByRepo(repositories);
 
   for (const repo of repositories) {
     const repoFullName = repo.fullName;
+    const resolvedBranch = resolvedBranchByRepo[repoFullName];
 
     for (const d of datesAgo) {
       try {
-        const githubData = await getGithubData(d, repoFullName, repo.branch);
+        const githubData = await getGithubData(d, repoFullName, resolvedBranch);
 
         if (!githubData) {
           continue;
@@ -170,7 +183,12 @@ async function generateFlashcards(
             question,
             answer,
             highlights: highlights?.filter((h): h is string => typeof h === "string" && h.length > 0),
-            metadata: { ...metadata, rawDiff: content, repositoryFullName: repoFullName }
+            metadata: {
+              ...metadata,
+              rawDiff: content,
+              repositoryFullName: repoFullName,
+              ...(resolvedBranch ? { branch: resolvedBranch } : {}),
+            }
           });
         }
       } catch (error) {
@@ -180,6 +198,66 @@ async function generateFlashcards(
   }
 
   return list;
+}
+
+async function resolveBranchByRepo(
+  repositories: Array<{ fullName: string; url: string; branch?: string }>
+): Promise<Record<string, string | undefined>> {
+  const explicit = new Map<string, string | undefined>();
+  for (const repo of repositories) {
+    explicit.set(repo.fullName, repo.branch);
+  }
+
+  const unresolved = repositories.filter((repo) => !repo.branch).map((repo) => repo.fullName);
+  if (unresolved.length === 0) {
+    return Object.fromEntries(explicit);
+  }
+
+  try {
+    const accessibleRepos = await getRepositories();
+    const defaultMap = new Map(
+      accessibleRepos
+        .filter((r) => typeof r.default_branch === 'string' && r.default_branch.length > 0)
+        .map((r) => [r.full_name, r.default_branch as string])
+    );
+    for (const fullName of unresolved) {
+      if (!explicit.get(fullName)) {
+        explicit.set(fullName, defaultMap.get(fullName));
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to resolve default branches:', error);
+  }
+
+  return Object.fromEntries(explicit);
+}
+
+async function enrichDeckWithResolvedBranches(
+  deck: FlashCardData[],
+  repositories: Array<{ fullName: string; url: string; branch?: string }>
+): Promise<{ deck: FlashCardData[]; changed: boolean }> {
+  const needsEnrichment = deck.some((card) => card.metadata?.repositoryFullName && !card.metadata?.branch);
+  if (!needsEnrichment) return { deck, changed: false };
+
+  const resolvedBranchByRepo = await resolveBranchByRepo(repositories);
+  let changed = false;
+
+  const enriched = deck.map((card) => {
+    const repoName = card.metadata?.repositoryFullName;
+    if (!repoName || card.metadata?.branch) return card;
+    const resolvedBranch = resolvedBranchByRepo[repoName];
+    if (!resolvedBranch) return card;
+    changed = true;
+    return {
+      ...card,
+      metadata: {
+        ...card.metadata,
+        branch: resolvedBranch,
+      },
+    };
+  });
+
+  return { deck: enriched, changed };
 }
 
 interface GithubData {
